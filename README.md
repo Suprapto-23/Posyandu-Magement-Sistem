@@ -1,66 +1,221 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🏥 Posyandu Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+<div align="center">
 
-## About Laravel
+![Posyandu Banner](https://img.shields.io/badge/Posyandu-Management%20System-blue?style=for-the-badge)
+![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**Sistem Informasi Manajemen Posyandu Berbasis Web**
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+[📖 Documentation](#dokumentasi) • [✨ Features](#fitur-utama) • [🚀 Installation](#instalasi) • [📸 Screenshots](#screenshot)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+</div>
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 📋 Tentang Project
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+**Posyandu Management System** adalah aplikasi berbasis web yang dirancang untuk memudahkan pengelolaan data dan administrasi Posyandu (Pos Pelayanan Terpadu). Sistem ini membantu petugas kesehatan dalam mencatat, memantau, dan mengelola data ibu hamil, balita, serta kegiatan imunisasi dan pemeriksaan kesehatan secara efisien.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 🎯 Tujuan
+- Digitalisasi sistem pencatatan Posyandu
+- Meningkatkan efisiensi administrasi kesehatan masyarakat
+- Memudahkan monitoring kesehatan ibu dan anak
+- Menyediakan data kesehatan yang akurat dan real-time
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## ✨ Fitur Utama
 
-### Premium Partners
+### 👥 Manajemen Data
+- 📝 **Pendaftaran Peserta** - Registrasi ibu hamil dan balita
+- 📊 **Rekam Medis Digital** - Pencatatan riwayat kesehatan
+- 📈 **Grafik Pertumbuhan** - Monitoring pertumbuhan balita
+- 💉 **Jadwal Imunisasi** - Pengingat dan tracking imunisasi
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 🔐 Sistem Keamanan
+- 🔒 Autentikasi user (Admin, Petugas, User)
+- 🛡️ Role-based access control
+- 🔑 Password encryption
 
-## Contributing
+### 📱 Antarmuka User-Friendly
+- 🎨 Dashboard interaktif
+- 📊 Laporan dan statistik
+- 🖨️ Export data (PDF/Excel)
+- 📱 Responsive design
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## 🛠️ Tech Stack
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Technology | Description |
+|-----------|-------------|
+| **Framework** | Laravel (PHP) |
+| **Database** | MySQL |
+| **Frontend** | Blade Templates, Bootstrap, jQuery |
+| **Server** | Apache (XAMPP) |
+| **Version Control** | Git & GitHub |
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 🚀 Instalasi
 
-## License
+### Prasyarat
+Pastikan sistem Anda sudah terinstall:
+- PHP >= 8.0
+- Composer
+- MySQL/MariaDB
+- XAMPP/LAMP/WAMP
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Langkah Instalasi
+
+1. **Clone Repository**
+   ```bash
+   git clone https://github.com/Suprapto-23/Posyandu-Magement-Sistem.git
+   cd Posyandu-Magement-Sistem
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   composer install
+   ```
+
+3. **Setup Environment**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+4. **Konfigurasi Database**
+   
+   Edit file `.env`:
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=posyandu_db
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
+
+5. **Migrasi Database**
+   ```bash
+   php artisan migrate
+   php artisan db:seed
+   ```
+
+6. **Jalankan Aplikasi**
+   ```bash
+   php artisan serve
+   ```
+   
+   Akses aplikasi di: `http://localhost:8000`
+
+---
+
+## 👤 Default Login
+
+| Role | Username | Password |
+|------|----------|----------|
+| Admin | admin@posyandu.com | admin123 |
+| Petugas | petugas@posyandu.com | petugas123 |
+
+> ⚠️ **Catatan:** Segera ganti password default setelah login pertama kali!
+
+---
+
+## 📸 Screenshot
+
+### Dashboard Admin
+![Dashboard](https://via.placeholder.com/800x400/4CAF50/FFFFFF?text=Dashboard+Admin)
+
+### Data Balita
+![Data Balita](https://via.placeholder.com/800x400/2196F3/FFFFFF?text=Data+Balita)
+
+### Grafik Pertumbuhan
+![Grafik](https://via.placeholder.com/800x400/FF9800/FFFFFF?text=Grafik+Pertumbuhan)
+
+---
+
+## 📁 Struktur Project
+
+```
+Posyandu-Management-System/
+├── app/
+│   ├── Http/Controllers/
+│   ├── Models/
+│   └── ...
+├── database/
+│   ├── migrations/
+│   └── seeders/
+├── public/
+│   ├── css/
+│   ├── js/
+│   └── images/
+├── resources/
+│   ├── views/
+│   └── ...
+├── routes/
+│   └── web.php
+├── .env.example
+├── composer.json
+└── README.md
+```
+
+---
+
+## 🤝 Kontribusi
+
+Kontribusi sangat diterima! Jika Anda ingin berkontribusi:
+
+1. Fork repository ini
+2. Buat branch baru (`git checkout -b feature/AmazingFeature`)
+3. Commit perubahan (`git commit -m 'Add some AmazingFeature'`)
+4. Push ke branch (`git push origin feature/AmazingFeature`)
+5. Buat Pull Request
+
+---
+
+## 📝 Roadmap
+
+- [ ] Integrasi notifikasi SMS/WhatsApp
+- [ ] Mobile Application (Android/iOS)
+- [ ] Multi-bahasa support
+- [ ] Export laporan otomatis
+- [ ] Integrasi dengan sistem puskesmas
+
+---
+
+## 📄 Lisensi
+
+Project ini dibuat untuk keperluan edukasi dan pengembangan sistem kesehatan masyarakat.
+
+---
+
+## 👨‍💻 Developer
+
+**Suprapto**
+
+- GitHub: [@Suprapto-23](https://github.com/Suprapto-23)
+- Email: suprapto.kulo@gmail.com
+
+---
+
+## 🙏 Acknowledgments
+
+- Laravel Framework
+- Bootstrap UI
+- Chart.js
+- Komunitas Developer Indonesia
+
+---
+
+<div align="center">
+
+**⭐ Jika project ini bermanfaat, jangan lupa beri star! ⭐**
+
+Made with ❤️ by Suprapto
+
+</div>
