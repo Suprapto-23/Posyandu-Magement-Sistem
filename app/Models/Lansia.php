@@ -10,64 +10,65 @@ class Lansia extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',          // Relasi ke Akun Login
         'kode_lansia',
-        'nama_lengkap',
         'nik',
+        'nama_lengkap',
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
         'alamat',
         'penyakit_bawaan',
-        'created_by',
+        'telepon_keluarga',
+        'created_by'        // Kader yang menginput
     ];
 
+    // PENTING: Agar $lansia->tanggal_lahir bisa dipanggil ->format() atau ->age
     protected $casts = [
         'tanggal_lahir' => 'date',
     ];
 
-    public function creator()
+    /**
+     * Relasi ke Akun User (Login)
+     */
+    public function user()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class);
     }
 
+    /**
+     * Relasi ke Tabel Kunjungan (Polimorfik)
+     */
     public function kunjungans()
     {
         return $this->morphMany(Kunjungan::class, 'pasien');
     }
 
-    public function pemeriksaans()
+    /**
+     * Relasi ke Pemeriksaan Terakhir
+     * Digunakan untuk menampilkan Tensi/Gula Darah di Dashboard/Index
+     */
+    public function pemeriksaan_terakhir()
     {
-        return $this->hasManyThrough(Pemeriksaan::class, Kunjungan::class, 'pasien_id', 'kunjungan_id')
-            ->where('pasien_type', Lansia::class);
+        return $this->hasOne(Pemeriksaan::class, 'pasien_id')
+            ->where('kategori_pasien', 'lansia')
+            ->latest('tanggal_periksa');
     }
 
+    /**
+     * Helper Umur (Otomatis hitung umur bulat)
+     * Panggil di view: {{ $lansia->usia }}
+     */
     public function getUsiaAttribute()
     {
-        return now()->diffInYears($this->tanggal_lahir);
+        return $this->tanggal_lahir ? $this->tanggal_lahir->age : 0;
     }
-
-    public function scopeByNik($query, $nik)
+    
+    /**
+     * Relasi ke User yang menginput data (Kader/Admin)
+     */
+    public function creator()
     {
-        return $query->where('nik', $nik);
-    }
-
-    public function scopeAktif($query)
-    {
-        return $query->whereHas('kunjungans', function($q) {
-            $q->where('tanggal_kunjungan', '>=', now()->subYear());
-        });
-    }
-
-    public function getStatusGiziAttribute()
-    {
-        $usia = $this->usia;
-        // Logika penentuan status gizi untuk lansia
-        if ($usia >= 60 && $usia <= 75) {
-            return 'Lansia Muda';
-        } elseif ($usia > 75) {
-            return 'Lansia Tua';
-        }
-        
-        return 'Pra-Lansia';
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

@@ -7,95 +7,85 @@ use App\Models\Remaja;
 use App\Models\Kunjungan;
 use App\Models\KonselingRemaja;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RemajaController extends Controller
 {
+    // Helper: Ambil data remaja berdasarkan NIK User atau Profile
+    private function getRemaja()
+    {
+        $user = Auth::user();
+        
+        // 1. Cek NIK di tabel users utama
+        $nik = $user->nik;
+
+        // 2. Jika kosong, cek di tabel profiles (RELASI PENTING)
+        if (empty($nik) && $user->profile) {
+            $nik = $user->profile->nik;
+        }
+
+        // 3. Jika masih kosong, coba cari berdasarkan nama (Opsional/Fallback)
+        if (empty($nik)) {
+            return Remaja::where('nama_lengkap', $user->name)->first();
+        }
+
+        return Remaja::where('nik', $nik)->first();
+    }
+
     public function index()
     {
-        // Ambil data remaja berdasarkan NIK user yang login
-        $user = auth()->user();
-        $remaja = Remaja::where('nik', $user->nik)->first();
+        $remaja = $this->getRemaja();
         
+        // Jika data tidak ditemukan, tampilkan view kosong
         if (!$remaja) {
             return view('user.remaja.empty');
         }
         
-        $kunjungans = Kunjungan::where('pasien_id', $remaja->id)
+        // PERBAIKAN DI SINI (Tambahkan 'kunjungans.' di depan nama kolom)
+        $pemeriksaanTerakhir = Kunjungan::where('kunjungans.pasien_id', $remaja->id)
+            ->where('kunjungans.pasien_type', 'App\Models\Remaja')
+            ->join('pemeriksaans', 'kunjungans.id', '=', 'pemeriksaans.kunjungan_id')
+            ->orderBy('kunjungans.tanggal_kunjungan', 'desc')
+            ->select(
+                'pemeriksaans.*', 
+                'kunjungans.tanggal_kunjungan', 
+                'kunjungans.keluhan as keluhan_kunjungan'
+            )
+            ->first();
+
+        // Riwayat Pemeriksaan (5 Terakhir)
+        $riwayatPemeriksaan = Kunjungan::where('pasien_id', $remaja->id)
             ->where('pasien_type', 'App\Models\Remaja')
-            ->with(['pemeriksaan', 'konsultasi'])
-            ->latest()
-            ->get();
+            ->with(['pemeriksaan']) // Eager Load
+            ->orderBy('tanggal_kunjungan', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function($kunjungan) {
+                return (object) [
+                    'tanggal_periksa' => $kunjungan->tanggal_kunjungan,
+                    'keluhan' => $kunjungan->keluhan,
+                    'diagnosa' => $kunjungan->pemeriksaan->diagnosa ?? '-',
+                    'tindakan' => $kunjungan->pemeriksaan->tindakan ?? '-'
+                ];
+            });
             
-        $konseling = KonselingRemaja::where('remaja_id', $remaja->id)
-            ->latest()
-            ->get();
-            
-        return view('user.remaja.index', compact('remaja', 'kunjungans', 'konseling'));
+        return view('user.remaja.index', compact('remaja', 'pemeriksaanTerakhir', 'riwayatPemeriksaan'));
     }
 
-    public function showPemeriksaan($id)
+    // Method Konseling
+    public function konseling()
     {
-        $user = auth()->user();
-        $remaja = Remaja::where('nik', $user->nik)->firstOrFail();
-        
-        $kunjungan = Kunjungan::where('pasien_id', $remaja->id)
-            ->where('pasien_type', 'App\Models\Remaja')
-            ->where('id', $id)
-            ->with(['pemeriksaan', 'konsultasi'])
-            ->firstOrFail();
-            
-        return view('user.remaja.pemeriksaan', compact('kunjungan', 'remaja'));
-    }
+        $remaja = $this->getRemaja();
 
-    public function showKonseling($id)
-    {
-        $user = auth()->user();
-        $remaja = Remaja::where('nik', $user->nik)->firstOrFail();
-        
-        $konseling = KonselingRemaja::where('remaja_id', $remaja->id)
-            ->where('id', $id)
-            ->with(['bidan.profile'])
-            ->firstOrFail();
-            
-        return view('user.remaja.konseling', compact('konseling', 'remaja'));
-    }
-
-    public function editProfile()
-    {
-        $user = auth()->user();
-        $remaja = Remaja::where('nik', $user->nik)->firstOrFail();
-        
-        return view('user.remaja.edit', compact('remaja'));
-    }
-
-    public function updateProfile(Request $request)
-    {
-        $user = auth()->user();
-        $remaja = Remaja::where('nik', $user->nik)->firstOrFail();
-        
-        $request->validate([
-            'alamat' => 'required|string',
-            'sekolah' => 'required|string|max:255',
-            'kelas' => 'required|string|max:50',
-            'telepon_ortu' => 'nullable|string|max:20',
-        ]);
-
-        $remaja->update([
-            'alamat' => $request->alamat,
-            'sekolah' => $request->sekolah,
-            'kelas' => $request->kelas,
-            'telepon_ortu' => $request->telepon_ortu,
-        ]);
-
-        // Update profile user juga
-        if ($user->profile) {
-            $user->profile()->update([
-                'alamat' => $request->alamat,
-                'telepon' => $request->telepon_ortu,
-            ]);
+        if (!$remaja) {
+            return view('user.remaja.empty');
         }
 
-        return redirect()->route('user.remaja.index')
-            ->with('success', 'Profil berhasil diperbarui');
+        // Pastikan tabel dan model KonselingRemaja sudah sesuai database
+        $riwayatKonseling = KonselingRemaja::where('remaja_id', $remaja->id)
+            ->orderBy('created_at', 'desc') 
+            ->get();
+
+        return view('user.remaja.konseling', compact('remaja', 'riwayatKonseling'));
     }
 }

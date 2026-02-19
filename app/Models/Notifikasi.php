@@ -1,5 +1,4 @@
 <?php
-?php
 
 namespace App\Models;
 
@@ -9,6 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Notifikasi extends Model
 {
     use HasFactory;
+
+    // --- TAMBAHKAN BARIS INI ---
+    protected $table = 'notifikasi_user'; 
+    // ---------------------------
 
     protected $fillable = [
         'user_id',

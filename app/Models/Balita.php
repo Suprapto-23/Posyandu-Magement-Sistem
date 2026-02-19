@@ -10,66 +10,49 @@ class Balita extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'kode_balita',
-        'nama_lengkap',
         'nik',
+        'nama_lengkap',
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
+        'nik_ibu',
         'nama_ibu',
+        'nik_ayah',
         'nama_ayah',
         'alamat',
         'berat_lahir',
         'panjang_lahir',
-        'created_by',
+        'created_by'
     ];
 
     protected $casts = [
         'tanggal_lahir' => 'date',
-        'berat_lahir' => 'decimal:2',
-        'panjang_lahir' => 'decimal:2',
     ];
 
-    public function creator()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class);
     }
 
+    // Relasi Kunjungan
     public function kunjungans()
     {
         return $this->morphMany(Kunjungan::class, 'pasien');
     }
 
-    public function pemeriksaans()
+    // Relasi Pemeriksaan Terakhir
+    public function pemeriksaan_terakhir()
     {
-        return $this->hasManyThrough(Pemeriksaan::class, Kunjungan::class, 'pasien_id', 'kunjungan_id')
-            ->where('pasien_type', Balita::class);
+        return $this->hasOne(Pemeriksaan::class, 'pasien_id')
+            ->where('kategori_pasien', 'balita')
+            ->latest('tanggal_periksa');
     }
 
+    // Helper Umur
     public function getUsiaAttribute()
     {
-        return now()->diffInMonths($this->tanggal_lahir);
-    }
-
-    public function getUsiaTahunAttribute()
-    {
-        return now()->diffInYears($this->tanggal_lahir);
-    }
-
-    public function getUsiaBulanAttribute()
-    {
-        return now()->diffInMonths($this->tanggal_lahir) % 12;
-    }
-
-    public function scopeByNik($query, $nik)
-    {
-        return $query->where('nik', $nik);
-    }
-
-    public function scopeAktif($query)
-    {
-        return $query->whereHas('kunjungans', function($q) {
-            $q->where('tanggal_kunjungan', '>=', now()->subYear());
-        });
+        return $this->tanggal_lahir ? $this->tanggal_lahir->age : 0;
     }
 }

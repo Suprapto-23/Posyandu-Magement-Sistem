@@ -9,70 +9,94 @@ class Pemeriksaan extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'kunjungan_id',
-        'pemeriksa_id',
-        'tinggi_badan',
-        'berat_badan',
-        'lingkar_kepala',
-        'lingkar_lengan',
-        'suhu_tubuh',
-        'tekanan_darah',
-        'denyut_nadi',
-        'respirasi',
-        'imt',
-        'kategori_imt',
-        'hemoglobin',
-        'gula_darah',
-        'kolesterol',
-        'asam_urat',
-        'keluhan',
-        'diagnosa',
-        'tindakan',
-        'catatan',
-        'rekomendasi',
-    ];
+    protected $table = 'pemeriksaans';
 
+    protected $guarded = ['id'];
+
+    // Casts untuk memastikan tipe data yang keluar benar
     protected $casts = [
-        'tinggi_badan' => 'decimal:2',
-        'berat_badan' => 'decimal:2',
-        'lingkar_kepala' => 'decimal:2',
-        'lingkar_lengan' => 'decimal:2',
-        'suhu_tubuh' => 'decimal:1',
-        'imt' => 'decimal:2',
-        'hemoglobin' => 'decimal:2',
-        'gula_darah' => 'decimal:2',
-        'kolesterol' => 'decimal:2',
-        'asam_urat' => 'decimal:2',
+        'tanggal_periksa' => 'date',
+        'berat_badan'     => 'float',
+        'tinggi_badan'    => 'float',
+        'suhu_tubuh'      => 'float',
+        'lingkar_kepala'  => 'float',
+        'lingkar_lengan'  => 'float',
+        'asam_urat'       => 'float',
+        'kolesterol'      => 'integer',
+        'gula_darah'      => 'integer',
     ];
 
-    public function kunjungan()
+    /**
+     * =========================================================
+     * RELASI KE TABEL LAIN (WAJIB ADA UNTUK MENGHILANGKAN ERROR)
+     * =========================================================
+     */
+
+    // 1. Relasi ke Data Balita
+    public function balita()
     {
-        return $this->belongsTo(Kunjungan::class);
+        return $this->belongsTo(Balita::class, 'pasien_id');
     }
 
+    // 2. Relasi ke Data Remaja
+    public function remaja()
+    {
+        return $this->belongsTo(Remaja::class, 'pasien_id');
+    }
+
+    // 3. Relasi ke Data Lansia
+    public function lansia()
+    {
+        return $this->belongsTo(Lansia::class, 'pasien_id');
+    }
+
+    // Relasi ke Kunjungan (Parent)
+    public function kunjungan()
+    {
+        return $this->belongsTo(Kunjungan::class, 'kunjungan_id');
+    }
+
+    // Relasi ke Petugas (User/Bidan/Kader)
     public function pemeriksa()
     {
         return $this->belongsTo(User::class, 'pemeriksa_id');
     }
 
-    public function analisisRemaja()
+    /**
+     * =========================================================
+     * ACCESSOR / HELPER TAMBAHAN
+     * =========================================================
+     */
+
+    // Helper untuk mengambil Nama Pasien secara otomatis apapun kategorinya
+    public function getNamaPasienAttribute()
     {
-        return $this->hasOne(AnalisisPemeriksaanRemaja::class);
+        if ($this->kategori_pasien === 'balita' && $this->balita) {
+            return $this->balita->nama_lengkap;
+        }
+        if ($this->kategori_pasien === 'remaja' && $this->remaja) {
+            return $this->remaja->nama_lengkap;
+        }
+        if ($this->kategori_pasien === 'lansia' && $this->lansia) {
+            return $this->lansia->nama_lengkap;
+        }
+        return 'Pasien Tidak Ditemukan';
     }
 
-    public function getStatusGiziAttribute()
+    // Helper untuk menghitung IMT otomatis (jika kolom imt kosong di DB)
+    public function getImtAttribute()
     {
-        if (!$this->imt) return null;
-
-        if ($this->imt < 18.5) {
-            return 'Kurus';
-        } elseif ($this->imt >= 18.5 && $this->imt <= 24.9) {
-            return 'Normal';
-        } elseif ($this->imt >= 25 && $this->imt <= 29.9) {
-            return 'Gemuk';
-        } else {
-            return 'Obesitas';
+        // Jika sudah ada nilai di database, gunakan itu
+        if (!empty($this->attributes['imt'])) {
+            return $this->attributes['imt'];
         }
+
+        // Jika tidak, hitung manual: BB / (TB * TB) dalam meter
+        if ($this->berat_badan > 0 && $this->tinggi_badan > 0) {
+            $tb_meter = $this->tinggi_badan / 100;
+            return round($this->berat_badan / ($tb_meter * $tb_meter), 1);
+        }
+
+        return 0;
     }
 }

@@ -6,10 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Lansia;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class LansiaController extends Controller
 {
-    // Menampilkan daftar data lansia
+    /**
+     * Menampilkan daftar lansia
+     */
     public function index(Request $request)
     {
         $search = $request->get('search');
@@ -26,147 +30,134 @@ class LansiaController extends Controller
         return view('kader.data.lansia.index', compact('lansias', 'search'));
     }
 
-    // Menampilkan form tambah data
+    /**
+     * Form tambah lansia
+     */
     public function create()
     {
-        // Ambil data user untuk opsi "Keluarga Terdaftar"
-        $pendaftar = User::where('role', 'user')
-            ->where('status', 'active')
-            ->with('profile')
-            ->get()
-            ->map(function($user) {
-                return [
-                    'id' => $user->id,
-                    'nama' => $user->profile->full_name ?? 'Tidak ada nama',
-                    'nik' => $user->profile->nik ?? 'Tidak ada NIK'
-                ];
-            });
-            
-        return view('kader.data.lansia.create', compact('pendaftar'));
+        return view('kader.data.lansia.create');
     }
 
-    // Menyimpan data baru ke database
+    /**
+     * Simpan data lansia
+     */
     public function store(Request $request)
     {
         $request->validate([
-            'nama_lengkap' => 'required|string|max:255',
-            'nik' => 'required|string|max:16|unique:lansias,nik',
-            'tempat_lahir' => 'required|string|max:100',
-            
-            // PERBAIKAN: Validasi dilonggarkan.
-            // 'before:today' artinya tanggal harus sebelum hari ini (tidak boleh masa depan).
-            // Tidak ada batasan minimal 60 tahun lagi, jadi 1982/1988 bisa masuk.
-            'tanggal_lahir' => 'required|date|before:today', 
-            
-            'jenis_kelamin' => 'required|in:L,P',
-            'alamat' => 'required|string',
+            'nama_lengkap'    => 'required|string|max:255',
+            'nik'             => 'required|numeric|digits:16|unique:lansias,nik', // Wajib Unik
+            'jenis_kelamin'   => 'required|in:L,P',
+            'tempat_lahir'    => 'required|string|max:100',
+            'tanggal_lahir'   => 'required|date|before:today',
+            'alamat'          => 'required|string',
             'penyakit_bawaan' => 'nullable|string',
-            'telepon_keluarga' => 'nullable|string|max:20', // Menyimpan kontak darurat
-            'created_by' => 'required|exists:users,id',
         ]);
 
-        // Generate Kode Unik: LNS-202601001
-        $kode = 'LNS-' . date('Ym') . str_pad(Lansia::count() + 1, 3, '0', STR_PAD_LEFT);
+        DB::beginTransaction();
+        try {
+            // 1. Cek apakah Lansia sudah punya akun User (berdasarkan NIK)?
+            $linkedUser = User::where('nik', $request->nik)->first();
 
-        Lansia::create([
-            'kode_lansia' => $kode,
-            'nama_lengkap' => $request->nama_lengkap,
-            'nik' => $request->nik,
-            'tempat_lahir' => $request->tempat_lahir,
-            'tanggal_lahir' => $request->tanggal_lahir,
-            'jenis_kelamin' => $request->jenis_kelamin,
-            'alamat' => $request->alamat,
-            'penyakit_bawaan' => $request->penyakit_bawaan,
-            'telepon_keluarga' => $request->telepon_keluarga, 
-            'created_by' => $request->created_by,
-        ]);
+            // 2. Generate Kode Lansia
+            $kode = 'LNS-' . date('ym') . rand(1000, 9999);
 
-        return redirect()->route('kader.data.lansia.index')
-            ->with('success', 'Data lansia berhasil ditambahkan');
+            // 3. Simpan Data
+            Lansia::create([
+                'user_id'         => $linkedUser ? $linkedUser->id : null, // Auto-Link
+                'kode_lansia'     => $kode,
+                'nik'             => $request->nik,
+                'nama_lengkap'    => $request->nama_lengkap,
+                'tempat_lahir'    => $request->tempat_lahir,
+                'tanggal_lahir'   => $request->tanggal_lahir,
+                'jenis_kelamin'   => $request->jenis_kelamin,
+                'alamat'          => $request->alamat,
+                'penyakit_bawaan' => $request->penyakit_bawaan,
+                'created_by'      => Auth::id(),
+            ]);
+
+            DB::commit();
+            return redirect()->route('kader.data.lansia.index')
+                ->with('success', 'Data Lansia berhasil disimpan & terintegrasi (jika akun ada).');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
+        }
     }
 
-    // Menampilkan detail data
-    public function show($id)
+    /**
+     * Detail lansia
+     */
+    public function show($id) 
     {
-        $lansia = Lansia::with(['kunjungans.pemeriksaan', 'kunjungans.konsultasi', 'creator.profile'])
-            ->findOrFail($id);
-            
-        // Menghitung usia otomatis
-        $usia = $lansia->tanggal_lahir->age;
+        // Load relasi kunjungans untuk riwayat
+        $lansia = Lansia::with(['kunjungans' => function($q) {
+            $q->latest()->take(10);
+        }])->findOrFail($id);
         
+        // Hitung usia bulat menggunakan Carbon age
+        $usia = \Carbon\Carbon::parse($lansia->tanggal_lahir)->age;
+
         return view('kader.data.lansia.show', compact('lansia', 'usia'));
     }
 
-    // Menampilkan form edit
+    /**
+     * Form edit lansia
+     */
     public function edit($id)
     {
         $lansia = Lansia::findOrFail($id);
-        
-        $pendaftar = User::where('role', 'user')
-            ->where('status', 'active')
-            ->with('profile')
-            ->get()
-            ->map(function($user) {
-                return [
-                    'id' => $user->id,
-                    'nama' => $user->profile->full_name ?? 'Tidak ada nama',
-                    'nik' => $user->profile->nik ?? 'Tidak ada NIK'
-                ];
-            });
-            
-        return view('kader.data.lansia.edit', compact('lansia', 'pendaftar'));
+        return view('kader.data.lansia.edit', compact('lansia'));
     }
 
-    // Memperbarui data di database
+    /**
+     * Update data lansia
+     */
     public function update(Request $request, $id)
     {
         $lansia = Lansia::findOrFail($id);
             
         $request->validate([
-            'nama_lengkap' => 'required|string|max:255',
-            'nik' => 'required|string|max:16|unique:lansias,nik,' . $id,
-            'tempat_lahir' => 'required|string|max:100',
-            
-            // PERBAIKAN: Sama seperti store, batasan umur dihapus
-            'tanggal_lahir' => 'required|date|before:today',
-            
-            'jenis_kelamin' => 'required|in:L,P',
-            'alamat' => 'required|string',
+            'nama_lengkap'    => 'required|string|max:255',
+            'nik'             => 'required|numeric|digits:16|unique:lansias,nik,' . $id,
+            'jenis_kelamin'   => 'required|in:L,P',
+            'tempat_lahir'    => 'required|string|max:100',
+            'tanggal_lahir'   => 'required|date|before:today',
+            'alamat'          => 'required|string',
             'penyakit_bawaan' => 'nullable|string',
-            'telepon_keluarga' => 'nullable|string|max:20',
-            'created_by' => 'required|exists:users,id',
         ]);
 
+        // Cek ulang link user jika NIK berubah
+        $linkedUser = User::where('nik', $request->nik)->first();
+
         $lansia->update([
-            'nama_lengkap' => $request->nama_lengkap,
-            'nik' => $request->nik,
-            'tempat_lahir' => $request->tempat_lahir,
-            'tanggal_lahir' => $request->tanggal_lahir,
-            'jenis_kelamin' => $request->jenis_kelamin,
-            'alamat' => $request->alamat,
+            'user_id'         => $linkedUser ? $linkedUser->id : null,
+            'nik'             => $request->nik,
+            'nama_lengkap'    => $request->nama_lengkap,
+            'tempat_lahir'    => $request->tempat_lahir,
+            'tanggal_lahir'   => $request->tanggal_lahir,
+            'jenis_kelamin'   => $request->jenis_kelamin,
+            'alamat'          => $request->alamat,
             'penyakit_bawaan' => $request->penyakit_bawaan,
-            'telepon_keluarga' => $request->telepon_keluarga,
-            'created_by' => $request->created_by,
         ]);
 
         return redirect()->route('kader.data.lansia.show', $id)
-            ->with('success', 'Data lansia berhasil diperbarui');
+            ->with('success', 'Data Lansia berhasil diperbarui.');
     }
 
-    // Menghapus data
+    /**
+     * Hapus data lansia
+     */
     public function destroy($id)
     {
         $lansia = Lansia::findOrFail($id);
         
-        // Mencegah penghapusan jika data sudah dipakai di tabel kunjungan
+        // Cek apakah ada riwayat kunjungan agar data aman
         if ($lansia->kunjungans()->count() > 0) {
-            return redirect()->route('kader.data.lansia.index')
-                ->with('error', 'Tidak dapat menghapus lansia karena memiliki riwayat kunjungan');
+            return back()->with('error', 'Gagal hapus: Lansia ini memiliki riwayat pemeriksaan. Hapus data kunjungan terlebih dahulu.');
         }
             
         $lansia->delete();
-
-        return redirect()->route('kader.data.lansia.index')
-            ->with('success', 'Data lansia berhasil dihapus');
+        return redirect()->route('kader.data.lansia.index')->with('success', 'Data Lansia berhasil dihapus.');
     }
 }

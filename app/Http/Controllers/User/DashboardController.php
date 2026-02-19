@@ -4,277 +4,217 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
+
+// Models
+use App\Models\User;
+use App\Models\Balita;
+use App\Models\Remaja;
+use App\Models\Lansia;
+use App\Models\JadwalPosyandu;
+use App\Models\Notifikasi;
+use App\Models\Pemeriksaan;
 
 class DashboardController extends Controller
 {
     /**
-     * Display the user dashboard
+     * Halaman Utama Dashboard
      */
     public function index()
     {
         $user = Auth::user();
-        $profile = DB::table('profiles')->where('user_id', $user->id)->first();
         
-        // ==================== DATA ANAK BALITA ====================
-        $anakBalita = [];
-        if ($profile && $profile->nik) {
-            // Cari anak balita berdasarkan NIK orang tua (nama_ibu atau nama_ayah)
-            $anakBalita = DB::table('balitas')
-                ->where(function($query) use ($profile) {
-                    $query->where('nama_ibu', 'like', '%' . $profile->full_name . '%')
-                          ->orWhere('nama_ayah', 'like', '%' . $profile->full_name . '%')
-                          ->orWhere('nik', $profile->nik);
-                })
-                ->whereDate('tanggal_lahir', '>', Carbon::now()->subYears(5))
-                ->orderBy('tanggal_lahir', 'desc')
-                ->get()
-                ->map(function ($balita) {
-                    // Hitung usia dalam bulan
-                    $usiaBulan = Carbon::parse($balita->tanggal_lahir)->diffInMonths(Carbon::now());
-                    $usiaTahun = floor($usiaBulan / 12);
-                    $sisaBulan = $usiaBulan % 12;
-                    
-                    // Ambil pemeriksaan terakhir
-                    $pemeriksaanTerakhir = DB::table('kunjungans')
-                        ->join('pemeriksaans', 'kunjungans.id', '=', 'pemeriksaans.kunjungan_id')
-                        ->where('kunjungans.pasien_id', $balita->id)
-                        ->where('kunjungans.pasien_type', 'App\\Models\\Balita')
-                        ->where('kunjungans.jenis_kunjungan', 'pemeriksaan')
-                        ->orderBy('kunjungans.tanggal_kunjungan', 'desc')
-                        ->select('pemeriksaans.*', 'kunjungans.tanggal_kunjungan')
-                        ->first();
-                    
-                    // Ambri imunisasi terakhir
-                    $imunisasiTerakhir = DB::table('kunjungans')
-                        ->join('imunisasis', 'kunjungans.id', '=', 'imunisasis.kunjungan_id')
-                        ->where('kunjungans.pasien_id', $balita->id)
-                        ->where('kunjungans.pasien_type', 'App\\Models\\Balita')
-                        ->where('kunjungans.jenis_kunjungan', 'imunisasi')
-                        ->orderBy('imunisasis.tanggal_imunisasi', 'desc')
-                        ->select('imunisasis.*')
-                        ->first();
-                    
-                    return [
-                        'id' => $balita->id,
-                        'kode_balita' => $balita->kode_balita,
-                        'nama_lengkap' => $balita->nama_lengkap,
-                        'tanggal_lahir' => $balita->tanggal_lahir,
-                        'jenis_kelamin' => $balita->jenis_kelamin,
-                        'usia_bulan' => $usiaBulan,
-                        'usia_tahun' => $usiaTahun,
-                        'sisa_bulan' => $sisaBulan,
-                        'usia_formatted' => $usiaTahun > 0 ? $usiaTahun . ' tahun ' . $sisaBulan . ' bulan' : $usiaBulan . ' bulan',
-                        'pemeriksaan_terakhir' => $pemeriksaanTerakhir,
-                        'imunisasi_terakhir' => $imunisasiTerakhir
-                    ];
-                });
-        }
-        
-        // ==================== DATA USER SEBAGAI REMAJA ====================
+        // 1. Deteksi Peran & NIK
+        $dataPeran = $this->getPeranUser($user);
+        $peranUser = $dataPeran['roles'];
+        $nikUser   = $dataPeran['nik'];
+
+        // 2. Ambil Data Kesehatan Sesuai Peran
+        $dataAnak = collect();
         $dataRemaja = null;
-        if ($profile && $profile->nik) {
-            $dataRemaja = DB::table('remajas')
-                ->where('nik', $profile->nik)
-                ->first();
-            
-            if ($dataRemaja) {
-                // Hitung usia remaja
-                $usiaRemaja = Carbon::parse($dataRemaja->tanggal_lahir)->diffInYears(Carbon::now());
-                $dataRemaja->usia = $usiaRemaja;
-                
-                // Ambil pemeriksaan terakhir
-                $pemeriksaanTerakhirRemaja = DB::table('kunjungans')
-                    ->join('pemeriksaans', 'kunjungans.id', '=', 'pemeriksaans.kunjungan_id')
-                    ->where('kunjungans.pasien_id', $dataRemaja->id)
-                    ->where('kunjungans.pasien_type', 'App\\Models\\Remaja')
-                    ->where('kunjungans.jenis_kunjungan', 'pemeriksaan')
-                    ->orderBy('kunjungans.tanggal_kunjungan', 'desc')
-                    ->select('pemeriksaans.*', 'kunjungans.tanggal_kunjungan')
-                    ->first();
-                    
-                $dataRemaja->pemeriksaan_terakhir = $pemeriksaanTerakhirRemaja;
-            }
-        }
-        
-        // ==================== DATA USER SEBAGAI LANSIA ====================
         $dataLansia = null;
-        if ($profile && $profile->nik) {
-            $dataLansia = DB::table('lansias')
-                ->where('nik', $profile->nik)
-                ->first();
-            
-            if ($dataLansia) {
-                // Hitung usia lansia
-                $usiaLansia = Carbon::parse($dataLansia->tanggal_lahir)->diffInYears(Carbon::now());
-                $dataLansia->usia = $usiaLansia;
-                
-                // Ambil pemeriksaan terakhir
-                $pemeriksaanTerakhirLansia = DB::table('kunjungans')
-                    ->join('pemeriksaans', 'kunjungans.id', '=', 'pemeriksaans.kunjungan_id')
-                    ->where('kunjungans.pasien_id', $dataLansia->id)
-                    ->where('kunjungans.pasien_type', 'App\\Models\\Lansia')
-                    ->where('kunjungans.jenis_kunjungan', 'pemeriksaan')
-                    ->orderBy('kunjungans.tanggal_kunjungan', 'desc')
-                    ->select('pemeriksaans.*', 'kunjungans.tanggal_kunjungan')
+        $grafikData = [];
+
+        if ($nikUser) {
+            // Jika Orang Tua -> Ambil Data Balita
+            if (in_array('orang_tua', $peranUser)) {
+                $dataAnak = Balita::where(function($query) use ($nikUser) {
+                        $query->where('nik_ibu', $nikUser)
+                              ->orWhere('nik_ayah', $nikUser);
+                    })
+                    ->with(['pemeriksaan_terakhir']) 
+                    ->orderBy('tanggal_lahir', 'desc')
+                    ->get();
+
+                // Ambil data grafik untuk anak pertama (jika ada)
+                if ($dataAnak->isNotEmpty()) {
+                    $grafikData = $this->getGrafikBalita($dataAnak->first()->id);
+                }
+            }
+
+            // Jika Remaja -> Ambil Data Diri Remaja
+            if (in_array('remaja', $peranUser)) {
+                $dataRemaja = Remaja::where('nik', $nikUser)
+                    ->with('pemeriksaan_terakhir')
                     ->first();
-                    
-                $dataLansia->pemeriksaan_terakhir = $pemeriksaanTerakhirLansia;
+            }
+
+            // Jika Lansia -> Ambil Data Diri Lansia
+            if (in_array('lansia', $peranUser)) {
+                $dataLansia = Lansia::where('nik', $nikUser)
+                    ->with('pemeriksaan_terakhir')
+                    ->first();
             }
         }
+
+        // 3. Widget Data Umum (Jadwal & Notifikasi)
+        // Ambil jadwal terdekat (hari ini ke depan)
+        $jadwalTerdekat = $this->getJadwalQuery($peranUser)->take(5)->get();
         
-        // ==================== JADWAL POSYANDU TERDEKAT ====================
-        $jadwalTerdekat = DB::table('jadwal_posyandu')
-            ->where('status', 'aktif')
-            ->where('tanggal', '>=', Carbon::today())
-            ->where(function($query) {
-                $query->where('target_peserta', 'semua')
-                      ->orWhere('target_peserta', 'balita')
-                      ->orWhere('target_peserta', 'remaja')
-                      ->orWhere('target_peserta', 'lansia');
-            })
-            ->orderBy('tanggal', 'asc')
-            ->limit(5)
-            ->get();
-        
-        // Format tanggal untuk tampilan
-        $jadwalTerdekat = $jadwalTerdekat->map(function ($jadwal) {
-            $jadwal->tanggal_formatted = Carbon::parse($jadwal->tanggal)->translatedFormat('d F Y');
-            $jadwal->hari = Carbon::parse($jadwal->tanggal)->translatedFormat('l');
-            return $jadwal;
-        });
-        
-        // ==================== NOTIFIKASI TERBARU ====================
-        $notifikasiTerbaru = DB::table('notifikasi_user')
-            ->where('user_id', $user->id)
-            ->where('dibaca', 0)
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
+        // Ambil notifikasi awal (untuk render pertama)
+        $notifikasiTerbaru = Notifikasi::where('user_id', $user->id)
+            ->latest()
+            ->take(5)
             ->get();
             
-        $totalNotifikasi = DB::table('notifikasi_user')
-            ->where('user_id', $user->id)
-            ->where('dibaca', 0)
+        $totalNotifikasiBelumDibaca = Notifikasi::where('user_id', $user->id)
+            ->whereNull('read_at') // Gunakan whereNull untuk read_at
             ->count();
-        
-        // ==================== GRAFIK PERKEMBANGAN ANAK ====================
-        $grafikPerkembangan = [];
-        if ($anakBalita->isNotEmpty()) {
-            $anakPertama = $anakBalita->first();
-            
-            $dataGrafik = DB::table('kunjungans as k')
-                ->join('pemeriksaans as p', 'k.id', '=', 'p.kunjungan_id')
-                ->where('k.pasien_id', $anakPertama['id'])
-                ->where('k.pasien_type', 'App\\Models\\Balita')
-                ->whereNotNull('p.berat_badan')
-                ->orderBy('k.tanggal_kunjungan', 'asc')
-                ->select('p.berat_badan', 'p.tinggi_badan', 'k.tanggal_kunjungan')
-                ->limit(10)
-                ->get();
-            
-            if ($dataGrafik->isNotEmpty()) {
-                $grafikPerkembangan = [
-                    'labels' => $dataGrafik->map(function($item) {
-                        return Carbon::parse($item->tanggal_kunjungan)->format('d M');
-                    })->toArray(),
-                    'berat_badan' => $dataGrafik->pluck('berat_badan')->toArray(),
-                    'tinggi_badan' => $dataGrafik->pluck('tinggi_badan')->toArray(),
-                ];
-            }
-        }
-        
-        // ==================== STATISTIK ====================
+
+        // 4. Statistik Sederhana
         $statistik = [
-            'total_anak' => $anakBalita->count(),
-            'total_imunisasi' => $anakBalita->sum(function($anak) {
-                return $anak['imunisasi_terakhir'] ? 1 : 0;
-            }),
-            'total_kunjungan' => $anakBalita->sum(function($anak) {
-                return $anak['pemeriksaan_terakhir'] ? 1 : 0;
-            }),
-            'notifikasi' => $totalNotifikasi,
+            'total_anak' => $dataAnak->count(),
+            'notifikasi' => $totalNotifikasiBelumDibaca,
         ];
-        
+
+        // Pesan error jika NIK kosong tapi user login
+        $pesanError = empty($nikUser) ? 'NIK belum terdaftar di sistem. Mohon lengkapi profil atau hubungi kader.' : null;
+
         return view('user.dashboard', compact(
-            'profile',
-            'anakBalita',
-            'dataRemaja',
-            'dataLansia',
-            'jadwalTerdekat',
-            'notifikasiTerbaru',
-            'totalNotifikasi',
-            'grafikPerkembangan',
-            'statistik',
-            'user'
+            'user', 
+            'peranUser', 
+            'dataAnak', 
+            'dataRemaja', 
+            'dataLansia', 
+            'grafikData', 
+            'jadwalTerdekat', 
+            'notifikasiTerbaru', 
+            'totalNotifikasiBelumDibaca', 
+            'statistik', 
+            'pesanError'
         ));
     }
-    
+
     /**
-     * Get quick stats for dashboard widgets
+     * Endpoint API untuk AJAX Polling (Realtime Notification)
+     * PERBAIKAN UTAMA ADA DI SINI
      */
-    public function getStats()
+    public function getLatestNotifications()
     {
-        $user = Auth::user();
-        $profile = DB::table('profiles')->where('user_id', $user->id)->first();
+        $user = auth()->user();
         
-        $stats = [
-            'total_anak' => 0,
-            'jadwal_mendatang' => 0,
-            'notifikasi' => 0,
-            'pemeriksaan_terakhir' => null,
-        ];
+        // 1. Ambil Notifikasi & Format Datanya
+        $notifikasi = Notifikasi::where('user_id', $user->id)
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function($notif) {
+                return [
+                    'id' => $notif->id,
+                    'judul' => $notif->judul,
+                    'pesan' => Str::limit($notif->pesan, 80),
+                    'waktu' => $notif->created_at->diffForHumans(),
+                    // LOGIKA IS_READ DIPINDAHKAN KE DALAM SINI (SCOPE YANG BENAR)
+                    'is_read' => $notif->read_at !== null, 
+                    'type' => $notif->type ?? 'info'
+                ];
+            });
+
+        // 2. Hitung Jumlah Belum Dibaca
+        $unreadCount = Notifikasi::where('user_id', $user->id)
+            ->whereNull('read_at')
+            ->count();
+
+        // 3. Kirim Response JSON
+        return response()->json([
+            'status' => 'success',
+            'notifikasi' => $notifikasi,
+            'unread_count' => $unreadCount
+        ]);
+    }
+
+    /**
+     * Menampilkan halaman lihat semua notifikasi
+     */
+    public function notifikasi()
+    {
+        $user = auth()->user();
         
-        if ($profile && $profile->nik) {
-            // Hitung total anak
-            $stats['total_anak'] = DB::table('balitas')
-                ->where(function($query) use ($profile) {
-                    $query->where('nama_ibu', 'like', '%' . $profile->full_name . '%')
-                          ->orWhere('nama_ayah', 'like', '%' . $profile->full_name . '%')
-                          ->orWhere('nik', $profile->nik);
-                })
-                ->whereDate('tanggal_lahir', '>', Carbon::now()->subYears(5))
-                ->count();
+        // Ambil semua notifikasi, paginate 10 per halaman
+        $notifikasi = Notifikasi::where('user_id', $user->id)
+            ->latest()
+            ->paginate(10);
             
-            // Jadwal mendatang (7 hari ke depan)
-            $stats['jadwal_mendatang'] = DB::table('jadwal_posyandu')
-                ->where('status', 'aktif')
-                ->where('tanggal', '>=', Carbon::today())
-                ->where('tanggal', '<=', Carbon::today()->addDays(7))
-                ->count();
-            
-            // Notifikasi belum dibaca
-            $stats['notifikasi'] = DB::table('notifikasi_user')
-                ->where('user_id', $user->id)
-                ->where('dibaca', 0)
-                ->count();
-            
-            // Pemeriksaan terakhir untuk semua anak
-            $anakBalita = DB::table('balitas')
-                ->where(function($query) use ($profile) {
-                    $query->where('nama_ibu', 'like', '%' . $profile->full_name . '%')
-                          ->orWhere('nama_ayah', 'like', '%' . $profile->full_name . '%')
-                          ->orWhere('nik', $profile->nik);
-                })
-                ->get();
-            
-            if ($anakBalita->isNotEmpty()) {
-                $latestPemeriksaan = DB::table('kunjungans')
-                    ->join('pemeriksaans', 'kunjungans.id', '=', 'pemeriksaans.kunjungan_id')
-                    ->whereIn('kunjungans.pasien_id', $anakBalita->pluck('id')->toArray())
-                    ->where('kunjungans.pasien_type', 'App\\Models\\Balita')
-                    ->where('kunjungans.jenis_kunjungan', 'pemeriksaan')
-                    ->orderBy('kunjungans.tanggal_kunjungan', 'desc')
-                    ->select('pemeriksaans.*', 'kunjungans.tanggal_kunjungan')
-                    ->first();
-                
-                $stats['pemeriksaan_terakhir'] = $latestPemeriksaan ? 
-                    Carbon::parse($latestPemeriksaan->tanggal_kunjungan)->translatedFormat('d F Y') : 
-                    'Belum ada pemeriksaan';
-            }
+        // Tandai semua sebagai sudah dibaca saat membuka halaman ini
+        Notifikasi::where('user_id', $user->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        return view('user.notifikasi.index', compact('notifikasi'));
+    }
+
+    // ==========================================
+    // PRIVATE HELPER METHODS
+    // ==========================================
+
+    private function getPeranUser($user)
+    {
+        $roles = [];
+        $nik = $user->nik ?? ($user->profile->nik ?? $user->username);
+
+        if ($nik) {
+            $isOrtu = Balita::where('nik_ibu', $nik)->orWhere('nik_ayah', $nik)->exists();
+            if ($isOrtu) $roles[] = 'orang_tua';
+            if (Remaja::where('nik', $nik)->exists()) $roles[] = 'remaja';
+            if (Lansia::where('nik', $nik)->exists()) $roles[] = 'lansia';
         }
-        
-        return response()->json($stats);
+
+        if (empty($roles)) $roles[] = 'umum';
+
+        return ['nik' => $nik, 'roles' => $roles];
+    }
+
+    private function getJadwalQuery($peranUser)
+    {
+        // PERBAIKAN: Hapus whereDate(Carbon::today())
+        // Sekarang logika: Tampilkan semua jadwal yang statusnya 'aktif'
+        $query = JadwalPosyandu::where('status', 'aktif')
+            ->orderBy('tanggal', 'desc'); // Tampilkan dari yang terbaru
+
+        $targets = ['semua'];
+        if (in_array('orang_tua', $peranUser)) $targets[] = 'balita';
+        if (in_array('remaja', $peranUser))    $targets[] = 'remaja';
+        if (in_array('lansia', $peranUser))    $targets[] = 'lansia';
+
+        return $query->whereIn('target_peserta', $targets);
+    }
+
+    private function getGrafikBalita($balitaId)
+    {
+        $riwayat = Pemeriksaan::where('pasien_id', $balitaId)
+                    ->where('kategori_pasien', 'balita')
+                    ->orderBy('tanggal_periksa', 'asc') 
+                    ->take(12)
+                    ->get();
+
+        if ($riwayat->isEmpty()) return [];
+
+        return [
+            'labels' => $riwayat->map(fn($item) => Carbon::parse($item->tanggal_periksa)->format('d M y'))->toArray(),
+            'berat'  => $riwayat->pluck('berat_badan')->toArray(),
+            'tinggi' => $riwayat->pluck('tinggi_badan')->toArray(),
+        ];
     }
 }

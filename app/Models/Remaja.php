@@ -10,76 +10,62 @@ class Remaja extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'kode_remaja',
-        'nama_lengkap',
         'nik',
+        'nama_lengkap',
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
-        'alamat',
         'sekolah',
         'kelas',
         'nama_ortu',
         'telepon_ortu',
-        'created_by',
+        'alamat',
+        'created_by'
     ];
 
     protected $casts = [
         'tanggal_lahir' => 'date',
     ];
 
-    public function creator()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class);
     }
 
+    /**
+     * Relasi ke Tabel Kunjungan (Polimorfik)
+     */
     public function kunjungans()
     {
         return $this->morphMany(Kunjungan::class, 'pasien');
     }
 
-    public function konselingRemaja()
-    {
-        return $this->hasMany(KonselingRemaja::class);
-    }
-
+    /**
+     * Relasi ke Semua Pemeriksaan
+     */
     public function pemeriksaans()
     {
-        return $this->hasManyThrough(Pemeriksaan::class, Kunjungan::class, 'pasien_id', 'kunjungan_id')
-            ->where('pasien_type', Remaja::class);
+        return $this->hasMany(Pemeriksaan::class, 'pasien_id')
+            ->where('kategori_pasien', 'remaja');
     }
 
-    public function analisisPemeriksaan()
+    /**
+     * Relasi ke Pemeriksaan Terakhir
+     */
+    public function pemeriksaan_terakhir()
     {
-        return $this->hasMany(AnalisisPemeriksaanRemaja::class);
+        return $this->hasOne(Pemeriksaan::class, 'pasien_id')
+            ->where('kategori_pasien', 'remaja')
+            ->latest('tanggal_periksa');
     }
 
+    /**
+     * Helper Umur Bulat
+     */
     public function getUsiaAttribute()
     {
-        return now()->diffInYears($this->tanggal_lahir);
-    }
-
-    public function scopeByNik($query, $nik)
-    {
-        return $query->where('nik', $nik);
-    }
-
-    public function scopeAktif($query)
-    {
-        return $query->whereHas('kunjungans', function($q) {
-            $q->where('tanggal_kunjungan', '>=', now()->subYear());
-        });
-    }
-
-    public function getKategoriUsiaAttribute()
-    {
-        $usia = $this->usia;
-        if ($usia >= 10 && $usia <= 14) {
-            return 'Remaja Awal';
-        } elseif ($usia >= 15 && $usia <= 19) {
-            return 'Remaja Akhir';
-        }
-        
-        return 'Di Luar Rentang Remaja';
+        return $this->tanggal_lahir ? $this->tanggal_lahir->age : 0;
     }
 }

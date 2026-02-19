@@ -1,0 +1,243 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\HomeController;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes - FIXED COMPLETE VERSION
+|--------------------------------------------------------------------------
+*/
+
+// ==================== ROOT & PUBLIC ROUTES ====================
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('home');
+    }
+    return redirect()->route('login');
+});
+
+// ==================== AUTHENTICATION ROUTES (NO MIDDLEWARE!) ====================
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+
+// Logout Routes
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/logout', [LoginController::class, 'logout'])->name('logout.get');
+
+// ==================== AUTHENTICATED ROUTES ====================
+Route::middleware('auth')->group(function () {
+    // Change Password
+    Route::get('/password/change', [ChangePasswordController::class, 'showChangeForm'])->name('password.change');
+    Route::post('/password/change', [ChangePasswordController::class, 'change'])->name('password.change.post');
+    
+    // Home Route
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+});
+
+// ================= ADMIN ROUTES =================
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'checkstatus', 'role:admin'])->group(function () {
+    
+    // Dashboard
+    Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/stats', [App\Http\Controllers\Admin\DashboardController::class, 'getStats'])->name('dashboard.stats');
+    
+    // User Management
+    Route::get('/users', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [App\Http\Controllers\Admin\UserController::class, 'create'])->name('users.create');
+    Route::post('/users', [App\Http\Controllers\Admin\UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'show'])->name('users.show');
+    Route::get('/users/{id}/edit', [App\Http\Controllers\Admin\UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/{id}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
+    Route::post('/users/{id}/generate-password', [App\Http\Controllers\Admin\UserController::class, 'generatePassword'])->name('users.generate-password');
+
+    // Bidan Management
+    Route::get('/bidans', [App\Http\Controllers\Admin\BidanController::class, 'index'])->name('bidans.index');
+    Route::get('/bidans/create', [App\Http\Controllers\Admin\BidanController::class, 'create'])->name('bidans.create');
+    Route::post('/bidans', [App\Http\Controllers\Admin\BidanController::class, 'store'])->name('bidans.store');
+    Route::get('/bidans/{id}', [App\Http\Controllers\Admin\BidanController::class, 'show'])->name('bidans.show');
+    Route::get('/bidans/{id}/edit', [App\Http\Controllers\Admin\BidanController::class, 'edit'])->name('bidans.edit');
+    Route::put('/bidans/{id}', [App\Http\Controllers\Admin\BidanController::class, 'update'])->name('bidans.update');
+    Route::delete('/bidans/{id}', [App\Http\Controllers\Admin\BidanController::class, 'destroy'])->name('bidans.destroy');
+    Route::post('/bidans/{id}/reset-password', [App\Http\Controllers\Admin\BidanController::class, 'resetPassword'])->name('bidans.reset-password');
+    
+    // Kader Management
+    Route::get('/kaders', [App\Http\Controllers\Admin\KaderController::class, 'index'])->name('kaders.index');
+    Route::get('/kaders/create', [App\Http\Controllers\Admin\KaderController::class, 'create'])->name('kaders.create');
+    Route::post('/kaders', [App\Http\Controllers\Admin\KaderController::class, 'store'])->name('kaders.store');
+    Route::get('/kaders/{id}', [App\Http\Controllers\Admin\KaderController::class, 'show'])->name('kaders.show');
+    Route::get('/kaders/{id}/edit', [App\Http\Controllers\Admin\KaderController::class, 'edit'])->name('kaders.edit');
+    Route::put('/kaders/{id}', [App\Http\Controllers\Admin\KaderController::class, 'update'])->name('kaders.update');
+    Route::delete('/kaders/{id}', [App\Http\Controllers\Admin\KaderController::class, 'destroy'])->name('kaders.destroy');
+    Route::post('/kaders/{id}/reset-password', [App\Http\Controllers\Admin\KaderController::class, 'resetPassword'])->name('kaders.reset-password');
+    
+    // Pasien - Balita
+    Route::get('/pasien/balita', [App\Http\Controllers\Admin\PasienController::class, 'balitaIndex'])->name('pasien.balita.index');
+    Route::get('/pasien/balita/create', [App\Http\Controllers\Admin\PasienController::class, 'balitaCreate'])->name('pasien.balita.create');
+    Route::post('/pasien/balita', [App\Http\Controllers\Admin\PasienController::class, 'balitaStore'])->name('pasien.balita.store');
+    Route::get('/pasien/balita/{id}', [App\Http\Controllers\Admin\PasienController::class, 'balitaShow'])->name('pasien.balita.show');
+    Route::get('/pasien/balita/{id}/edit', [App\Http\Controllers\Admin\PasienController::class, 'balitaEdit'])->name('pasien.balita.edit');
+    Route::put('/pasien/balita/{id}', [App\Http\Controllers\Admin\PasienController::class, 'balitaUpdate'])->name('pasien.balita.update');
+    Route::delete('/pasien/balita/{id}', [App\Http\Controllers\Admin\PasienController::class, 'balitaDestroy'])->name('pasien.balita.destroy');
+    
+    // Pasien - Remaja (PERBAIKAN: DITAMBAHKAN ROUTE LENGKAP)
+    Route::get('/pasien/remaja', [App\Http\Controllers\Admin\PasienController::class, 'remajaIndex'])->name('pasien.remaja.index');
+    Route::get('/pasien/remaja/create', [App\Http\Controllers\Admin\PasienController::class, 'remajaCreate'])->name('pasien.remaja.create');
+    Route::post('/pasien/remaja', [App\Http\Controllers\Admin\PasienController::class, 'remajaStore'])->name('pasien.remaja.store');
+    Route::get('/pasien/remaja/{id}', [App\Http\Controllers\Admin\PasienController::class, 'remajaShow'])->name('pasien.remaja.show');
+    Route::get('/pasien/remaja/{id}/edit', [App\Http\Controllers\Admin\PasienController::class, 'remajaEdit'])->name('pasien.remaja.edit');
+    Route::put('/pasien/remaja/{id}', [App\Http\Controllers\Admin\PasienController::class, 'remajaUpdate'])->name('pasien.remaja.update');
+    Route::delete('/pasien/remaja/{id}', [App\Http\Controllers\Admin\PasienController::class, 'remajaDestroy'])->name('pasien.remaja.destroy');
+
+    // Pasien - Lansia (PERBAIKAN: DITAMBAHKAN ROUTE LENGKAP)
+    Route::get('/pasien/lansia', [App\Http\Controllers\Admin\PasienController::class, 'lansiaIndex'])->name('pasien.lansia.index');
+    Route::get('/pasien/lansia/create', [App\Http\Controllers\Admin\PasienController::class, 'lansiaCreate'])->name('pasien.lansia.create');
+    Route::post('/pasien/lansia', [App\Http\Controllers\Admin\PasienController::class, 'lansiaStore'])->name('pasien.lansia.store');
+    Route::get('/pasien/lansia/{id}', [App\Http\Controllers\Admin\PasienController::class, 'lansiaShow'])->name('pasien.lansia.show');
+    Route::get('/pasien/lansia/{id}/edit', [App\Http\Controllers\Admin\PasienController::class, 'lansiaEdit'])->name('pasien.lansia.edit');
+    Route::put('/pasien/lansia/{id}', [App\Http\Controllers\Admin\PasienController::class, 'lansiaUpdate'])->name('pasien.lansia.update');
+    Route::delete('/pasien/lansia/{id}', [App\Http\Controllers\Admin\PasienController::class, 'lansiaDestroy'])->name('pasien.lansia.destroy');
+
+    // Settings
+    Route::get('/settings', [App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
+    
+    // Redirect
+    Route::get('/', fn() => redirect()->route('admin.dashboard'));
+});
+
+// ================= BIDAN ROUTES =================
+Route::prefix('bidan')->name('bidan.')->middleware(['auth', 'checkstatus', 'role:bidan'])->group(function () {
+    
+    // Dashboard
+    Route::get('/dashboard', [App\Http\Controllers\Bidan\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Pemeriksaan
+    Route::get('/pemeriksaan', [App\Http\Controllers\Bidan\PemeriksaanController::class, 'index'])->name('pemeriksaan.index');
+    Route::get('/pemeriksaan/input', [App\Http\Controllers\Bidan\PemeriksaanController::class, 'create'])->name('pemeriksaan.create');
+    Route::post('/pemeriksaan', [App\Http\Controllers\Bidan\PemeriksaanController::class, 'store'])->name('pemeriksaan.store');
+    
+    // Jadwal
+    Route::get('/jadwal', [App\Http\Controllers\Bidan\JadwalController::class, 'index'])->name('jadwal.index');
+    Route::post('/jadwal', [App\Http\Controllers\Bidan\JadwalController::class, 'store'])->name('jadwal.store');
+
+    // === PERUBAHAN DI SINI (Gunakan Bidan\PasienController) ===
+    Route::get('/pasien/balita', [App\Http\Controllers\Bidan\PasienController::class, 'indexBalita'])->name('pasien.balita');
+    Route::get('/pasien/remaja', [App\Http\Controllers\Bidan\PasienController::class, 'indexRemaja'])->name('pasien.remaja');
+    Route::get('/pasien/lansia', [App\Http\Controllers\Bidan\PasienController::class, 'indexLansia'])->name('pasien.lansia');
+    
+     // Laporan
+    Route::get('/laporan/lansia', [App\Http\Controllers\Bidan\PasienController::class, 'laporanLansia'])->name('laporan.lansia');
+    Route::get('/laporan/balita', [App\Http\Controllers\Bidan\PasienController::class, 'laporanBalita'])->name('laporan.balita');
+    Route::get('/laporan/remaja', [App\Http\Controllers\Bidan\PasienController::class, 'laporanRemaja'])->name('laporan.remaja');
+    // Redirect
+    Route::get('/', fn() => redirect()->route('bidan.dashboard'));
+});
+
+// ================= KADER ROUTES =================
+Route::prefix('kader')->name('kader.')->middleware(['auth', 'checkstatus', 'role:kader'])->group(function () {
+    
+    // Dashboard
+    Route::get('/dashboard', [\App\Http\Controllers\Kader\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Kelola Data Pasien
+    Route::prefix('data')->name('data.')->group(function () {
+        Route::resource('balita', \App\Http\Controllers\Kader\BalitaController::class);
+        Route::resource('remaja', \App\Http\Controllers\Kader\RemajaController::class);
+        Route::resource('lansia', \App\Http\Controllers\Kader\LansiaController::class);
+    });
+    
+    // Pemeriksaan
+    Route::prefix('pemeriksaan')->name('pemeriksaan.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Kader\PemeriksaanController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Kader\PemeriksaanController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Kader\PemeriksaanController::class, 'store'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\Kader\PemeriksaanController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [\App\Http\Controllers\Kader\PemeriksaanController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\Kader\PemeriksaanController::class, 'update'])->name('update');
+        Route::get('/balita', [\App\Http\Controllers\Kader\PemeriksaanController::class, 'balita'])->name('balita');
+        Route::get('/remaja', [\App\Http\Controllers\Kader\PemeriksaanController::class, 'remaja'])->name('remaja');
+        Route::get('/lansia', [\App\Http\Controllers\Kader\PemeriksaanController::class, 'lansia'])->name('lansia');
+    });
+    
+    // Laporan
+    Route::prefix('laporan')->name('laporan.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Kader\LaporanController::class, 'index'])->name('index');
+        Route::get('/balita', [\App\Http\Controllers\Kader\LaporanController::class, 'balita'])->name('balita');
+        Route::get('/remaja', [\App\Http\Controllers\Kader\LaporanController::class, 'remaja'])->name('remaja');
+        Route::get('/lansia', [\App\Http\Controllers\Kader\LaporanController::class, 'lansia'])->name('lansia');
+        Route::get('/imunisasi', [\App\Http\Controllers\Kader\LaporanController::class, 'imunisasi'])->name('imunisasi');
+        Route::get('/kunjungan', [\App\Http\Controllers\Kader\LaporanController::class, 'kunjungan'])->name('kunjungan');
+        Route::get('/generate/{type}', [\App\Http\Controllers\Kader\LaporanController::class, 'generate'])->name('generate');
+        Route::get('/download/{filename}', [\App\Http\Controllers\Kader\LaporanController::class, 'download'])->name('download');
+    });
+    
+    // Jadwal
+    Route::resource('jadwal', \App\Http\Controllers\Kader\JadwalController::class);
+    Route::post('/jadwal/broadcast/{id}', [\App\Http\Controllers\Kader\JadwalController::class, 'broadcast'])->name('jadwal.broadcast');
+    
+    // Import
+    Route::prefix('import')->name('import.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Kader\ImportController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Kader\ImportController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Kader\ImportController::class, 'store'])->name('store');
+        Route::get('/download-template/{type}', [\App\Http\Controllers\Kader\ImportController::class, 'downloadTemplate'])->name('download-template');
+        Route::get('/history', [\App\Http\Controllers\Kader\ImportController::class, 'history'])->name('history');
+        Route::get('/{id}', [\App\Http\Controllers\Kader\ImportController::class, 'show'])->name('show');
+    });
+    
+    // Profile
+    Route::get('/profile', [\App\Http\Controllers\Kader\ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/profile', [\App\Http\Controllers\Kader\ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/password', [\App\Http\Controllers\Kader\ProfileController::class, 'password'])->name('profile.password');
+    Route::put('/profile/password', [\App\Http\Controllers\Kader\ProfileController::class, 'updatePassword'])->name('profile.update-password');
+    
+    // Redirect
+    Route::get('/', fn() => redirect()->route('kader.dashboard'));
+});
+
+// ==================== USER ROUTES (WARGA) ====================
+Route::prefix('user')->name('user.')->middleware(['auth', 'checkstatus', 'role:user'])->group(function () {
+    
+    // Dashboard
+    Route::get('/dashboard', [App\Http\Controllers\User\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/stats', [App\Http\Controllers\User\DashboardController::class, 'getStats'])->name('stats');
+    
+    // Profile
+    Route::get('/profile', [App\Http\Controllers\User\ProfileController::class, 'index'])->name('profile.index');
+    Route::post('/profile', [App\Http\Controllers\User\ProfileController::class, 'update'])->name('profile.update');
+    
+    // Anak (Balita)
+    Route::resource('anak', App\Http\Controllers\User\AnakController::class);
+    
+    // Remaja
+    Route::get('/remaja', [App\Http\Controllers\User\RemajaController::class, 'index'])->name('remaja.index');
+    Route::get('/remaja/edit-profile', [App\Http\Controllers\User\RemajaController::class, 'editProfile'])->name('remaja.edit-profile');
+    Route::post('/remaja/update-profile', [App\Http\Controllers\User\RemajaController::class, 'updateProfile'])->name('remaja.update-profile');
+    
+    // Lansia
+    Route::get('/lansia', [App\Http\Controllers\User\LansiaController::class, 'index'])->name('lansia.index');
+    Route::get('/lansia/edit-profile', [App\Http\Controllers\User\LansiaController::class, 'editProfile'])->name('lansia.edit-profile');
+    Route::post('/lansia/update-profile', [App\Http\Controllers\User\LansiaController::class, 'updateProfile'])->name('lansia.update-profile');
+    
+    // Riwayat
+    Route::get('/riwayat', [App\Http\Controllers\User\RiwayatController::class, 'index'])->name('riwayat.index');
+    Route::get('/riwayat/kunjungan', [App\Http\Controllers\User\RiwayatController::class, 'kunjungan'])->name('riwayat.kunjungan');
+    Route::get('/riwayat/pemeriksaan', [App\Http\Controllers\User\RiwayatController::class, 'pemeriksaan'])->name('riwayat.pemeriksaan');
+    Route::get('/riwayat/imunisasi', [App\Http\Controllers\User\RiwayatController::class, 'imunisasi'])->name('riwayat.imunisasi');
+    
+    // Jadwal
+    Route::get('/jadwal', [App\Http\Controllers\User\JadwalController::class, 'index'])->name('jadwal');
+    
+    // Notifikasi
+    Route::get('/notifikasi', [App\Http\Controllers\User\NotifikasiController::class, 'index'])->name('notifikasi');
+    Route::post('/notifikasi/{id}/baca', [App\Http\Controllers\User\NotifikasiController::class, 'markAsRead'])->name('notifikasi.baca');
+    Route::post('/notifikasi/baca-semua', [App\Http\Controllers\User\NotifikasiController::class, 'markAllAsRead'])->name('notifikasi.baca-semua');
+    
+    // Redirect
+    Route::get('/', fn() => redirect()->route('user.dashboard'));
+});

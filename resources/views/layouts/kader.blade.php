@@ -542,7 +542,7 @@
         </div>
 
         <nav class="sidebar-nav">
-            @include('partials.sidebar-kader')
+            @include('partials.sidebar.kader')
         </nav>
     </aside>
 

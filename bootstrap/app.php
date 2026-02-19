@@ -11,34 +11,30 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Alias untuk route middleware - GUNAKAN NAMA TANPA TITIK!
+        // ✅ FIX UTAMA: Alias middleware menggunakan nama class yang BENAR
         $middleware->alias([
-            'role' => \App\Http\Middleware\CheckRole::class,
+            'role'        => \App\Http\Middleware\RoleMiddleware::class,   // Bukan CheckRole!
             'checkstatus' => \App\Http\Middleware\CheckUserStatus::class,
             'logactivity' => \App\Http\Middleware\LogUserActivity::class,
         ]);
-        
-        // PENTING: Jangan tambahkan middleware 'role' atau 'checkstatus' 
-        // ke global middleware atau middleware groups!
-        // Biarkan hanya dipanggil di route yang membutuhkan.
-        
-        // Redirect if authenticated
+
+        // Redirect guest ke halaman login
         $middleware->redirectGuestsTo('/login');
-        
-        // Redirect based on role when accessing guest routes
+
+        // Redirect user yang sudah login ke dashboard sesuai role
         $middleware->redirectUsersTo(function () {
             $user = auth()->user();
-            
+
             if (!$user) {
                 return '/login';
             }
-            
+
             return match(strtolower($user->role)) {
-                'admin' => '/admin/dashboard',
-                'bidan' => '/bidan/dashboard',
-                'kader' => '/kader/dashboard',
-                'user' => '/user/dashboard',
-                default => '/home',
+                'admin'  => '/admin/dashboard',
+                'bidan'  => '/bidan/dashboard',
+                'kader'  => '/kader/dashboard',
+                'user'   => '/user/dashboard',
+                default  => '/home',
             };
         });
     })

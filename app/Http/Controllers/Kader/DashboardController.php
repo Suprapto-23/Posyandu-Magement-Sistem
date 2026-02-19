@@ -28,7 +28,7 @@ class DashboardController extends Controller
             'kunjungan_saya_hari_ini' => Kunjungan::where('petugas_id', $user->id)
                 ->whereDate('created_at', today())
                 ->count(),
-            'imunisasi_hari_ini' => Imunisasi::whereDate('created_at', today())->count(),
+           'imunisasi_hari_ini' => Imunisasi::whereDate('tanggal_imunisasi', today())->count(),
             'jadwal_hari_ini' => JadwalPosyandu::whereDate('tanggal', today())
                 ->where('status', 'aktif')
                 ->count(),

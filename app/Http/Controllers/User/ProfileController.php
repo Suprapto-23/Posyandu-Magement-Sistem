@@ -5,14 +5,15 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use App\Models\Profile; // Pastikan Model Profile di-import
 
 class ProfileController extends Controller
 {
-    public function index()
+    public function edit()
     {
+        // Load relasi profile
         $user = Auth::user()->load('profile');
-        return view('user.profile.index', compact('user'));
+        return view('user.profile.edit', compact('user'));
     }
 
     public function update(Request $request)
@@ -20,31 +21,37 @@ class ProfileController extends Controller
         $user = Auth::user();
         
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'telepon' => 'required|string|max:20',
-            'alamat' => 'required|string',
-            'current_password' => 'nullable|string',
-            'new_password' => 'nullable|string|min:8|confirmed',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            // Validasi data profil tambahan
+            'nik' => 'nullable|numeric|digits:16',
+            'tempat_lahir' => 'nullable|string|max:100',
+            'tanggal_lahir' => 'nullable|date',
+            'alamat' => 'nullable|string',
+            'telepon' => 'nullable|numeric',
         ]);
 
-        // Update profile
-        $user->profile()->update([
-            'full_name' => $request->full_name,
-            'telepon' => $request->telepon,
-            'alamat' => $request->alamat,
+        // 1. Update Tabel Users (Login Info)
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'nik' => $request->nik, // Update NIK di user juga agar sinkron
         ]);
 
-        // Update password jika diisi
-        if ($request->filled('current_password') && $request->filled('new_password')) {
-            if (!Hash::check($request->current_password, $user->password)) {
-                return back()->withErrors(['current_password' => 'Password saat ini salah']);
-            }
+        // 2. Update atau Create Tabel Profiles (Detail Info)
+        Profile::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'full_name' => $request->name,
+                'nik' => $request->nik,
+                'tempat_lahir' => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'jenis_kelamin' => $request->jenis_kelamin ?? 'L', // Default atau dari form
+                'alamat' => $request->alamat,
+                'telepon' => $request->telepon,
+            ]
+        );
 
-            $user->update([
-                'password' => Hash::make($request->new_password)
-            ]);
-        }
-
-        return back()->with('success', 'Profil berhasil diperbarui');
+        return back()->with('success', 'Profil dan data diri berhasil diperbarui.');
     }
 }

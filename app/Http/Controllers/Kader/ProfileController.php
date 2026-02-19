@@ -11,7 +11,7 @@ class ProfileController extends Controller
 {
     public function index()
     {
-        $user = Auth::user()->load('profile');
+        $user = Auth::user();
         return view('kader.profile.index', compact('user'));
     }
 
@@ -20,19 +20,24 @@ class ProfileController extends Controller
         $user = Auth::user();
         
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'telepon' => 'required|string|max:20',
-            'alamat' => 'required|string',
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'name' => 'required|string|max:255',
+            'no_hp' => 'nullable|string|max:15',
         ]);
 
-        // Update profile
-        $user->profile()->update([
-            'full_name' => $request->full_name,
-            'telepon' => $request->telepon,
-            'alamat' => $request->alamat,
-        ]);
+        // Update User
+        $user->update(['email' => $request->email]);
 
-        return back()->with('success', 'Profil berhasil diperbarui');
+        // Update Profile
+        $user->profile()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'full_name' => $request->name,
+                'phone_number' => $request->no_hp,
+            ]
+        );
+
+        return back()->with('success', 'Profil berhasil diperbarui.');
     }
 
     public function password()
@@ -44,19 +49,15 @@ class ProfileController extends Controller
     {
         $request->validate([
             'current_password' => 'required',
-            'new_password' => 'required|string|min:8|confirmed',
+            'password' => 'required|min:8|confirmed',
         ]);
 
-        $user = Auth::user();
-
-        if (!Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['current_password' => 'Password saat ini salah']);
+        if (!Hash::check($request->current_password, Auth::user()->password)) {
+            return back()->withErrors(['current_password' => 'Password lama salah']);
         }
 
-        $user->update([
-            'password' => Hash::make($request->new_password)
-        ]);
+        Auth::user()->update(['password' => Hash::make($request->password)]);
 
-        return back()->with('success', 'Password berhasil diubah');
+        return back()->with('success', 'Password berhasil diubah.');
     }
 }

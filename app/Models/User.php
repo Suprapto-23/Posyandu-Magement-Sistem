@@ -54,9 +54,9 @@ class User extends Authenticatable
     // ==================== RELASI ====================
     
     public function profile()
-    {
-        return $this->hasOne(Profile::class);
-    }
+{
+    return $this->hasOne(Profile::class);
+}
 
     public function bidan()
     {

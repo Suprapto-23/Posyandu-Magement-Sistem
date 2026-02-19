@@ -9,38 +9,31 @@ class KonselingRemaja extends Model
 {
     use HasFactory;
 
-    protected $table = 'konseling_remaja';
+    // 1. Definisikan nama tabel secara eksplisit agar tidak error lagi
+    protected $table = 'konseling_remajas';
 
     protected $fillable = [
         'remaja_id',
-        'bidan_id',
+        'petugas_id',
         'tanggal_konseling',
-        'topik_konseling',
+        'topik',
         'keluhan',
-        'hasil_assessment',
-        'rencana_tindakan',
-        'rekomendasi',
-        'jadwal_tindak_lanjut',
-        'konsultasi_id',
+        'saran'
     ];
 
     protected $casts = [
         'tanggal_konseling' => 'date',
-        'jadwal_tindak_lanjut' => 'date',
     ];
 
+    // Relasi ke Remaja
     public function remaja()
     {
-        return $this->belongsTo(Remaja::class);
+        return $this->belongsTo(Remaja::class, 'remaja_id');
     }
 
-    public function bidan()
+    // Relasi ke Petugas (Bidan/Kader)
+    public function petugas()
     {
-        return $this->belongsTo(User::class, 'bidan_id');
-    }
-
-    public function konsultasi()
-    {
-        return $this->belongsTo(Konsultasi::class);
+        return $this->belongsTo(User::class, 'petugas_id');
     }
 }

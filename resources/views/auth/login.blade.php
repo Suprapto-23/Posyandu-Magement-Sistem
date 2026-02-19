@@ -6,18 +6,22 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Login - Sistem Posyandu</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --dark-bg: #222831;
-            --dark-secondary: #393E46;
-            --accent-cyan: #00ADB5;
-            --light-gray: #EEEEEE;
+            --primary: #009688;       /* Teal yang lebih modern */
+            --primary-dark: #00796B;
+            --primary-light: #B2DFDB;
+            --accent: #4DB6AC;
+            --text-dark: #37474F;
+            --text-gray: #90A4AE;
+            --bg-gradient: linear-gradient(135deg, #E0F2F1 0%, #80CBC4 100%);
+            --shadow-soft: 0 10px 40px -10px rgba(0, 121, 107, 0.3);
         }
 
         * {
@@ -27,790 +31,481 @@
         }
 
         body {
-            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--dark-secondary) 100%);
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-gradient);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            position: relative;
-            overflow-x: hidden;
+            overflow-x: hidden; /* Mencegah scroll horizontal */
         }
 
-        /* Animated Background */
-        body::before,
-        body::after {
-            content: '';
+        /* Background Shapes Animation */
+        .bg-shape {
             position: absolute;
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            background: var(--accent-cyan);
-            opacity: 0.05;
+            z-index: -1;
             animation: float 20s infinite ease-in-out;
         }
 
-        body::before {
-            width: 400px;
-            height: 400px;
-            top: -200px;
-            right: -200px;
-        }
-
-        body::after {
-            width: 500px;
-            height: 500px;
-            bottom: -250px;
-            left: -250px;
-            animation-delay: 5s;
-        }
+        .shape-1 { width: 300px; height: 300px; top: -100px; left: -100px; }
+        .shape-2 { width: 400px; height: 400px; bottom: -150px; right: -100px; animation-delay: 5s; }
+        .shape-3 { width: 150px; height: 150px; top: 20%; right: 15%; animation-delay: 10s; opacity: 0.2; }
 
         @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(30px, -30px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -20px); }
         }
 
-        .login-container {
-            max-width: 450px;
+        /* Main Card Container */
+        .login-card {
+            background: #fff;
             width: 100%;
+            max-width: 1000px;
+            min-height: 600px;
+            border-radius: 24px;
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+            display: flex;
             position: relative;
-            z-index: 1;
-            animation: slideUp 0.6s ease-out;
+            animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .login-card {
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            overflow: hidden;
+        /* Left Side: Form */
+        .login-form-wrapper {
+            flex: 1;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            z-index: 2;
         }
 
-        /* Header */
-        .login-header {
-            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--dark-secondary) 100%);
-            padding: 40px 30px;
-            text-align: center;
+        /* Right Side: Illustration */
+        .login-illustration-wrapper {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 40px;
             position: relative;
+            color: white;
+            text-align: center;
             overflow: hidden;
         }
 
-        .login-header::before {
-            content: '';
+        /* Decorative circles on illustration */
+        .circle-deco {
             position: absolute;
-            width: 200px;
-            height: 200px;
-            background: var(--accent-cyan);
             border-radius: 50%;
-            top: -100px;
-            right: -100px;
-            opacity: 0.1;
+            background: rgba(255,255,255,0.1);
+        }
+        .cd-1 { width: 300px; height: 300px; top: -100px; right: -50px; }
+        .cd-2 { width: 200px; height: 200px; bottom: -50px; left: -50px; }
+
+        /* Typography & Components */
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
         }
 
         .logo-icon {
-            width: 80px;
-            height: 80px;
-            background: var(--accent-cyan);
-            border-radius: 20px;
+            width: 45px;
+            height: 45px;
+            background: var(--primary);
+            color: white;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            box-shadow: 0 10px 30px rgba(0, 173, 181, 0.3);
-            position: relative;
-            z-index: 1;
+            font-size: 22px;
+            box-shadow: 0 4px 10px rgba(0, 150, 136, 0.3);
         }
 
-        .logo-icon i {
-            font-size: 40px;
-            color: white;
-        }
-
-        .login-header h1 {
-            color: white;
-            font-size: 28px;
+        .logo-text h4 {
             font-weight: 700;
-            margin-bottom: 8px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .login-header p {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
+            color: var(--text-dark);
             margin: 0;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Body */
-        .login-body {
-            padding: 40px 30px;
-        }
-
-        /* Alert Notifications */
-        .alert-modern {
-            border: none;
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            animation: slideDown 0.4s ease-out;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .alert-modern i {
             font-size: 20px;
-            flex-shrink: 0;
-            margin-top: 2px;
         }
 
-        .alert-modern .alert-content {
-            flex: 1;
+        .logo-text span {
+            font-size: 12px;
+            color: var(--text-gray);
+            letter-spacing: 0.5px;
         }
 
-        .alert-modern strong {
-            display: block;
+        .welcome-text h2 {
             font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .welcome-text p {
+            color: var(--text-gray);
             font-size: 14px;
-            margin-bottom: 4px;
+            margin-bottom: 30px;
         }
 
-        .alert-modern span {
-            font-size: 13px;
-            opacity: 0.95;
-            display: block;
-            line-height: 1.5;
-        }
-
-        .alert-danger {
-            background: #fee;
-            color: #c33;
-            border-left: 4px solid #c33;
-        }
-
-        .alert-success {
-            background: #efe;
-            color: #2a7;
-            border-left: 4px solid #2a7;
-        }
-
-        .alert-info {
-            background: #e7f6f8;
-            color: var(--accent-cyan);
-            border-left: 4px solid var(--accent-cyan);
-        }
-
-        .alert-warning {
-            background: #fff4e5;
-            color: #f57c00;
-            border-left: 4px solid #f57c00;
-        }
-
-        /* Role Selection */
+        /* Role Selector Cards */
         .role-selector {
-            margin-bottom: 28px;
-        }
-
-        .role-selector-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--dark-bg);
-            margin-bottom: 12px;
-            display: block;
-        }
-
-        .role-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 15px;
+            margin-bottom: 25px;
         }
 
-        .role-option {
-            background: var(--light-gray);
-            border: 2px solid transparent;
+        .role-card {
+            border: 2px solid #F0F0F0;
             border-radius: 12px;
-            padding: 20px 16px;
+            padding: 12px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            background: #FAFAFA;
         }
 
-        .role-option:hover {
-            background: #f5f5f5;
+        .role-card:hover {
+            border-color: var(--primary-light);
+            background: #fff;
             transform: translateY(-2px);
         }
 
-        .role-option.active {
-            background: rgba(0, 173, 181, 0.1);
-            border-color: var(--accent-cyan);
-            box-shadow: 0 4px 12px rgba(0, 173, 181, 0.2);
+        .role-card.active {
+            border-color: var(--primary);
+            background: #E0F2F1;
         }
 
-        .role-option i {
-            font-size: 28px;
-            color: var(--dark-secondary);
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
+        .role-card i {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: var(--text-gray);
+            transition: color 0.3s;
         }
 
-        .role-option.active i {
-            color: var(--accent-cyan);
-            transform: scale(1.1);
+        .role-card.active i {
+            color: var(--primary);
         }
 
-        .role-option-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--dark-bg);
-            margin-bottom: 4px;
-        }
-
-        .role-option-subtitle {
-            font-size: 11px;
-            color: #666;
-        }
-
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-label {
+        .role-card span {
+            display: block;
             font-size: 13px;
             font-weight: 600;
-            color: var(--dark-bg);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            color: var(--text-dark);
         }
 
-        .input-wrapper {
-            position: relative;
+        /* Form Inputs */
+        .form-floating > .form-control {
+            border-radius: 10px;
+            border: 2px solid #F0F0F0;
+            padding-left: 45px; /* Space for icon */
         }
 
-        .input-icon {
+        .form-floating > .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 150, 136, 0.1);
+        }
+
+        .input-group-icon {
             position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
+            left: 15px;
+            top: 20px; /* Adjust based on floating label height */
+            z-index: 4;
+            color: var(--text-gray);
             font-size: 16px;
-            transition: color 0.3s ease;
-            z-index: 1;
+        }
+        
+        .form-floating > label {
+            padding-left: 45px; /* Adjust label position */
         }
 
-        .form-control {
-            width: 100%;
-            padding: 14px 16px 14px 48px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 0 4px rgba(0, 173, 181, 0.1);
-        }
-
-        .form-control:focus ~ .input-icon {
-            color: var(--accent-cyan);
-        }
-
-        .form-control.is-invalid {
-            border-color: #c33;
-        }
-
-        .form-control:disabled,
-        .form-control[readonly] {
-            background: #f5f5f5;
-            cursor: not-allowed;
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
+        .btn-primary-custom {
+            background: var(--primary);
             border: none;
-            color: #999;
-            cursor: pointer;
-            padding: 8px;
-            transition: color 0.3s ease;
-            z-index: 1;
-        }
-
-        .password-toggle:hover {
-            color: var(--accent-cyan);
-        }
-
-        .invalid-feedback {
-            display: none;
-            font-size: 12px;
-            color: #c33;
-            margin-top: 6px;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .invalid-feedback.d-block {
-            display: flex !important;
-        }
-
-        .form-help {
-            font-size: 12px;
-            color: #666;
-            margin-top: 6px;
-        }
-
-        /* Checkbox */
-        .form-check {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 24px;
-        }
-
-        .form-check-input {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .form-check-input:checked {
-            background-color: var(--accent-cyan);
-            border-color: var(--accent-cyan);
-        }
-
-        .form-check-label {
-            font-size: 13px;
-            color: var(--dark-bg);
-            cursor: pointer;
-            user-select: none;
-        }
-
-        /* Submit Button */
-        .btn-login {
-            width: 100%;
+            border-radius: 10px;
             padding: 14px;
-            background: linear-gradient(135deg, var(--accent-cyan) 0%, #00d9e6 100%);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 15px;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+            width: 100%;
+            color: white;
+            margin-top: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 150, 136, 0.3);
         }
 
-        .btn-login:hover:not(:disabled) {
+        .btn-primary-custom:hover {
+            background: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 173, 181, 0.4);
+            box-shadow: 0 6px 15px rgba(0, 150, 136, 0.4);
+            color: white;
         }
 
-        .btn-login:active:not(:disabled) {
-            transform: translateY(0);
-        }
-
-        .btn-login:disabled {
-            background: #ccc;
+        .btn-primary-custom:disabled {
+            background: #CFD8DC;
             cursor: not-allowed;
+            transform: none;
             box-shadow: none;
         }
 
-        /* Login Info */
-        .login-info {
-            background: var(--light-gray);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 24px;
-            border-left: 4px solid var(--accent-cyan);
+        /* Lottie Container */
+        #lottieAnimation {
+            width: 100%;
+            max-width: 350px;
+            margin-bottom: 20px;
         }
 
-        .login-info h6 {
+        /* Alert Styling */
+        .alert-custom {
+            border-radius: 10px;
             font-size: 13px;
-            font-weight: 600;
-            color: var(--dark-bg);
-            margin-bottom: 12px;
+            border: none;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+        }
+        .alert-danger { background: #FFEBEE; color: #C62828; }
+        .alert-success { background: #E8F5E9; color: #2E7D32; }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 992px) {
+            .login-card {
+                max-width: 600px;
+                min-height: auto;
+                flex-direction: column; /* Stack vertically if needed, but usually hide illustration */
+            }
+            
+            .login-illustration-wrapper {
+                display: none; /* Hide image on tablet/mobile */
+            }
+
+            .login-form-wrapper {
+                padding: 40px 30px;
+            }
         }
 
-        .login-info ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .login-info ul li {
-            font-size: 12px;
-            color: #555;
-            padding: 6px 0;
-            padding-left: 24px;
-            position: relative;
-        }
-
-        .login-info ul li::before {
-            content: '\f058';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            left: 0;
-            color: var(--accent-cyan);
-            font-size: 14px;
-        }
-
-        .login-info ul strong {
-            color: var(--dark-bg);
-        }
-
-        .login-info .small {
-            font-size: 11px;
-            color: #666;
-            margin-top: 8px;
-        }
-
-        /* Footer */
-        .login-footer {
-            text-align: center;
-            padding: 24px 30px;
-            background: #f8f8f8;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .login-footer p {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .login-footer .small {
-            font-size: 11px;
-            color: #999;
-            margin: 0;
-        }
-
-        /* Responsive */
         @media (max-width: 576px) {
-            .login-container {
-                max-width: 100%;
-            }
-
-            .login-header {
+            .login-form-wrapper {
                 padding: 30px 20px;
             }
-
-            .login-body {
-                padding: 30px 20px;
+            
+            .role-selector {
+                gap: 10px;
             }
-
-            .logo-icon {
-                width: 70px;
-                height: 70px;
+            
+            .brand-logo {
+                justify-content: center;
             }
-
-            .logo-icon i {
-                font-size: 35px;
-            }
-
-            .login-header h1 {
-                font-size: 24px;
-            }
-
-            .login-footer {
-                padding: 20px;
+            
+            .welcome-text {
+                text-align: center;
             }
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-card">
-            <!-- Header -->
-            <div class="login-header">
+
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
+
+    <div class="login-card">
+        
+        <div class="login-form-wrapper">
+            <div class="brand-logo">
                 <div class="logo-icon">
-                    <i class="fas fa-hospital-user"></i>
+                    <i class="fas fa-heartbeat"></i>
                 </div>
-                <h1>SIPOSYANDU</h1>
-                <p>Sistem Informasi Posyandu Terpadu</p>
+                <div class="logo-text">
+                    <h4>SIPOSYANDU</h4>
+                    <span>Pelayanan Kesehatan Terpadu</span>
+                </div>
             </div>
 
-            <!-- Body -->
-            <div class="login-body">
-                <!-- Laravel Notifications -->
-                @if ($errors->any())
-                    <div class="alert-modern alert-danger">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <div class="alert-content">
-                            <strong>Login Gagal</strong>
-                            <span>{{ $errors->first() }}</span>
-                        </div>
-                    </div>
-                @endif
-                
-                @if (session('status'))
-                    <div class="alert-modern alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        <div class="alert-content">
-                            <strong>Informasi</strong>
-                            <span>{{ session('status') }}</span>
-                        </div>
-                    </div>
-                @endif
-                
-                @if (session('success'))
-                    <div class="alert-modern alert-success">
-                        <i class="fas fa-check-circle"></i>
-                        <div class="alert-content">
-                            <strong>Berhasil</strong>
-                            <span>{{ session('success') }}</span>
-                        </div>
-                    </div>
-                @endif
+            <div class="welcome-text">
+                <h2>Selamat Datang Kembali</h2>
+                <p>Silakan pilih metode login Anda untuk masuk.</p>
+            </div>
 
-                <!-- Role Selector -->
-                <div class="role-selector">
-                    <label class="role-selector-label">
-                        <i class="fas fa-user-shield"></i> Pilih Metode Login
-                    </label>
-                    <div class="role-options">
-                        <div class="role-option" data-role="email" onclick="selectRole('email')">
-                            <i class="fas fa-envelope"></i>
-                            <div class="role-option-title">Email Login</div>
-                            <div class="role-option-subtitle">Bidan & Kader</div>
-                        </div>
-                        <div class="role-option" data-role="nik" onclick="selectRole('nik')">
-                            <i class="fas fa-id-card"></i>
-                            <div class="role-option-title">NIK Login</div>
-                            <div class="role-option-subtitle">Warga</div>
-                        </div>
-                    </div>
+            @if ($errors->any())
+                <div class="alert alert-custom alert-danger mb-4">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>{{ $errors->first() }}</span>
+                </div>
+            @endif
+
+            @if (session('success'))
+                <div class="alert alert-custom alert-success mb-4">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+
+            <div class="role-selector">
+                <div class="role-card" onclick="selectRole('email', this)">
+                    <i class="fas fa-user-nurse"></i>
+                    <span>Bidan / Kader</span>
+                </div>
+                <div class="role-card" onclick="selectRole('nik', this)">
+                    <i class="fas fa-users"></i>
+                    <span>Warga</span>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ route('login') }}" id="loginForm">
+                @csrf
+                
+                <div class="form-floating mb-3 position-relative">
+                    <i class="fas fa-user input-group-icon" id="loginIcon"></i>
+                    <input type="text" 
+                           class="form-control" 
+                           id="loginInput" 
+                           name="login" 
+                           placeholder="Masukkan Email / NIK" 
+                           value="{{ old('login') }}"
+                           required 
+                           readonly>
+                    <label for="loginInput" id="loginLabel">Pilih metode login di atas</label>
                 </div>
 
-                <!-- Login Form -->
-                <form method="POST" action="{{ route('login') }}">
-                    @csrf
-                    
-                    <div class="form-group">
-                        <label for="login" class="form-label" id="loginLabel">
-                            <i class="fas fa-user"></i> Email atau NIK
-                        </label>
-                        <div class="input-wrapper">
-                            <input type="text" 
-                                   class="form-control @error('login') is-invalid @enderror" 
-                                   id="login" 
-                                   name="login" 
-                                   value="{{ old('login') }}" 
-                                   placeholder="Pilih metode login terlebih dahulu" 
-                                   required 
-                                   autofocus
-                                   readonly>
-                            <i class="input-icon fas fa-at" id="loginIcon"></i>
-                        </div>
-                        <small class="form-help" id="loginHelp">
-                            Pilih metode login di atas untuk mengaktifkan input
-                        </small>
-                        @error('login')
-                            <div class="invalid-feedback d-block">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span>{{ $message }}</span>
-                            </div>
-                        @enderror
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock"></i> Password
-                        </label>
-                        <div class="input-wrapper">
-                            <input type="password" 
-                                   class="form-control @error('password') is-invalid @enderror" 
-                                   id="password" 
-                                   name="password" 
-                                   placeholder="Masukkan password" 
-                                   required>
-                            <i class="input-icon fas fa-key"></i>
-                            <button class="password-toggle" type="button" id="togglePassword">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                        @error('password')
-                            <div class="invalid-feedback d-block">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span>{{ $message }}</span>
-                            </div>
-                        @enderror
-                    </div>
-                    
+                <div class="form-floating mb-4 position-relative">
+                    <i class="fas fa-lock input-group-icon"></i>
+                    <input type="password" 
+                           class="form-control" 
+                           id="passwordInput" 
+                           name="password" 
+                           placeholder="Password" 
+                           required>
+                    <label for="passwordInput">Password</label>
+                    <span class="position-absolute top-50 end-0 translate-middle-y me-3 cursor-pointer" 
+                          style="cursor: pointer; color: var(--text-gray);"
+                          onclick="togglePassword()">
+                        <i class="fas fa-eye" id="toggleIcon"></i>
+                    </span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
                     <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                        <label class="form-check-label" for="remember">
-                            Ingat saya selama 30 hari
+                        <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                        <label class="form-check-label text-muted" style="font-size: 13px;" for="remember">
+                            Ingat Saya
                         </label>
                     </div>
-                    
-                    <button type="submit" class="btn-login" id="loginButton" disabled>
-                        <i class="fas fa-sign-in-alt"></i> Masuk ke Sistem
-                    </button>
-                </form>
-                
-                <div class="login-info">
-                    <h6><i class="fas fa-info-circle"></i> Petunjuk Login</h6>
-                    <ul>
-                        <li><strong>Admin:</strong> Gunakan email (admin@posyandu.com)</li>
-                        <li><strong>Bidan/Kader:</strong> Login dengan email terdaftar</li>
-                        <li><strong>Warga:</strong> Login dengan NIK (16 digit)</li>
-                    </ul>
-                    <div class="mt-2">
-                        <p class="small mb-1"><i class="fas fa-key"></i> Password default:</p>
-                        <ul class="small mb-0">
-                            <li><strong>User baru:</strong> Password digenerate sistem</li>
-                            <li><strong>Reset password:</strong> Hubungi admin</li>
-                        </ul>
-                    </div>
+                    <a href="#" class="text-decoration-none" style="font-size: 13px; color: var(--primary);">Lupa Password?</a>
                 </div>
-            </div>
 
-            <!-- Footer -->
-            <div class="login-footer">
-                <p>
-                    <i class="fas fa-phone-alt"></i>
-                    <span>Bantuan: <strong>0812-3456-7890</strong></span>
-                </p>
-                <p class="small text-muted">
-                    &copy; {{ date('Y') }} SIPOSYANDU v2.0 - Sistem Informasi Posyandu
-                </p>
+                <button type="submit" class="btn btn-primary-custom" id="submitBtn" disabled>
+                    Masuk Sekarang <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            </form>
+
+            <div class="text-center mt-4">
+                <small class="text-muted">Belum punya akun? Hubungi Kader setempat.</small>
             </div>
         </div>
-    </div>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        let selectedRole = null;
 
-        // Role selection
-        function selectRole(role) {
-            selectedRole = role;
+        <div class="login-illustration-wrapper">
+            <div class="circle-deco cd-1"></div>
+            <div class="circle-deco cd-2"></div>
             
-            document.querySelectorAll('.role-option').forEach(el => {
-                el.classList.remove('active');
-            });
-            event.target.closest('.role-option').classList.add('active');
+            <div id="lottieAnimation"></div>
             
-            const loginInput = document.getElementById('login');
-            const loginIcon = document.getElementById('loginIcon');
-            const loginLabel = document.getElementById('loginLabel');
-            const loginHelp = document.getElementById('loginHelp');
-            const loginButton = document.getElementById('loginButton');
-            
+            <h3 class="fw-bold mb-2">Sehat Bersama Kami</h3>
+            <p class="text-white-50 px-4">Pantau kesehatan keluarga dengan mudah, cepat, dan terintegrasi melalui sistem digital Posyandu.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+
+    <script>
+        // Lottie Animation
+        lottie.loadAnimation({
+            container: document.getElementById('lottieAnimation'),
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            path: 'https://lottie.host/2f3c8c6c-9c4d-4f5a-8b9a-3f8c6c9c9c9c/8b9a3f8c6c.json'
+        });
+
+        const loginInput = document.getElementById('loginInput');
+        const loginLabel = document.getElementById('loginLabel');
+        const loginIcon = document.getElementById('loginIcon');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Role Selection Logic
+        function selectRole(role, element) {
+            // Remove active class from all cards
+            document.querySelectorAll('.role-card').forEach(card => card.classList.remove('active'));
+            // Add active class to clicked card
+            element.classList.add('active');
+
+            // Enable input
             loginInput.removeAttribute('readonly');
-            loginButton.disabled = false;
-            
+            submitBtn.removeAttribute('disabled');
+            loginInput.value = '';
+            loginInput.focus();
+
             if (role === 'email') {
-                loginInput.placeholder = "contoh: bidan@posyandu.com";
-                loginIcon.className = "input-icon fas fa-envelope";
-                loginLabel.innerHTML = '<i class="fas fa-envelope"></i> Email';
-                loginHelp.textContent = "Masukkan email yang terdaftar";
                 loginInput.type = 'email';
+                loginLabel.textContent = 'Masukkan Email Anda';
+                loginInput.placeholder = 'contoh@posyandu.com';
+                loginIcon.className = 'fas fa-envelope input-group-icon';
+                // Remove NIK formatter
+                loginInput.removeEventListener('input', formatNIK);
             } else {
-                loginInput.placeholder = "16 digit NIK (contoh: 1234567890123456)";
-                loginIcon.className = "input-icon fas fa-id-card";
-                loginLabel.innerHTML = '<i class="fas fa-id-card"></i> NIK';
-                loginHelp.textContent = "Masukkan 16 digit NIK tanpa spasi";
                 loginInput.type = 'text';
+                loginLabel.textContent = 'Masukkan 16 Digit NIK';
+                loginInput.placeholder = '1234567890123456';
+                loginIcon.className = 'fas fa-id-card input-group-icon';
+                // Add NIK formatter
                 loginInput.addEventListener('input', formatNIK);
             }
-            
-            loginInput.focus();
         }
 
-        // Format NIK
+        // Format NIK (Only numbers, max 16)
         function formatNIK(e) {
             let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 16) {
-                value = value.substring(0, 16);
-            }
+            if (value.length > 16) value = value.substring(0, 16);
             e.target.value = value;
         }
 
-        // Toggle password
-        document.getElementById('togglePassword').addEventListener('click', function() {
-            const passwordInput = document.getElementById('password');
-            const icon = this.querySelector('i');
+        // Toggle Password Visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const toggleIcon = document.getElementById('toggleIcon');
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
             } else {
                 passwordInput.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
             }
-        });
+        }
 
-        // Auto-dismiss alerts
-        setTimeout(() => {
-            const alerts = document.querySelectorAll('.alert-modern');
-            alerts.forEach(alert => {
-                alert.style.animation = 'slideDown 0.4s ease-out reverse';
-                setTimeout(() => alert.remove(), 400);
-            });
-        }, 5000);
-
-        // Pre-select role if old input exists
+        // Auto Select if Old Input Exists (Laravel specific)
         @if(old('login'))
             window.addEventListener('load', function() {
-                const oldLogin = "{{ old('login') }}";
-                if (oldLogin.includes('@')) {
-                    const emailOption = document.querySelector('[data-role="email"]');
-                    emailOption.click();
-                } else if (/^\d+$/.test(oldLogin)) {
-                    const nikOption = document.querySelector('[data-role="nik"]');
-                    nikOption.click();
+                const oldVal = "{{ old('login') }}";
+                const cards = document.querySelectorAll('.role-card');
+                if (oldVal.includes('@')) {
+                    selectRole('email', cards[0]);
+                } else {
+                    selectRole('nik', cards[1]);
                 }
+                loginInput.value = oldVal;
             });
         @endif
     </script>
