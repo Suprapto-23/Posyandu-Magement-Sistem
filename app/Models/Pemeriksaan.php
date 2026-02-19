@@ -13,9 +13,9 @@ class Pemeriksaan extends Model
 
     protected $guarded = ['id'];
 
-    // Casts untuk memastikan tipe data yang keluar benar
     protected $casts = [
         'tanggal_periksa' => 'date',
+        'verified_at'     => 'datetime',
         'berat_badan'     => 'float',
         'tinggi_badan'    => 'float',
         'suhu_tubuh'      => 'float',
@@ -23,80 +23,121 @@ class Pemeriksaan extends Model
         'lingkar_lengan'  => 'float',
         'asam_urat'       => 'float',
         'kolesterol'      => 'integer',
-        'gula_darah'      => 'integer',
+        // gula_darah sengaja tidak di-cast karena kolom DB-nya varchar(50)
     ];
 
-    /**
-     * =========================================================
-     * RELASI KE TABEL LAIN (WAJIB ADA UNTUK MENGHILANGKAN ERROR)
-     * =========================================================
-     */
+    // =========================================================
+    // RELASI
+    // =========================================================
 
-    // 1. Relasi ke Data Balita
     public function balita()
     {
         return $this->belongsTo(Balita::class, 'pasien_id');
     }
 
-    // 2. Relasi ke Data Remaja
     public function remaja()
     {
         return $this->belongsTo(Remaja::class, 'pasien_id');
     }
 
-    // 3. Relasi ke Data Lansia
     public function lansia()
     {
         return $this->belongsTo(Lansia::class, 'pasien_id');
     }
 
-    // Relasi ke Kunjungan (Parent)
     public function kunjungan()
     {
         return $this->belongsTo(Kunjungan::class, 'kunjungan_id');
     }
 
-    // Relasi ke Petugas (User/Bidan/Kader)
+    /** Kader/Bidan yang menginput data */
     public function pemeriksa()
     {
         return $this->belongsTo(User::class, 'pemeriksa_id');
     }
 
-    /**
-     * =========================================================
-     * ACCESSOR / HELPER TAMBAHAN
-     * =========================================================
-     */
-
-    // Helper untuk mengambil Nama Pasien secara otomatis apapun kategorinya
-    public function getNamaPasienAttribute()
+    /** Bidan yang memverifikasi */
+    public function verifikator()
     {
-        if ($this->kategori_pasien === 'balita' && $this->balita) {
-            return $this->balita->nama_lengkap;
-        }
-        if ($this->kategori_pasien === 'remaja' && $this->remaja) {
-            return $this->remaja->nama_lengkap;
-        }
-        if ($this->kategori_pasien === 'lansia' && $this->lansia) {
-            return $this->lansia->nama_lengkap;
-        }
-        return 'Pasien Tidak Ditemukan';
+        return $this->belongsTo(User::class, 'verified_by');
     }
 
-    // Helper untuk menghitung IMT otomatis (jika kolom imt kosong di DB)
-    public function getImtAttribute()
+    // =========================================================
+    // ACCESSORS
+    // =========================================================
+
+    /** Nama pasien otomatis sesuai kategori */
+    public function getNamaPasienAttribute(): string
     {
-        // Jika sudah ada nilai di database, gunakan itu
+        return match($this->kategori_pasien) {
+            'balita' => $this->balita?->nama_lengkap ?? 'Balita Tidak Ditemukan',
+            'remaja' => $this->remaja?->nama_lengkap ?? 'Remaja Tidak Ditemukan',
+            'lansia' => $this->lansia?->nama_lengkap ?? 'Lansia Tidak Ditemukan',
+            default  => 'Pasien Tidak Ditemukan',
+        };
+    }
+
+    /** IMT dihitung otomatis jika kolom kosong */
+    public function getImtAttribute(): float
+    {
         if (!empty($this->attributes['imt'])) {
-            return $this->attributes['imt'];
+            return (float) $this->attributes['imt'];
         }
-
-        // Jika tidak, hitung manual: BB / (TB * TB) dalam meter
         if ($this->berat_badan > 0 && $this->tinggi_badan > 0) {
-            $tb_meter = $this->tinggi_badan / 100;
-            return round($this->berat_badan / ($tb_meter * $tb_meter), 1);
+            $tb_m = $this->tinggi_badan / 100;
+            return round($this->berat_badan / ($tb_m * $tb_m), 1);
         }
-
         return 0;
+    }
+
+    /** Label teks status verifikasi */
+    public function getStatusVerifikasiLabelAttribute(): string
+    {
+        return match($this->status_verifikasi ?? 'pending') {
+            'verified' => 'Terverifikasi',
+            'rejected' => 'Ditolak',
+            default    => 'Menunggu Validasi',
+        };
+    }
+
+    /** Warna badge Bootstrap untuk status verifikasi */
+    public function getStatusVerifikasiBadgeAttribute(): string
+    {
+        return match($this->status_verifikasi ?? 'pending') {
+            'verified' => 'success',
+            'rejected' => 'danger',
+            default    => 'warning',
+        };
+    }
+
+    /** True jika data masih menunggu validasi bidan */
+    public function getFromKaderAttribute(): bool
+    {
+        return ($this->status_verifikasi ?? 'pending') === 'pending';
+    }
+
+    // =========================================================
+    // SCOPES
+    // =========================================================
+
+    public function scopePending($query)
+    {
+        return $query->where('status_verifikasi', 'pending');
+    }
+
+    public function scopeVerified($query)
+    {
+        return $query->where('status_verifikasi', 'verified');
+    }
+
+    public function scopeRejected($query)
+    {
+        return $query->where('status_verifikasi', 'rejected');
+    }
+
+    public function scopeBulanIni($query)
+    {
+        return $query->whereMonth('tanggal_periksa', now()->month)
+                     ->whereYear('tanggal_periksa', now()->year);
     }
 }

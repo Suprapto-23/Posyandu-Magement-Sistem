@@ -16,16 +16,17 @@ class PemeriksaanController extends Controller
 {
     public function index(Request $request)
     {
-        $type = $request->get('type', 'all');
+        $type   = $request->get('type', 'all');
         $search = $request->get('search');
 
-        $pemeriksaans = Pemeriksaan::with(['kunjungan.pasien'])
-            ->when($type != 'all', function($q) use ($type) {
-                return $q->where('kategori_pasien', $type);
-            })
+        $pemeriksaans = Pemeriksaan::with(['balita', 'remaja', 'lansia', 'kunjungan', 'pemeriksa'])
+            ->when($type !== 'all', fn($q) => $q->where('kategori_pasien', $type))
             ->when($search, function($q) use ($search) {
-                return $q->whereHas('kunjungan', function($k) use ($search) {
-                    $k->where('kode_kunjungan', 'like', "%$search%");
+                $q->where(function($inner) use ($search) {
+                    $inner->whereHas('balita', fn($s) => $s->where('nama_lengkap', 'like', "%$search%"))
+                          ->orWhereHas('remaja', fn($s) => $s->where('nama_lengkap', 'like', "%$search%"))
+                          ->orWhereHas('lansia', fn($s) => $s->where('nama_lengkap', 'like', "%$search%"))
+                          ->orWhereHas('kunjungan', fn($k) => $k->where('kode_kunjungan', 'like', "%$search%"));
                 });
             })
             ->latest()
@@ -72,49 +73,64 @@ class PemeriksaanController extends Controller
                 'petugas_id'        => Auth::id(),
             ]);
 
-            // Hitung Status Gizi (Logic Backend)
             $statusGizi = $this->hitungStatusGizi($request->berat_badan, $request->tinggi_badan);
 
             Pemeriksaan::create([
-                'kunjungan_id'    => $kunjungan->id,
-                'pemeriksa_id'    => Auth::id(),
-                'pasien_id'       => $request->pasien_id,
-                'kategori_pasien' => $request->pasien_type,
-                'tanggal_periksa' => $request->tanggal_kunjungan,
-                'berat_badan'     => $request->berat_badan,
-                'tinggi_badan'    => $request->tinggi_badan,
-                'lingkar_kepala'  => $request->lingkar_kepala,
-                'lingkar_lengan'  => $request->lingkar_lengan,
-                'suhu_tubuh'      => $request->suhu_tubuh,
-                'tekanan_darah'   => $request->tekanan_darah,
-                'hemoglobin'      => $request->hemoglobin,
-                'gula_darah'      => $request->gula_darah,
-                'kolesterol'      => $request->kolesterol,
-                'asam_urat'       => $request->asam_urat,
-                'keluhan'         => $request->keluhan,
-                'diagnosa'        => $request->diagnosa,
-                'tindakan'        => $request->tindakan,
-                'status_gizi'     => $statusGizi
+                'kunjungan_id'      => $kunjungan->id,
+                'pemeriksa_id'      => Auth::id(),
+                'pasien_id'         => $request->pasien_id,
+                'kategori_pasien'   => $request->pasien_type,
+                'tanggal_periksa'   => $request->tanggal_kunjungan,
+                'berat_badan'       => $request->berat_badan,
+                'tinggi_badan'      => $request->tinggi_badan,
+                'lingkar_kepala'    => $request->lingkar_kepala,
+                'lingkar_lengan'    => $request->lingkar_lengan,
+                'suhu_tubuh'        => $request->suhu_tubuh,
+                'tekanan_darah'     => $request->tekanan_darah,
+                'hemoglobin'        => $request->hemoglobin,
+                'gula_darah'        => $request->gula_darah,
+                'kolesterol'        => $request->kolesterol,
+                'asam_urat'         => $request->asam_urat,
+                'keluhan'           => $request->keluhan,
+                'diagnosa'          => $request->diagnosa,
+                'tindakan'          => $request->tindakan,
+                'status_gizi'       => $statusGizi,
+                // ✅ KADER input → wajib pending, menunggu verifikasi bidan
+                'status_verifikasi' => 'pending',
+                'verified_by'       => null,
+                'verified_at'       => null,
             ]);
 
             DB::commit();
-            return redirect()->route('kader.pemeriksaan.index')->with('success', 'Data berhasil disimpan.');
+            return redirect()->route('kader.pemeriksaan.index')
+                ->with('success', 'Data berhasil disimpan dan menunggu verifikasi Bidan.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withInput()->with('error', 'Gagal: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
         }
     }
 
     public function show($id)
     {
-        $pemeriksaan = Pemeriksaan::with(['kunjungan', 'pemeriksa.profile'])->findOrFail($id);
+        $pemeriksaan = Pemeriksaan::with([
+            'balita', 'remaja', 'lansia',
+            'kunjungan', 'pemeriksa', 'verifikator'
+        ])->findOrFail($id);
+
         return view('kader.pemeriksaan.show', compact('pemeriksaan'));
     }
 
     public function edit($id)
     {
         $pemeriksaan = Pemeriksaan::with('kunjungan')->findOrFail($id);
+
+        // Jika sudah diverifikasi bidan, Kader tidak bisa edit
+        if (($pemeriksaan->status_verifikasi ?? 'pending') === 'verified') {
+            return redirect()->route('kader.pemeriksaan.show', $id)
+                ->with('error', 'Data yang sudah diverifikasi Bidan tidak dapat diubah.');
+        }
+
         $pasien_type = $pemeriksaan->kategori_pasien;
         return view('kader.pemeriksaan.edit', compact('pemeriksaan', 'pasien_type'));
     }
@@ -122,31 +138,46 @@ class PemeriksaanController extends Controller
     public function update(Request $request, $id)
     {
         $pemeriksaan = Pemeriksaan::findOrFail($id);
-        $kunjungan = Kunjungan::findOrFail($pemeriksaan->kunjungan_id);
+
+        // Jika sudah diverifikasi, tolak perubahan
+        if (($pemeriksaan->status_verifikasi ?? 'pending') === 'verified') {
+            return redirect()->route('kader.pemeriksaan.show', $id)
+                ->with('error', 'Data yang sudah diverifikasi Bidan tidak dapat diubah.');
+        }
+
+        $kunjungan = Kunjungan::find($pemeriksaan->kunjungan_id);
 
         try {
-            $kunjungan->update(['keluhan' => $request->keluhan ?? $kunjungan->keluhan]);
+            if ($kunjungan) {
+                $kunjungan->update(['keluhan' => $request->keluhan ?? $kunjungan->keluhan]);
+            }
 
-            // Hitung ulang status gizi
             $statusGizi = $this->hitungStatusGizi($request->berat_badan, $request->tinggi_badan);
 
             $pemeriksaan->update([
-                'berat_badan'     => $request->berat_badan,
-                'tinggi_badan'    => $request->tinggi_badan,
-                'lingkar_kepala'  => $request->lingkar_kepala,
-                'lingkar_lengan'  => $request->lingkar_lengan,
-                'suhu_tubuh'      => $request->suhu_tubuh,
-                'tekanan_darah'   => $request->tekanan_darah,
-                'hemoglobin'      => $request->hemoglobin, // Update HB
-                'gula_darah'      => $request->gula_darah,
-                'kolesterol'      => $request->kolesterol,
-                'asam_urat'       => $request->asam_urat,
-                'diagnosa'        => $request->diagnosa,
-                'tindakan'        => $request->tindakan,
-                'status_gizi'     => $statusGizi,
+                'berat_badan'       => $request->berat_badan,
+                'tinggi_badan'      => $request->tinggi_badan,
+                'lingkar_kepala'    => $request->lingkar_kepala,
+                'lingkar_lengan'    => $request->lingkar_lengan,
+                'suhu_tubuh'        => $request->suhu_tubuh,
+                'tekanan_darah'     => $request->tekanan_darah,
+                'hemoglobin'        => $request->hemoglobin,
+                'gula_darah'        => $request->gula_darah,
+                'kolesterol'        => $request->kolesterol,
+                'asam_urat'         => $request->asam_urat,
+                'keluhan'           => $request->keluhan,
+                'diagnosa'          => $request->diagnosa,
+                'tindakan'          => $request->tindakan,
+                'status_gizi'       => $statusGizi,
+                // ✅ Saat Kader edit data → reset ke pending agar Bidan review ulang
+                'status_verifikasi' => 'pending',
+                'verified_by'       => null,
+                'verified_at'       => null,
             ]);
 
-            return redirect()->route('kader.pemeriksaan.show', $id)->with('success', 'Data diperbarui.');
+            return redirect()->route('kader.pemeriksaan.show', $id)
+                ->with('success', 'Data diperbarui dan perlu diverifikasi ulang oleh Bidan.');
+
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal update: ' . $e->getMessage());
         }
@@ -155,21 +186,40 @@ class PemeriksaanController extends Controller
     public function destroy($id)
     {
         $pemeriksaan = Pemeriksaan::findOrFail($id);
+
+        // Jika sudah diverifikasi, tidak bisa hapus
+        if (($pemeriksaan->status_verifikasi ?? 'pending') === 'verified') {
+            return redirect()->route('kader.pemeriksaan.index')
+                ->with('error', 'Data yang sudah diverifikasi Bidan tidak dapat dihapus.');
+        }
+
         $kunjunganId = $pemeriksaan->kunjungan_id;
         $pemeriksaan->delete();
         if ($kunjunganId) Kunjungan::destroy($kunjunganId);
-        return redirect()->route('kader.pemeriksaan.index')->with('success', 'Data dihapus.');
+
+        return redirect()->route('kader.pemeriksaan.index')
+            ->with('success', 'Data berhasil dihapus.');
     }
 
-    // Logika penentuan status gizi
-    private function hitungStatusGizi($bb, $tb) {
-        if (!$bb || !$tb) return null;
-        $tb_m = $tb / 100;
-        $imt = $bb / ($tb_m * $tb_m);
+    // =========================================================
+    // PRIVATE HELPER
+    // =========================================================
 
-        if ($imt < 18.5) return 'kurang'; // Kurus
-        if ($imt >= 18.5 && $imt <= 24.9) return 'baik'; // Normal
-        if ($imt >= 25 && $imt <= 29.9) return 'lebih'; // Gemuk
+    /**
+     * Hitung status gizi berdasarkan IMT
+     * Khusus balita sebaiknya pakai tabel WHO, tapi ini untuk fallback umum
+     */
+    private function hitungStatusGizi($bb, $tb): ?string
+    {
+        if (!$bb || !$tb) return null;
+
+        $tb_m = $tb / 100;
+        $imt  = $bb / ($tb_m * $tb_m);
+
+        if ($imt < 17.0)  return 'buruk';     // Sangat kurus
+        if ($imt < 18.5)  return 'kurang';    // Kurus
+        if ($imt <= 24.9) return 'baik';      // Normal
+        if ($imt <= 29.9) return 'lebih';     // Gemuk
         return 'obesitas';
     }
 }

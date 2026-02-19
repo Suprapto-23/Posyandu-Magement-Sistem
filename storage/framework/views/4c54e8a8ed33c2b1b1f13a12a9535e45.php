@@ -345,60 +345,75 @@
     .nav-link-custom:nth-child(8) { animation-delay: 0.45s; }
 </style>
 
+<?php
+    // Menghitung jumlah antrian validasi (diagnosa masih kosong) untuk bulan ini
+    $pendingCount = \App\Models\Pemeriksaan::whereMonth('created_at', \Carbon\Carbon::now()->month)
+        ->where(function($q) {
+            $q->whereNull('diagnosa')
+              ->orWhere('diagnosa', '');
+        })->count();
+?>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <div class="brand-icon"><i class="fas fa-heartbeat"></i></div>
+        <div class="brand-icon">
+            <i class="fas fa-heartbeat"></i>
+        </div>
         <div class="brand-text">
             <h6 class="mb-0 fw-bold">E-Posyandu</h6>
-            <small>Portal Medis</small>
+            <small style="font-size: 0.7rem; opacity: 0.8;">Portal Medis Bidan</small>
         </div>
     </div>
 
-    <nav class="nav flex-column">
+    <nav class="nav-content">
+        
         <a class="nav-link-custom <?php echo e(request()->routeIs('bidan.dashboard') ? 'active' : ''); ?>" 
            href="<?php echo e(route('bidan.dashboard')); ?>"
            data-tooltip="Dashboard">
             <i class="fas fa-th-large"></i> <span>Dashboard</span>
         </a>
 
-        <div class="nav-label">Data Pasien</div>
+        <div class="nav-label">Layanan Medis</div>
+
+        <a class="nav-link-custom <?php echo e(request()->routeIs('bidan.pemeriksaan.create') ? 'active' : ''); ?>" 
+           href="<?php echo e(route('bidan.pemeriksaan.create')); ?>"
+           data-tooltip="Input Manual">
+            <i class="fas fa-stethoscope text-primary"></i> <span>Input Manual</span>
+        </a>
+
+        <a class="nav-link-custom <?php echo e(request()->routeIs('bidan.pemeriksaan.index') || request()->routeIs('bidan.pemeriksaan.show') ? 'active' : ''); ?>" 
+           href="<?php echo e(route('bidan.pemeriksaan.index')); ?>"
+           data-tooltip="Riwayat Medis">
+            <i class="fas fa-file-medical text-danger"></i> 
+            <span class="d-flex justify-content-between align-items-center w-100 pe-2">
+                Riwayat & Validasi
+                <?php if($pendingCount > 0): ?>
+                    
+                    <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem; padding: 0.25em 0.6em;"><?php echo e($pendingCount); ?></span>
+                <?php endif; ?>
+            </span>
+        </a>
+
+        <div class="nav-label">Data Warga</div>
         
         <a class="nav-link-custom <?php echo e(request()->routeIs('bidan.pasien.balita') ? 'active' : ''); ?>" 
            href="<?php echo e(route('bidan.pasien.balita')); ?>"
            data-tooltip="Data Balita">
-            <i class="fas fa-baby"></i> <span>Data Balita</span>
+            <i class="fas fa-baby text-info"></i> <span>Data Balita</span>
         </a>
         
         <a class="nav-link-custom <?php echo e(request()->routeIs('bidan.pasien.remaja') ? 'active' : ''); ?>" 
            href="<?php echo e(route('bidan.pasien.remaja')); ?>"
            data-tooltip="Data Remaja">
-            <i class="fas fa-user-graduate"></i> <span>Data Remaja</span>
+            <i class="fas fa-user-graduate text-success"></i> <span>Data Remaja</span>
         </a>
         
         <a class="nav-link-custom <?php echo e(request()->routeIs('bidan.pasien.lansia') ? 'active' : ''); ?>" 
            href="<?php echo e(route('bidan.pasien.lansia')); ?>"
            data-tooltip="Data Lansia">
-            <i class="fas fa-wheelchair"></i> <span>Data Lansia</span>
-        </a>
-
-        <div class="nav-label">Layanan Medis</div>
-
-        <a class="nav-link-custom <?php echo e(request()->routeIs('bidan.pemeriksaan.verifikasi*') ? 'active' : ''); ?>" 
-           href="<?php echo e(route('bidan.dashboard')); ?>#antrian"
-           data-tooltip="Validasi Pemeriksaan">
-            <i class="fas fa-check-double"></i> <span>Validasi Data</span>
-        </a>
-
-        <a class="nav-link-custom <?php echo e(request()->routeIs('bidan.pemeriksaan.create') ? 'active' : ''); ?>" 
-           href="<?php echo e(route('bidan.pemeriksaan.create')); ?>"
-           data-tooltip="Periksa Pasien">
-            <i class="fas fa-stethoscope"></i> <span>Periksa Pasien</span>
-        </a>
-
-        <a class="nav-link-custom <?php echo e(request()->routeIs('bidan.pemeriksaan.index') ? 'active' : ''); ?>" 
-           href="<?php echo e(route('bidan.pemeriksaan.index')); ?>"
-           data-tooltip="Riwayat Medis">
-            <i class="fas fa-file-medical"></i> <span>Riwayat Medis</span>
+            <i class="fas fa-wheelchair text-warning"></i> <span>Data Lansia</span>
         </a>
 
         <div class="nav-label">Administrasi</div>
@@ -406,23 +421,34 @@
         <a class="nav-link-custom <?php echo e(request()->routeIs('bidan.jadwal.*') ? 'active' : ''); ?>" 
            href="<?php echo e(route('bidan.jadwal.index')); ?>"
            data-tooltip="Kelola Jadwal">
-            <i class="fas fa-calendar-alt"></i> <span>Kelola Jadwal</span>
+            <i class="fas fa-calendar-alt text-primary"></i> <span>Kelola Jadwal</span>
         </a>
-
-        <div class="nav-label">Laporan</div>
 
         <a class="nav-link-custom <?php echo e(request()->routeIs('bidan.laporan.*') ? 'active' : ''); ?>" 
-           href="#" 
-           onclick="alert('Fitur Laporan SKDN akan segera hadir!')"
+           href="<?php echo e(route('bidan.laporan.index')); ?>"
            data-tooltip="Laporan Bulanan">
-            <i class="fas fa-chart-bar"></i> <span>Laporan Bulanan</span>
+            <i class="fas fa-chart-bar text-success"></i> <span>Laporan Bulanan</span>
         </a>
+
+        <div class="mt-4 pt-3 border-top border-secondary mx-3 mb-4">
+            <a class="nav-link-custom text-danger px-0" 
+               href="<?php echo e(route('logout')); ?>"
+               onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+               data-tooltip="Keluar">
+                <i class="fas fa-sign-out-alt"></i> <span>Keluar</span>
+            </a>
+            <form id="logout-form" action="<?php echo e(route('logout')); ?>" method="POST" class="d-none">
+                <?php echo csrf_field(); ?>
+            </form>
+        </div>
+
     </nav>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('sidebar');
+    
     // Restore sidebar state
     if (window.innerWidth >= 992) {
         const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -430,5 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sidebar.classList.add('collapsed');
         }
     }
+    
+   
 });
 </script><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/partials/sidebar/bidan.blade.php ENDPATH**/ ?>

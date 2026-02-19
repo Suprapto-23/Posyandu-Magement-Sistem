@@ -138,9 +138,12 @@ Route::prefix('bidan')->name('bidan.')->middleware(['auth', 'checkstatus', 'role
     
     // Pemeriksaan
     Route::get('/pemeriksaan', [BidanPemeriksaan::class, 'index'])->name('pemeriksaan.index');
-    Route::get('/pemeriksaan/input', [BidanPemeriksaan::class, 'create'])->name('pemeriksaan.create');
+    Route::get('/pemeriksaan/create', [BidanPemeriksaan::class, 'create'])->name('pemeriksaan.create');
     Route::post('/pemeriksaan', [BidanPemeriksaan::class, 'store'])->name('pemeriksaan.store');
-    
+    Route::get('/pemeriksaan/{id}', [BidanPemeriksaan::class, 'show'])->name('pemeriksaan.show');
+    Route::post('/pemeriksaan/{id}/verifikasi', [BidanPemeriksaan::class, 'verifikasi'])->name('pemeriksaan.verifikasi');
+    Route::post('/pemeriksaan/{id}/verifikasi-cepat', [BidanPemeriksaan::class, 'verifikasiCepat'])->name('pemeriksaan.verifikasi-cepat');
+
     // Jadwal
     Route::resource('jadwal', BidanJadwal::class);
 
@@ -153,14 +156,13 @@ Route::prefix('bidan')->name('bidan.')->middleware(['auth', 'checkstatus', 'role
     Route::get('/laporan/lansia', [BidanPasien::class, 'laporanLansia'])->name('laporan.lansia');
     Route::get('/laporan/balita', [BidanPasien::class, 'laporanBalita'])->name('laporan.balita');
     Route::get('/laporan/remaja', [BidanPasien::class, 'laporanRemaja'])->name('laporan.remaja');
-
-    Route::get('/pemeriksaan/{id}/edit', [BidanPemeriksaan::class, 'edit'])->name('pemeriksaan.edit');
-    Route::put('/pemeriksaan/{id}', [BidanPemeriksaan::class, 'update'])->name('pemeriksaan.update');
     
-    Route::get('/', fn() => redirect()->route('bidan.dashboard'));
-});
+    // Laporan (ringkas — generate di browser, tidak simpan file)
+    Route::get('/laporan', [\App\Http\Controllers\Bidan\LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/cetak', [\App\Http\Controllers\Bidan\LaporanController::class, 'cetak'])->name('laporan.cetak');
 
-// ==================== KADER ROUTES (FIXED) ====================
+    Route::get('/', fn() => redirect()->route('bidan.dashboard'));
+}); 
 Route::prefix('kader')->name('kader.')->middleware(['auth', 'checkstatus', 'role:kader'])->group(function () {
     
     Route::get('/dashboard', [KaderDashboard::class, 'index'])->name('dashboard');
@@ -201,7 +203,8 @@ Route::prefix('kader')->name('kader.')->middleware(['auth', 'checkstatus', 'role
     Route::resource('kunjungan', KunjunganController::class);
     
     // 5. Laporan
-    Route::prefix('laporan')->name('laporan.')->group(function () {
+   Route::prefix('laporan')->name('laporan.')->group(function () {
+    Route::get('/', [LaporanController::class, 'index'])->name('index');
         Route::get('/', [LaporanController::class, 'index'])->name('index');
         Route::get('/balita', [LaporanController::class, 'balita'])->name('balita');
         Route::get('/remaja', [LaporanController::class, 'remaja'])->name('remaja');
@@ -210,6 +213,7 @@ Route::prefix('kader')->name('kader.')->middleware(['auth', 'checkstatus', 'role
         Route::get('/kunjungan', [LaporanController::class, 'kunjungan'])->name('kunjungan');
         Route::get('/generate/{type}', [LaporanController::class, 'generate'])->name('generate');
         Route::get('/download/{filename}', [LaporanController::class, 'download'])->name('download');
+        Route::get('/cetak', [LaporanController::class, 'cetak'])->name('cetak');
     });
     
     // 6. Jadwal
