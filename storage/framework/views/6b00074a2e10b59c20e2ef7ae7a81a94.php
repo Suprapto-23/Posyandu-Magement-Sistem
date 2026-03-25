@@ -1,378 +1,302 @@
 
-
 <?php $__env->startSection('title', 'Dashboard Admin'); ?>
-
-<?php $__env->startPush('styles'); ?>
-<style>
-/* ── Dashboard Admin ─────────────────────────── */
-.pg-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #0d9488 60%, #0ea5e9 100%);
-    border-radius: 18px; padding: 2rem 2rem 1.75rem;
-    position: relative; overflow: hidden; margin-bottom: 1.75rem;
-    color: #fff;
-}
-.pg-hero::before {
-    content: ''; position: absolute; top: -60px; right: -60px;
-    width: 220px; height: 220px; border-radius: 50%;
-    background: rgba(255,255,255,.05);
-}
-.pg-hero::after {
-    content: ''; position: absolute; bottom: -80px; right: 60px;
-    width: 160px; height: 160px; border-radius: 50%;
-    background: rgba(255,255,255,.04);
-}
-.hero-date {
-    font-size: .72rem; font-weight: 700; letter-spacing: .06em;
-    text-transform: uppercase; background: rgba(255,255,255,.15);
-    padding: .28rem .75rem; border-radius: 20px; display: inline-block;
-    margin-bottom: .75rem;
-}
-.hero-title { font-size: 1.55rem; font-weight: 800; margin-bottom: .3rem; line-height: 1.2; }
-.hero-sub { font-size: .87rem; opacity: .75; }
-
-/* Stat cards */
-.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-.stat-card {
-    background: #fff; border: 1px solid #e2e8f0;
-    border-radius: 14px; padding: 1.1rem 1.15rem;
-    box-shadow: 0 1px 4px rgba(0,0,0,.05);
-    display: flex; align-items: flex-start; gap: .85rem;
-    transition: transform .15s, box-shadow .15s;
-}
-.stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
-.stat-ic {
-    width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.05rem; color: #fff;
-}
-.stat-val { font-size: 1.55rem; font-weight: 800; line-height: 1; color: #0f172a; }
-.stat-lbl { font-size: .72rem; font-weight: 600; color: #64748b; margin-top: .15rem; }
-.stat-sub { font-size: .68rem; color: #94a3b8; margin-top: .2rem; }
-
-/* Chart & jadwal panel */
-.panel {
-    background: #fff; border: 1px solid #e2e8f0;
-    border-radius: 14px; overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,.05); margin-bottom: 1.25rem;
-}
-.panel-head {
-    padding: .9rem 1.15rem .65rem;
-    border-bottom: 1px solid #f1f5f9;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: .5rem;
-}
-.panel-title { font-size: .88rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: .45rem; }
-.panel-title i { color: #0d9488; }
-.panel-body { padding: 1rem 1.15rem; }
-
-/* Login activity */
-.act-row {
-    display: flex; align-items: center; gap: .75rem;
-    padding: .6rem .5rem; border-radius: 10px;
-    transition: background .1s;
-}
-.act-row:hover { background: #f8fafc; }
-.act-av {
-    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: .75rem; font-weight: 800; color: #fff;
-}
-.act-name { font-size: .82rem; font-weight: 600; color: #0f172a; }
-.act-meta { font-size: .7rem; color: #94a3b8; }
-.act-badge {
-    font-size: .6rem; font-weight: 800; padding: .1rem .45rem;
-    border-radius: 20px; text-transform: uppercase; letter-spacing: .04em;
-}
-.act-ok  { background: #dcfce7; color: #166534; }
-.act-fail{ background: #fee2e2; color: #991b1b; }
-
-/* Jadwal item */
-.jdwl-row {
-    display: flex; align-items: center; gap: .75rem;
-    padding: .6rem .5rem; border-radius: 10px; transition: background .1s;
-}
-.jdwl-row:hover { background: #f8fafc; }
-.jdwl-date {
-    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
-    background: linear-gradient(135deg, #0d9488, #0ea5e9);
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; color: #fff; line-height: 1;
-}
-.jdwl-date .dd { font-size: .95rem; font-weight: 800; }
-.jdwl-date .mm { font-size: .55rem; font-weight: 700; text-transform: uppercase; }
-.jdwl-name { font-size: .82rem; font-weight: 600; color: #0f172a; }
-.jdwl-meta { font-size: .7rem; color: #94a3b8; }
-.jdwl-chip {
-    margin-left: auto; font-size: .6rem; font-weight: 800;
-    padding: .1rem .45rem; border-radius: 20px;
-    text-transform: capitalize; flex-shrink: 0;
-}
-.chip-balita  { background: #cffafe; color: #0e7490; }
-.chip-remaja  { background: #ede9fe; color: #5b21b6; }
-.chip-lansia  { background: #fef9c3; color: #92400e; }
-.chip-semua   { background: #dcfce7; color: #166534; }
-
-/* Role colors */
-.role-admin  { background: linear-gradient(135deg,#0d9488,#0ea5e9); }
-.role-bidan  { background: linear-gradient(135deg,#10b981,#34d399); }
-.role-kader  { background: linear-gradient(135deg,#d97706,#f59e0b); }
-.role-user   { background: linear-gradient(135deg,#7c3aed,#a78bfa); }
-
-/* Quick action */
-.qa-btn {
-    display: flex; align-items: center; gap: .6rem;
-    padding: .75rem .9rem; border-radius: 12px;
-    text-decoration: none; font-size: .82rem; font-weight: 600;
-    margin-bottom: .5rem; transition: all .15s;
-}
-.qa-btn:hover { transform: translateX(3px); }
-.qa-ic {
-    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; color: #fff; font-size: .85rem;
-}
-
-/* Responsive */
-@media (max-width: 1200px) { .stat-grid { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 900px)  { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 576px)  {
-    .stat-grid { grid-template-columns: 1fr 1fr; gap: .65rem; }
-    .stat-val { font-size: 1.25rem; }
-    .pg-hero { padding: 1.25rem; }
-    .hero-title { font-size: 1.2rem; }
-}
-</style>
-<?php $__env->stopPush(); ?>
+<?php $__env->startSection('page-name', 'Overview Sistem'); ?>
 
 <?php $__env->startSection('content'); ?>
+<style>
+/* ── EXECUTIVE OBSIDIAN DASHBOARD STYLES ── */
+.animate-slide-up { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
+/* Hero Dark Slate Premium */
+.hero-admin { 
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+    border-radius: 32px; 
+    padding: 48px; 
+    margin-bottom: 32px; 
+    position: relative; 
+    overflow: hidden; 
+    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.4); 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #334155;
+}
+.hero-admin::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px); background-size: 24px 24px; pointer-events: none; }
+.hero-glow { position: absolute; top: -50px; right: -50px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%); pointer-events: none; }
 
-<div class="pg-hero">
-    <div class="hero-date"><i class="fas fa-calendar me-1"></i><?php echo e(now()->translatedFormat('l, d F Y')); ?></div>
-    <div class="hero-title">Selamat Datang, <?php echo e(auth()->user()->name); ?> 👋</div>
-    <div class="hero-sub">Panel Administrasi SIPOSYANDU — ringkasan sistem hari ini</div>
-</div>
+.hero-txt { position: relative; z-index: 1; }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; font-size: 11px; font-weight: 800; padding: 6px 16px; border-radius: 50px; margin-bottom: 20px; letter-spacing: 1px; text-transform: uppercase; }
+.hero-title { font-size: 36px; font-weight: 900; color: #fff; line-height: 1.2; margin-bottom: 12px; letter-spacing: -0.5px; font-family: 'Poppins', sans-serif; }
+.hero-desc { font-size: 15px; color: #94a3b8; max-width: 500px; font-weight: 500; line-height: 1.6; }
 
+/* Bento Grid Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 32px; }
+.stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 28px; padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02); transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05); border-color: #cbd5e1; }
+.stat-icon { width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 16px; transition: transform 0.3s; }
+.stat-card:hover .stat-icon { transform: scale(1.1) rotate(5deg); }
+.stat-val { font-size: 32px; font-weight: 900; color: #0f172a; line-height: 1; letter-spacing: -1px; margin-bottom: 6px; }
+.stat-lbl { font-size: 12px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Poppins', sans-serif; }
+.stat-sub { font-size: 11px; font-weight: 600; color: #94a3b8; margin-top: 8px; }
 
-<div class="stat-grid">
-    <div class="stat-card">
-        <div class="stat-ic role-user"><i class="fas fa-users"></i></div>
-        <div>
-            <div class="stat-val"><?php echo e($stats['total_user']); ?></div>
-            <div class="stat-lbl">Total Warga</div>
-            <div class="stat-sub"><?php echo e($stats['user_aktif']); ?> aktif · <?php echo e($stats['user_nonaktif']); ?> nonaktif</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-ic role-kader"><i class="fas fa-user-nurse"></i></div>
-        <div>
-            <div class="stat-val"><?php echo e($stats['total_kader']); ?></div>
-            <div class="stat-lbl">Total Kader</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-ic role-bidan"><i class="fas fa-user-md"></i></div>
-        <div>
-            <div class="stat-val"><?php echo e($stats['total_bidan']); ?></div>
-            <div class="stat-lbl">Total Bidan</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-ic" style="background:linear-gradient(135deg,#be185d,#ec4899)">
-            <i class="fas fa-baby"></i>
-        </div>
-        <div>
-            <div class="stat-val"><?php echo e($stats['total_balita']); ?></div>
-            <div class="stat-lbl">Data Balita</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-ic" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">
-            <i class="fas fa-user-graduate"></i>
-        </div>
-        <div>
-            <div class="stat-val"><?php echo e($stats['total_remaja']); ?></div>
-            <div class="stat-lbl">Data Remaja</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-ic" style="background:linear-gradient(135deg,#b45309,#f59e0b)">
-            <i class="fas fa-user-clock"></i>
-        </div>
-        <div>
-            <div class="stat-val"><?php echo e($stats['total_lansia']); ?></div>
-            <div class="stat-lbl">Data Lansia</div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-ic" style="background:linear-gradient(135deg,#0d9488,#0ea5e9)">
-            <i class="fas fa-user-plus"></i>
-        </div>
-        <div>
-            <div class="stat-val"><?php echo e($userBaruBulanIni); ?></div>
-            <div class="stat-lbl">Warga Baru</div>
-            <div class="stat-sub">Bulan <?php echo e(now()->translatedFormat('F Y')); ?></div>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-ic" style="background:linear-gradient(135deg,#0284c7,#38bdf8)">
-            <i class="fas fa-calendar-check"></i>
-        </div>
-        <div>
-            <div class="stat-val"><?php echo e($jadwalHariIni->count()); ?></div>
-            <div class="stat-lbl">Jadwal Hari Ini</div>
-        </div>
-    </div>
-</div>
+/* Section Cards */
+.section-card { background: #fff; border-radius: 32px; border: 1px solid #e2e8f0; box-shadow: 0 10px 40px rgba(0,0,0,0.02); padding: 32px; height: 100%; display: flex; flex-direction: column; }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;}
+.section-title { font-size: 16px; font-weight: 900; color: #0f172a; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 12px; }
+.section-icon-wrap { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
 
+/* List Activity */
+.act-row { display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: 16px; transition: background 0.2s; border: 1px solid transparent; }
+.act-row:hover { background: #f8fafc; border-color: #f1f5f9; }
+.act-av { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #fff; }
 
-<div class="row g-3 mb-3">
+/* Responsive */
+@media(max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+@media(max-width: 768px) { .hero-admin { padding: 32px; flex-direction: column; text-align: center; } .hero-title { font-size: 28px; } .stats-grid { grid-template-columns: 1fr 1fr; gap: 16px; } .stat-card { padding: 20px; border-radius: 20px; } .stat-val { font-size: 26px; } .section-card { padding: 24px; border-radius: 24px; } }
+@media(max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="animate-slide-up">
     
-    <div class="col-lg-7">
-        <div class="panel">
-            <div class="panel-head">
-                <div class="panel-title"><i class="fas fa-chart-line"></i> Registrasi Warga 7 Bulan</div>
-            </div>
-            <div class="panel-body">
-                <canvas id="regChart" height="80"></canvas>
-            </div>
+    <div class="hero-admin">
+        <div class="hero-glow"></div>
+        <div class="hero-txt">
+            <div class="hero-badge"><i class="fas fa-shield-alt text-amber-500 mr-2"></i> Sistem Manajemen Root</div>
+            <h1 class="hero-title">Selamat Datang, <span class="text-amber-500"><?php echo e(auth()->user()->name); ?></span></h1>
+            <p class="hero-desc">Server Posyandu beroperasi secara optimal. Pantau lalu lintas registrasi dan atur entitas pengguna dengan otoritas penuh.</p>
+        </div>
+        <div class="hidden md:flex items-center justify-center w-40 h-40 bg-slate-800 border border-slate-700 rounded-[2rem] shadow-2xl relative z-10 transform rotate-6 hover:rotate-0 transition-all duration-500">
+            <i class="fas fa-fingerprint text-6xl text-slate-400 drop-shadow-md"></i>
         </div>
     </div>
 
-    
-    <div class="col-lg-5">
-        <div class="panel h-100">
-            <div class="panel-head">
-                <div class="panel-title"><i class="fas fa-calendar-alt"></i> Jadwal Mendatang</div>
-                <a href="<?php echo e(route('admin.dashboard')); ?>" class="text-muted" style="font-size:.75rem">Semua</a>
-            </div>
-            <div class="panel-body">
-                <?php $__empty_1 = true; $__currentLoopData = $jadwalMendatang; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                <div class="jdwl-row">
-                    <div class="jdwl-date">
-                        <div class="dd"><?php echo e(\Carbon\Carbon::parse($j->tanggal)->format('d')); ?></div>
-                        <div class="mm"><?php echo e(\Carbon\Carbon::parse($j->tanggal)->translatedFormat('M')); ?></div>
-                    </div>
-                    <div>
-                        <div class="jdwl-name"><?php echo e($j->nama_kegiatan ?? $j->judul ?? 'Posyandu'); ?></div>
-                        <div class="jdwl-meta"><?php echo e($j->lokasi ?? '-'); ?></div>
-                    </div>
-                    <span class="jdwl-chip chip-<?php echo e($j->target_peserta ?? 'semua'); ?>">
-                        <?php echo e($j->target_peserta ?? 'Semua'); ?>
-
-                    </span>
+    <div class="stats-grid">
+        <div class="stat-card border-b-[5px] border-b-slate-800">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="stat-val"><?php echo e($stats['total_user'] ?? 0); ?></div>
+                    <div class="stat-lbl">Total Warga</div>
                 </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                <div class="text-center py-4" style="color:#94a3b8;font-size:.82rem">
-                    <i class="fas fa-calendar-times mb-2 d-block" style="font-size:1.5rem"></i>
-                    Tidak ada jadwal mendatang
+                <div class="stat-icon bg-slate-100 text-slate-800"><i class="fas fa-users"></i></div>
+            </div>
+            <div class="stat-sub"><span class="text-emerald-600 font-bold"><?php echo e($stats['user_aktif'] ?? 0); ?> Aktif</span> · <?php echo e($stats['user_nonaktif'] ?? 0); ?> Suspended</div>
+        </div>
+
+        <div class="stat-card border-b-[5px] border-b-amber-500 bg-amber-50/30">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="stat-val text-amber-700"><?php echo e($userBaruBulanIni ?? 0); ?></div>
+                    <div class="stat-lbl text-amber-900">Registrasi Baru</div>
                 </div>
-                <?php endif; ?>
+                <div class="stat-icon bg-amber-500 text-white shadow-lg"><i class="fas fa-user-plus"></i></div>
+            </div>
+            <div class="stat-sub text-amber-600">Tercatat Bulan <?php echo e(now()->translatedFormat('F Y')); ?></div>
+        </div>
+
+        <div class="stat-card border-b-[5px] border-b-slate-600">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="stat-val"><?php echo e($stats['total_kader'] ?? 0); ?></div>
+                    <div class="stat-lbl">Akun Kader</div>
+                </div>
+                <div class="stat-icon bg-slate-100 text-slate-600"><i class="fas fa-user-nurse"></i></div>
+            </div>
+            <div class="stat-sub">Akses Pendataan Lapangan</div>
+        </div>
+
+        <div class="stat-card border-b-[5px] border-b-slate-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="stat-val"><?php echo e($stats['total_bidan'] ?? 0); ?></div>
+                    <div class="stat-lbl">Akun Bidan</div>
+                </div>
+                <div class="stat-icon bg-slate-100 text-slate-500"><i class="fas fa-user-md"></i></div>
+            </div>
+            <div class="stat-sub">Akses Verifikasi Medis</div>
+        </div>
+
+        <div class="stat-card border-b-[4px] border-b-slate-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="stat-val"><?php echo e($stats['total_balita'] ?? 0); ?></div>
+                    <div class="stat-lbl">Data Balita</div>
+                </div>
+                <div class="stat-icon bg-slate-50 text-slate-400 border border-slate-100 mb-0"><i class="fas fa-baby"></i></div>
+            </div>
+        </div>
+
+        <div class="stat-card border-b-[4px] border-b-slate-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="stat-val"><?php echo e($stats['total_remaja'] ?? 0); ?></div>
+                    <div class="stat-lbl">Data Remaja</div>
+                </div>
+                <div class="stat-icon bg-slate-50 text-slate-400 border border-slate-100 mb-0"><i class="fas fa-user-graduate"></i></div>
+            </div>
+        </div>
+
+        <div class="stat-card border-b-[4px] border-b-slate-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="stat-val"><?php echo e($stats['total_lansia'] ?? 0); ?></div>
+                    <div class="stat-lbl">Data Lansia</div>
+                </div>
+                <div class="stat-icon bg-slate-50 text-slate-400 border border-slate-100 mb-0"><i class="fas fa-wheelchair"></i></div>
+            </div>
+        </div>
+
+        <div class="stat-card border-b-[4px] border-b-slate-300">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="stat-val"><?php echo e($jadwalHariIni->count() ?? 0); ?></div>
+                    <div class="stat-lbl">Jadwal Aktif</div>
+                </div>
+                <div class="stat-icon bg-slate-50 text-slate-400 border border-slate-100 mb-0"><i class="fas fa-calendar-check"></i></div>
             </div>
         </div>
     </div>
-</div>
 
-
-<div class="row g-3">
-    
-    <div class="col-lg-8">
-        <div class="panel">
-            <div class="panel-head">
-                <div class="panel-title"><i class="fas fa-shield-alt"></i> Aktivitas Login Terbaru</div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        
+        <div class="lg:col-span-2 section-card">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <div class="section-icon-wrap bg-slate-100 text-slate-800 border border-slate-200"><i class="fas fa-chart-area"></i></div>
+                    Pertumbuhan Registrasi Warga
+                </h3>
             </div>
-            <div class="panel-body p-0">
-                <?php $__empty_1 = true; $__currentLoopData = $loginTerbaru; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $l): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                <div class="act-row mx-2 mb-1">
-                    <div class="act-av role-<?php echo e($l->role ?? 'user'); ?>">
+            <div class="relative flex-1 min-h-[250px]">
+                <canvas id="regChart"></canvas>
+            </div>
+        </div>
+
+        <div class="section-card p-0 overflow-hidden">
+            <div class="section-header mx-8 mt-8 mb-4">
+                <h3 class="section-title">
+                    <div class="section-icon-wrap bg-slate-100 text-slate-800 border border-slate-200"><i class="fas fa-history"></i></div>
+                    Log Sistem Terbaru
+                </h3>
+            </div>
+            <div class="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
+                <?php $__empty_1 = true; $__currentLoopData = $loginTerbaru ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $l): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <div class="act-row">
+                    <?php
+                        $bg = 'bg-slate-400'; 
+                        if($l->role == 'admin') $bg = 'bg-slate-900';
+                        if($l->role == 'kader') $bg = 'bg-slate-700';
+                        if($l->role == 'bidan') $bg = 'bg-slate-500';
+                    ?>
+                    <div class="act-av <?php echo e($bg); ?> shadow-sm">
                         <?php echo e(strtoupper(substr($l->display_name ?? 'U', 0, 1))); ?>
 
                     </div>
-                    <div class="flex-grow-1 overflow-hidden">
-                        <div class="act-name text-truncate"><?php echo e($l->display_name ?? '-'); ?></div>
-                        <div class="act-meta"><?php echo e($l->ip_address); ?> · <?php echo e(\Carbon\Carbon::parse($l->login_at)->diffForHumans()); ?></div>
+                    
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[13px] font-bold text-slate-800 truncate"><?php echo e($l->display_name ?? '-'); ?></div>
+                        <div class="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest"><?php echo e($l->role); ?></div>
                     </div>
-                    <div class="text-end flex-shrink-0">
-                        <div class="act-badge act-<?php echo e($l->status === 'success' ? 'ok' : 'fail'); ?>">
-                            <?php echo e($l->status === 'success' ? 'Berhasil' : 'Gagal'); ?>
-
-                        </div>
-                        <div style="font-size:.65rem;color:#94a3b8;margin-top:.15rem;text-transform:capitalize">
-                            <?php echo e($l->role); ?>
-
-                        </div>
+                    
+                    <div class="text-right flex-shrink-0">
+                        <?php if($l->status === 'success'): ?>
+                            <span class="px-2 py-0.5 rounded text-slate-500 text-[10px] font-bold border border-slate-200"><i class="fas fa-check text-emerald-500"></i> OK</span>
+                        <?php else: ?>
+                            <span class="px-2 py-0.5 rounded text-rose-500 text-[10px] font-bold border border-rose-200"><i class="fas fa-times"></i> Fail</span>
+                        <?php endif; ?>
+                        <div class="text-[9px] font-bold text-slate-400 mt-1 uppercase"><?php echo e(\Carbon\Carbon::parse($l->login_at)->diffForHumans(null, true, true)); ?></div>
                     </div>
                 </div>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                <div class="text-center py-4" style="color:#94a3b8;font-size:.82rem">
-                    <i class="fas fa-history d-block mb-2" style="font-size:1.5rem"></i>
-                    Belum ada aktivitas login
+                <div class="text-center py-10 text-slate-400">
+                    <i class="fas fa-server d-block mb-3 text-3xl opacity-30"></i>
+                    <p class="text-xs font-semibold">Tidak ada log aktivitas.</p>
                 </div>
                 <?php endif; ?>
             </div>
         </div>
+        
     </div>
 
-    
-    <div class="col-lg-4">
-        <div class="panel">
-            <div class="panel-head">
-                <div class="panel-title"><i class="fas fa-bolt"></i> Aksi Cepat</div>
-            </div>
-            <div class="panel-body">
-                <a href="<?php echo e(route('admin.users.create')); ?>" class="qa-btn" style="background:#f0fdfa;color:#0d9488">
-                    <div class="qa-ic" style="background:linear-gradient(135deg,#0d9488,#0ea5e9)"><i class="fas fa-user-plus"></i></div>
-                    Tambah Warga Baru
-                </a>
-                <a href="<?php echo e(route('admin.kaders.create')); ?>" class="qa-btn" style="background:#fffbeb;color:#b45309">
-                    <div class="qa-ic" style="background:linear-gradient(135deg,#d97706,#f59e0b)"><i class="fas fa-user-nurse"></i></div>
-                    Tambah Kader
-                </a>
-                <a href="<?php echo e(route('admin.bidans.create')); ?>" class="qa-btn" style="background:#f0fdf4;color:#166534">
-                    <div class="qa-ic" style="background:linear-gradient(135deg,#10b981,#34d399)"><i class="fas fa-user-md"></i></div>
-                    Tambah Bidan
-                </a>
-                <a href="<?php echo e(route('admin.settings.index')); ?>" class="qa-btn" style="background:#f8fafc;color:#475569">
-                    <div class="qa-ic" style="background:linear-gradient(135deg,#475569,#94a3b8)"><i class="fas fa-cog"></i></div>
-                    Pengaturan Sistem
-                </a>
-            </div>
+    <div class="bg-white rounded-[32px] border border-slate-200 shadow-[0_10px_40px_rgb(0,0,0,0.02)] p-8">
+        <h3 class="section-title mb-6">
+            <div class="section-icon-wrap bg-slate-100 text-slate-800 border border-slate-200"><i class="fas fa-terminal"></i></div>
+            Aksi Root Sistem
+        </h3>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="<?php echo e(route('admin.users.index')); ?>" class="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-800 hover:shadow-md transition-all group">
+                <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-xl group-hover:bg-slate-800 group-hover:text-white transition-all"><i class="fas fa-users"></i></div>
+                <span class="text-sm font-bold text-slate-700 group-hover:text-slate-900">Kelola Warga</span>
+            </a>
+            
+            <a href="<?php echo e(route('admin.kaders.index')); ?>" class="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-800 hover:shadow-md transition-all group">
+                <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-xl group-hover:bg-slate-800 group-hover:text-white transition-all"><i class="fas fa-user-nurse"></i></div>
+                <span class="text-sm font-bold text-slate-700 group-hover:text-slate-900">Kelola Kader</span>
+            </a>
+            
+            <a href="<?php echo e(route('admin.bidans.index')); ?>" class="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-800 hover:shadow-md transition-all group">
+                <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-xl group-hover:bg-slate-800 group-hover:text-white transition-all"><i class="fas fa-user-md"></i></div>
+                <span class="text-sm font-bold text-slate-700 group-hover:text-slate-900">Kelola Bidan</span>
+            </a>
+            
+            <a href="<?php echo e(route('admin.settings.index')); ?>" class="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-800 hover:shadow-md transition-all group">
+                <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-xl group-hover:bg-slate-800 group-hover:text-white transition-all"><i class="fas fa-cog"></i></div>
+                <span class="text-sm font-bold text-slate-700 group-hover:text-slate-900">Pengaturan Web</span>
+            </a>
         </div>
     </div>
+
 </div>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const ctx = document.getElementById('regChart');
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: <?php echo json_encode($chartData['labels']); ?>,
-        datasets: [{
-            label: 'Warga Baru',
-            data: <?php echo json_encode($chartData['userData']); ?>,
-            borderColor: '#0d9488',
-            backgroundColor: (ctx) => {
-                const g = ctx.chart.ctx.createLinearGradient(0,0,0,220);
-                g.addColorStop(0,'rgba(13,148,136,.25)');
-                g.addColorStop(1,'rgba(13,148,136,.01)');
-                return g;
+document.addEventListener('DOMContentLoaded', function () {
+    
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#94a3b8';
+
+    const ctx = document.getElementById('regChart');
+    if(ctx) {
+        const c = ctx.getContext('2d');
+        const gradient = c.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(15, 23, 42, 0.4)'); // Slate-900 transparan
+        gradient.addColorStop(1, 'rgba(15, 23, 42, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: <?php echo json_encode($chartData['labels'] ?? []); ?>,
+                datasets: [{
+                    label: 'Warga Baru',
+                    data: <?php echo json_encode($chartData['userData'] ?? []); ?>,
+                    borderColor: '#0f172a', // Slate-900 sangat maskulin
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    tension: 0.4, // Kurva Halus
+                    fill: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#0f172a',
+                    pointBorderWidth: 3
+                }]
             },
-            borderWidth: 2.5, fill: true,
-            tension: .4, pointRadius: 4,
-            pointBackgroundColor: '#0d9488',
-        }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1, font: { family:'Inter', size:11 } }, grid: { color:'#f1f5f9' } },
-            x: { ticks: { font: { family:'Inter', size:11 } }, grid: { display: false } }
-        }
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: { backgroundColor: '#0f172a', padding: 12, borderRadius: 12, displayColors: false, titleFont: {size: 13, family: 'Poppins'}, bodyFont: {size: 15, weight: 'bold'} }
+                },
+                scales: {
+                    y: { beginAtZero: true, border: {display: false}, grid: { color: '#f1f5f9', drawBorder: false }, ticks: { stepSize: 1, font: {weight: 'bold'} } },
+                    x: { border: {display: false}, grid: { display: false }, ticks: { font: {weight: 'bold'} } }
+                },
+                interaction: { mode: 'index', intersect: false }
+            }
+        });
     }
 });
 </script>
 <?php $__env->stopPush(); ?>
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>

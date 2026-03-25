@@ -1,231 +1,192 @@
-{{--
-  PATH   : resources/views/admin/users/index.blade.php
-  FUNGSI : Daftar user warga + password flash + filter search
---}}
-@extends('layouts.app')
+@extends('layouts.admin')
 @section('title', 'Manajemen User Warga')
-
-@push('styles')
-<style>
-.adm-hero { background: linear-gradient(135deg,#0f172a,#0d9488); border-radius:16px; padding:1.5rem; color:#fff; margin-bottom:1.5rem; }
-.adm-hero h4 { font-size:1.2rem; font-weight:800; margin:0 0 .25rem; }
-.adm-hero p  { font-size:.8rem; opacity:.75; margin:0; }
-.stat-row { display:flex; gap:1rem; margin-bottom:1.25rem; flex-wrap:wrap; }
-.mini-stat { flex:1; min-width:130px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:.9rem 1rem; text-align:center; }
-.mini-stat .val { font-size:1.4rem; font-weight:800; color:#0f172a; }
-.mini-stat .lbl { font-size:.7rem; font-weight:600; color:#64748b; }
-.filter-bar { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:.85rem 1rem; margin-bottom:1rem; display:flex; gap:.65rem; flex-wrap:wrap; align-items:center; }
-.fi { height:36px; border:1.5px solid #e2e8f0; border-radius:9px; padding:0 .75rem; font-size:.82rem; font-family:inherit; outline:none; transition:border .15s; }
-.fi:focus { border-color:#0d9488; }
-.fi-search { flex:1; min-width:180px; }
-.pw-alert { background:linear-gradient(135deg,#0f172a,#0d9488); border-radius:14px; padding:1.1rem 1.25rem; color:#fff; margin-bottom:1.25rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
-.pw-box { font-family:monospace; font-size:1.05rem; font-weight:800; background:rgba(255,255,255,.15); padding:.35rem .85rem; border-radius:8px; letter-spacing:.05em; }
-.pw-timer { font-size:.7rem; opacity:.6; margin-top:.2rem; }
-.tbl-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:14px; overflow:hidden; }
-.adm-tbl { width:100%; border-collapse:collapse; }
-.adm-tbl th { background:#f8fafc; font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:#475569; padding:.75rem 1rem; border-bottom:1px solid #e2e8f0; text-align:left; white-space:nowrap; }
-.adm-tbl td { padding:.75rem 1rem; border-bottom:1px solid #f1f5f9; font-size:.83rem; vertical-align:middle; }
-.adm-tbl tr:last-child td { border-bottom:none; }
-.adm-tbl tr:hover td { background:#fafbfc; }
-.u-av { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#0d9488,#0ea5e9); display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:.8rem; flex-shrink:0; }
-.u-name { font-weight:700; color:#0f172a; }
-.u-sub { font-size:.7rem; color:#94a3b8; }
-.nik-badge { font-family:monospace; font-size:.74rem; font-weight:700; background:#f1f5f9; color:#475569; padding:.18rem .55rem; border-radius:6px; letter-spacing:.03em; }
-.status-aktif { background:#dcfce7; color:#166534; font-size:.67rem; font-weight:800; padding:.15rem .55rem; border-radius:20px; }
-.status-nonaktif { background:#fee2e2; color:#991b1b; font-size:.67rem; font-weight:800; padding:.15rem .55rem; border-radius:20px; }
-.pt-balita { background:#cffafe; color:#0e7490; font-size:.63rem; font-weight:700; padding:.1rem .4rem; border-radius:12px; }
-.pt-remaja { background:#ede9fe; color:#5b21b6; font-size:.63rem; font-weight:700; padding:.1rem .4rem; border-radius:12px; }
-.pt-lansia { background:#fef9c3; color:#92400e; font-size:.63rem; font-weight:700; padding:.1rem .4rem; border-radius:12px; }
-.pt-none   { background:#f1f5f9; color:#94a3b8; font-size:.63rem; font-weight:700; padding:.1rem .4rem; border-radius:12px; }
-.act-btn { width:30px; height:30px; border:none; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-size:.78rem; text-decoration:none; transition:all .13s; }
-.act-btn:hover { transform:scale(1.1); }
-.btn-view  { background:#eff6ff; color:#1d4ed8; }
-.btn-edit  { background:#f0fdf4; color:#166534; }
-.btn-pw    { background:#f0fdfa; color:#0d9488; }
-.btn-reset { background:#fffbeb; color:#b45309; }
-.btn-del   { background:#fef2f2; color:#dc2626; }
-@media(max-width:768px){
-    .adm-tbl thead { display:none; }
-    .adm-tbl, .adm-tbl tbody, .adm-tbl tr, .adm-tbl td { display:block; width:100%; }
-    .adm-tbl td { padding:.5rem .85rem; border-bottom:none; }
-    .adm-tbl tr { border-bottom:1px solid #e2e8f0; padding:.35rem 0; }
-    .adm-tbl td::before { content:attr(data-label); font-size:.65rem; font-weight:800; color:#94a3b8; text-transform:uppercase; display:block; margin-bottom:.15rem; }
-}
-</style>
-@endpush
+@section('page-name', 'Data Warga')
 
 @section('content')
+<div class="max-w-6xl mx-auto" style="animation: menuPop 0.4s ease-out forwards;">
 
-<div class="adm-hero">
-    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-        <div>
-            <h4><i class="fas fa-users me-2"></i>Manajemen User Warga</h4>
-            <p>Kelola akun warga — login menggunakan NIK 16 digit</p>
+    {{-- Hero Section (Simetri Rata Tengah) --}}
+    <div class="bg-gradient-to-br from-obsidian-900 to-slate-800 rounded-[32px] p-10 mb-8 relative overflow-hidden shadow-[0_20px_40px_-10px_rgba(15,23,42,0.4)] border border-slate-700 flex flex-col items-center justify-center text-center group">
+        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-amber-500/20 blur-[80px] rounded-full pointer-events-none transition-all duration-700 group-hover:bg-amber-500/30"></div>
+
+        <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 text-amber-400 text-[11px] font-black px-4 py-1.5 rounded-full mb-4 uppercase tracking-widest shadow-sm">
+                <i class="fas fa-users"></i> Manajemen Data
+            </div>
+            <h2 class="text-3xl md:text-4xl font-black text-white mb-3 font-poppins tracking-tight">Daftar Akun Warga</h2>
+            <p class="text-slate-400 text-sm font-medium max-w-lg mx-auto mb-6">Kelola seluruh akun warga Posyandu. Gunakan NIK 16 digit yang valid sebagai kredensial utama sistem.</p>
+            
+            <a href="{{ route('admin.users.create') }}" class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-obsidian-900 font-bold px-6 py-3 rounded-xl transition-all shadow-[0_4px_20px_rgba(245,158,11,0.4)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.6)] hover:-translate-y-1 smooth-route">
+                <i class="fas fa-plus"></i> Daftarkan Warga Baru
+            </a>
         </div>
-        <a href="{{ route('admin.users.create') }}" class="btn-primary-app">
-            <i class="fas fa-plus"></i> Tambah Warga
-        </a>
     </div>
-</div>
 
-{{-- Password Flash --}}
-@if(session('generated_password') || session('reset_password'))
-<div class="pw-alert" id="pwAlert">
-    <i class="fas fa-key fa-lg opacity-75"></i>
-    <div class="flex-grow-1">
-        <div style="font-size:.8rem;font-weight:700;opacity:.8;margin-bottom:.3rem">
-            {{ session('generated_password') ? '🔑 Password Baru Dibuat' : '🔄 Password Direset' }} —
-            {{ session('user_name') ?? session('reset_name') }}
-            <span class="nik-badge ms-1" style="background:rgba(255,255,255,.15);color:#fff">
-                NIK: {{ session('user_nik') ?? session('reset_nik') }}
-            </span>
+    {{-- Menampilkan Informasi Kredensial / Password Baru --}}
+    @if(session('generated_password') || session('reset_password'))
+    <div class="bg-amber-50 border border-amber-300 rounded-[24px] p-6 mb-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-amber-200 text-amber-700 flex items-center justify-center text-xl shrink-0">
+                <i class="fas fa-key"></i>
+            </div>
+            <div>
+                <h4 class="text-amber-900 font-black text-sm mb-1 uppercase tracking-widest">Kredensial Login Dibuat!</h4>
+                <p class="text-xs font-medium text-amber-700">Berikan password ini kepada: <strong class="text-amber-900">{{ session('user_name') ?? session('reset_name') }}</strong> (NIK: {{ session('user_nik') ?? session('reset_nik') }})</p>
+            </div>
         </div>
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="pw-box" id="pwText">
-                {{ session('generated_password') ?? session('reset_password') }}
-            </span>
-            <button onclick="copyPw()" class="btn-primary-app" style="font-size:.72rem;padding:.3rem .75rem;height:auto">
-                <i class="fas fa-copy"></i> Salin
+        <div class="bg-white border-2 border-amber-200 rounded-xl px-5 py-3 flex items-center gap-4 shadow-inner">
+            <code class="text-xl font-mono font-black text-obsidian-900 tracking-wider" id="passwordText">{{ session('generated_password') ?? session('reset_password') }}</code>
+            <button onclick="copyPassword()" class="text-xs bg-amber-100 hover:bg-amber-500 hover:text-white text-amber-800 px-3 py-1.5 rounded-lg font-bold transition-all" title="Copy Password">
+                <i class="fas fa-copy"></i>
             </button>
         </div>
-        <div class="pw-timer" id="pwTimer">Otomatis hilang dalam <span id="pwSec">60</span> detik</div>
     </div>
-    <button onclick="document.getElementById('pwAlert').remove()" style="background:transparent;border:none;color:rgba(255,255,255,.6);font-size:1.1rem;cursor:pointer;align-self:flex-start">×</button>
-</div>
-@endif
-
-{{-- Stats --}}
-<div class="stat-row">
-    <div class="mini-stat"><div class="val">{{ $stats['total'] }}</div><div class="lbl">Total Warga</div></div>
-    <div class="mini-stat"><div class="val" style="color:#166534">{{ $stats['aktif'] }}</div><div class="lbl">Aktif</div></div>
-    <div class="mini-stat"><div class="val" style="color:#dc2626">{{ $stats['nonaktif'] }}</div><div class="lbl">Nonaktif</div></div>
-</div>
-
-{{-- Filter --}}
-<form method="GET" class="filter-bar">
-    <input type="text" name="search" class="fi fi-search" placeholder="🔍  Cari nama / NIK..." value="{{ request('search') }}">
-    <select name="status" class="fi">
-        <option value="">Semua Status</option>
-        <option value="active"   {{ request('status')=='active'   ? 'selected':'' }}>Aktif</option>
-        <option value="inactive" {{ request('status')=='inactive' ? 'selected':'' }}>Nonaktif</option>
-    </select>
-    <button type="submit" class="btn-primary-app" style="height:36px;padding:0 1rem;font-size:.8rem">Filter</button>
-    @if(request()->hasAny(['search','status']))
-    <a href="{{ route('admin.users.index') }}" class="btn-secondary-app" style="height:36px;padding:0 .85rem;font-size:.8rem">Reset</a>
     @endif
-</form>
 
-{{-- Table --}}
-<div class="tbl-wrap">
-    <table class="adm-tbl">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>User</th>
-                <th>NIK</th>
-                <th>Data Pasien</th>
-                <th>Status</th>
-                <th style="text-align:center">Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($users as $u)
-            @php
-                $nm = $u->profile?->full_name ?? $u->name;
-                $nik = $u->nik ?? $u->profile?->nik ?? '-';
-            @endphp
-            <tr>
-                <td data-label="#">{{ $loop->iteration + ($users->firstItem() - 1) }}</td>
-                <td data-label="User">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="u-av">{{ strtoupper(substr($nm,0,1)) }}</div>
-                        <div>
-                            <div class="u-name">{{ $nm }}</div>
-                            <div class="u-sub">ID #{{ $u->id }}</div>
-                        </div>
-                    </div>
-                </td>
-                <td data-label="NIK"><span class="nik-badge">{{ $nik }}</span></td>
-                <td data-label="Data Pasien">
-                    @php
-                        $hasB = \App\Models\Balita::where('user_id',$u->id)->orWhere('nik_ibu',$nik)->orWhere('nik_ayah',$nik)->exists();
-                        $hasR = \App\Models\Remaja::where('user_id',$u->id)->orWhere('nik',$nik)->exists();
-                        $hasL = \App\Models\Lansia::where('user_id',$u->id)->orWhere('nik',$nik)->exists();
-                    @endphp
-                    <div class="d-flex gap-1 flex-wrap">
-                        @if($hasB)<span class="pt-balita">Balita</span>@endif
-                        @if($hasR)<span class="pt-remaja">Remaja</span>@endif
-                        @if($hasL)<span class="pt-lansia">Lansia</span>@endif
-                        @if(!$hasB && !$hasR && !$hasL)<span class="pt-none">Belum ada</span>@endif
-                    </div>
-                </td>
-                <td data-label="Status">
-                    <span class="status-{{ $u->status === 'active' ? 'aktif' : 'nonaktif' }}">
-                        {{ $u->status === 'active' ? 'Aktif' : 'Nonaktif' }}
-                    </span>
-                </td>
-                <td data-label="Aksi">
-                    <div class="d-flex gap-1 justify-content-center flex-wrap">
-                        <a href="{{ route('admin.users.show', $u->id) }}" class="act-btn btn-view" title="Detail"><i class="fas fa-eye"></i></a>
-                        <a href="{{ route('admin.users.edit', $u->id) }}" class="act-btn btn-edit" title="Edit"><i class="fas fa-pen"></i></a>
-                        <form action="{{ route('admin.users.generate-password', $u->id) }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="submit" class="act-btn btn-pw" title="Generate Password"
-                                onclick="return confirm('Buat password baru untuk {{ addslashes($nm) }}?')">
-                                <i class="fas fa-key"></i>
-                            </button>
-                        </form>
-                        <form action="{{ route('admin.users.reset-password', $u->id) }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="submit" class="act-btn btn-reset" title="Reset Password (6 digit NIK + Ps!)"
-                                onclick="return confirm('Reset password ke default?\nFormat: 6 digit akhir NIK + Ps!')">
-                                <i class="fas fa-undo"></i>
-                            </button>
-                        </form>
-                        <form action="{{ route('admin.users.destroy', $u->id) }}" method="POST" class="d-inline">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="act-btn btn-del" title="Hapus"
-                                onclick="return confirm('Hapus akun {{ addslashes($nm) }}? Tindakan ini tidak dapat dibatalkan.')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="6" style="text-align:center;padding:3rem;color:#94a3b8">
-                    <i class="fas fa-users d-block mb-2" style="font-size:2rem"></i>
-                    Tidak ada data warga ditemukan
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
+    {{-- Alert Success Reguler --}}
+    @if(session('success'))
+    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-8 flex items-center justify-center text-center gap-3 text-emerald-700 font-bold shadow-sm">
+        <i class="fas fa-check-circle text-xl"></i> {{ session('success') }}
+    </div>
+    @endif
+
+    {{-- KARTU STATISTIK (Mengambil data dari $stats Controller) --}}
+    @if(isset($stats))
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div class="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm flex items-center gap-5">
+            <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl"><i class="fas fa-users"></i></div>
+            <div>
+                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Total Warga</p>
+                <h3 class="text-2xl font-black text-obsidian-900">{{ $stats['total'] }}</h3>
+            </div>
+        </div>
+        <div class="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm flex items-center gap-5">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl"><i class="fas fa-user-check"></i></div>
+            <div>
+                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Akun Aktif</p>
+                <h3 class="text-2xl font-black text-obsidian-900">{{ $stats['aktif'] }}</h3>
+            </div>
+        </div>
+        <div class="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm flex items-center gap-5">
+            <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl"><i class="fas fa-user-lock"></i></div>
+            <div>
+                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Akun Nonaktif</p>
+                <h3 class="text-2xl font-black text-obsidian-900">{{ $stats['nonaktif'] }}</h3>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- Data Table --}}
+    <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden mb-8">
+        <div class="px-8 py-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50">
+            <h3 class="text-lg font-black text-obsidian-900 font-poppins flex items-center justify-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white text-obsidian-900 border border-slate-200 flex items-center justify-center text-sm shadow-sm"><i class="fas fa-list"></i></div>
+                Direktori Warga
+            </h3>
+            
+            <form method="GET" class="flex relative w-full md:w-auto">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari NIK / Nama..." class="w-full md:w-80 bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all shadow-sm">
+            </form>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest text-center">
+                        <th class="py-4 px-6 text-left">Informasi Warga</th>
+                        <th class="py-4 px-6">NIK KTP</th>
+                        <th class="py-4 px-6">Kontak / Telp</th>
+                        <th class="py-4 px-6">Status</th>
+                        <th class="py-4 px-6">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm font-medium text-slate-700">
+                    @forelse($users ?? [] as $u)
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
+                        
+                        {{-- Kolom 1: Nama Warga & Email --}}
+                        <td class="py-4 px-6 text-left">
+                            <div class="flex items-center gap-4">
+                                <div class="w-11 h-11 rounded-full bg-obsidian-900 text-amber-500 flex items-center justify-center font-black shadow-sm shrink-0 text-lg">
+                                    {{ strtoupper(substr($u->profile->full_name ?? $u->name, 0, 1)) }}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-slate-900 text-base mb-0.5">{{ $u->profile->full_name ?? $u->name }}</div>
+                                    <div class="text-[11px] text-slate-500 flex items-center gap-1.5">
+                                        <i class="fas fa-envelope text-slate-400"></i> {{ $u->email }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        {{-- Kolom 2: NIK --}}
+                        <td class="py-4 px-6 text-center">
+                            <span class="font-mono text-xs font-bold bg-white px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 tracking-widest shadow-sm">
+                                {{ $u->nik ?? $u->profile?->nik ?? '-' }}
+                            </span>
+                        </td>
+
+                        {{-- Kolom 3: Kontak Telepon --}}
+                        <td class="py-4 px-6 text-center text-slate-600 font-semibold">
+                            {{ $u->profile?->telepon ?? '-' }}
+                        </td>
+
+                        {{-- Kolom 4: Status Akun --}}
+                        <td class="py-4 px-6 text-center">
+                            @if($u->status === 'active')
+                                <span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest uppercase"><i class="fas fa-check-circle mr-1"></i> Aktif</span>
+                            @else
+                                <span class="bg-rose-50 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest uppercase"><i class="fas fa-ban mr-1"></i> Nonaktif</span>
+                            @endif
+                        </td>
+
+                        {{-- Kolom 5: Aksi --}}
+                        <td class="py-4 px-6">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{{ route('admin.users.show', $u->id) }}" class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all shadow-sm" title="Lihat Detail"><i class="fas fa-eye"></i></a>
+                                <a href="{{ route('admin.users.edit', $u->id) }}" class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white flex items-center justify-center transition-all shadow-sm" title="Edit Data"><i class="fas fa-edit"></i></a>
+                                <form action="{{ route('admin.users.destroy', $u->id) }}" method="POST" class="inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" onclick="return confirm('Apakah Anda yakin ingin menghapus data warga ini beserta riwayatnya?')" class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all shadow-sm" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="py-20 text-center">
+                            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-50 text-slate-300 mb-4 border border-slate-100 shadow-inner"><i class="fas fa-users-slash text-3xl"></i></div>
+                            <h4 class="text-sm font-black text-slate-500 uppercase tracking-widest mb-2">Tidak ada data warga</h4>
+                            <p class="text-xs font-medium text-slate-400">Silakan daftarkan warga baru atau ubah kata kunci pencarian Anda.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    {{-- Pagination --}}
+    @if(isset($users) && $users->hasPages())
+    <div class="mt-6 flex justify-center pb-8">
+        {{ $users->withQueryString()->links() }}
+    </div>
+    @endif
+
 </div>
 
-{{-- Pagination --}}
-@if($users->hasPages())
-<div class="d-flex justify-content-center mt-3">
-    {{ $users->withQueryString()->links() }}
-</div>
-@endif
-
-@endsection
-@push('scripts')
+{{-- Script untuk tombol Copy Password --}}
 <script>
-function copyPw() {
-    const t = document.getElementById('pwText').innerText.trim();
-    navigator.clipboard.writeText(t).then(() => {
-        Swal.fire({icon:'success',title:'Password disalin!',timer:1200,showConfirmButton:false,toast:true,position:'top-end'});
-    });
-}
-let sec = 60;
-const ti = setInterval(() => {
-    const el = document.getElementById('pwSec');
-    if (!el) { clearInterval(ti); return; }
-    el.textContent = --sec;
-    if (sec <= 0) { clearInterval(ti); document.getElementById('pwAlert')?.remove(); }
-}, 1000);
+    function copyPassword() {
+        var passwordText = document.getElementById("passwordText").innerText;
+        navigator.clipboard.writeText(passwordText).then(function() {
+            alert("Password disalin: " + passwordText);
+        }, function(err) {
+            console.error('Gagal menyalin text: ', err);
+        });
+    }
 </script>
-@endpush
+@endsection

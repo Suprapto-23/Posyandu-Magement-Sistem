@@ -1,159 +1,128 @@
-@extends('layouts.app')
-
-@section('title', 'Tambah Bidan')
-
-@push('styles')
-<style>
-    .card-form {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        background: white;
-    }
-    .card-header-form {
-        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-        color: white;
-        border-radius: 15px 15px 0 0 !important;
-        padding: 1.5rem;
-        border: none;
-    }
-    .form-section {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-    .section-title {
-        color: #2c3e50;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #27ae60;
-    }
-    .section-title i {
-        color: #27ae60;
-        margin-right: 0.5rem;
-    }
-    .required-label::after {
-        content: " *";
-        color: #e74c3c;
-    }
-</style>
-@endpush
+@extends('layouts.admin')
+@section('title', 'Tambah Bidan Baru')
+@section('page-name', 'Registrasi Bidan')
 
 @section('content')
-<div class="main-content">
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <h2><i class="fas fa-user-plus me-2"></i>Tambah Akses Bidan</h2>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.bidans.index') }}">Bidan</a></li>
-                        <li class="breadcrumb-item active">Buat Akun</li>
-                    </ol>
-                </nav>
+<div class="max-w-4xl mx-auto" style="animation: menuPop 0.4s ease-out forwards;">
+
+    {{-- Hero (Simetri Rata Tengah) --}}
+    <div class="bg-gradient-to-br from-obsidian-900 to-slate-800 rounded-[32px] p-8 md:p-10 mb-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col items-center justify-center text-center group">
+        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <div class="absolute top-0 right-0 w-48 h-48 bg-emerald-500/15 blur-[60px] rounded-full pointer-events-none"></div>
+
+        <div class="relative z-10 w-full flex flex-col items-center">
+            <div class="inline-flex items-center gap-2 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-3">
+                <a href="{{ route('admin.bidans.index') }}" class="text-slate-400 hover:text-emerald-400 transition-colors smooth-route">Daftar Bidan</a>
+                <i class="fas fa-chevron-right text-[8px] text-slate-600"></i>
+                <span>Tambah Baru</span>
             </div>
-            <div class="mt-3 mt-md-0">
-                <a href="{{ route('admin.bidans.index') }}" class="btn btn-light">
-                    <i class="fas fa-arrow-left me-2"></i>Kembali
-                </a>
-            </div>
+            
+            <h2 class="text-3xl font-black text-white font-poppins tracking-tight flex items-center justify-center gap-3">
+                <i class="fas fa-user-plus text-emerald-400"></i> Registrasi Bidan
+            </h2>
         </div>
     </div>
 
-    <div class="card-form mt-4">
-        <div class="card-header-form">
-            <h4 class="mb-0"><i class="fas fa-key me-2"></i>Form Pembuatan Akun</h4>
-            <p class="mb-0 opacity-75">Buat akses masuk untuk bidan baru</p>
+    @if($errors->any())
+    <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-6 text-sm font-bold text-rose-600 flex justify-center text-center gap-3 shadow-sm">
+        <i class="fas fa-exclamation-circle text-lg"></i> Mohon periksa kembali isian form Anda.
+    </div>
+    @endif
+
+    {{-- Info Alert Premium --}}
+    <div class="bg-slate-800 rounded-2xl p-5 mb-8 flex items-start gap-4 shadow-sm border border-slate-700 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-transparent pointer-events-none"></div>
+        <div class="w-10 h-10 rounded-xl bg-obsidian-900 text-emerald-400 flex items-center justify-center text-lg shrink-0 border border-slate-600">
+            <i class="fas fa-info-circle"></i>
         </div>
+        <div>
+            <h5 class="text-sm font-black text-white mb-1 tracking-wide">Informasi Pembuatan Akun</h5>
+            <ul class="text-[12px] text-slate-400 font-medium space-y-1 list-disc list-inside">
+                <li>Password akan <span class="text-emerald-400 font-bold">digenerate otomatis</span> oleh sistem.</li>
+                <li>Password akan muncul di layar setelah Anda berhasil menyimpan data ini.</li>
+                <li>Detail profil lainnya (RS, STR/SIP) dapat dilengkapi mandiri oleh Bidan melalui profil mereka.</li>
+            </ul>
+        </div>
+    </div>
+
+    <form action="{{ route('admin.bidans.store') }}" method="POST" id="bidanForm">
+        @csrf
         
-        <div class="card-body p-4">
-            <form action="{{ route('admin.bidans.store') }}" method="POST">
-                @csrf
-                
-                <div class="form-section">
-                    <h5 class="section-title"><i class="fas fa-id-card"></i> Identitas & Login</h5>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="full_name" class="form-label required-label">Nama Lengkap</label>
-                            <input type="text" 
-                                   name="full_name" 
-                                   class="form-control @error('full_name') is-invalid @enderror" 
-                                   value="{{ old('full_name') }}" 
-                                   placeholder="Contoh: Bidan Siti Aminah, Amd.Keb">
-                            @error('full_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="nik" class="form-label required-label">NIK (16 Digit)</label>
-                            <input type="text" 
-                                   name="nik" 
-                                   id="nik" 
-                                   class="form-control @error('nik') is-invalid @enderror" 
-                                   value="{{ old('nik') }}" 
-                                   maxlength="16" 
-                                   placeholder="Nomor Induk Kependudukan">
-                            @error('nik') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden mb-8">
+            <div class="bg-slate-50/80 px-8 py-5 border-b border-slate-100 flex items-center justify-center">
+                <h5 class="font-black text-obsidian-900 text-sm uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-id-badge text-emerald-500"></i> Informasi Data Diri Bidan
+                </h5>
+            </div>
+            
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nomor Induk Kependudukan (NIK) <span class="text-rose-500">*</span></label>
+                        <input type="text" name="nik" id="nik" value="{{ old('nik') }}" maxlength="16" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="16 Digit Angka NIK">
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label required-label">Email Login</label>
-                            <input type="email" 
-                                   name="email" 
-                                   class="form-control @error('email') is-invalid @enderror" 
-                                   value="{{ old('email') }}" 
-                                   placeholder="alamat@email.com">
-                            <small class="text-muted">Email ini akan digunakan untuk login ke sistem.</small>
-                            @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nama Lengkap <span class="text-rose-500">*</span></label>
+                        <input type="text" name="name" value="{{ old('name') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Nama Lengkap dengan Gelar">
+                    </div>
 
-                        <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label required-label">Status Akun</label>
-                            <select name="status" class="form-select @error('status') is-invalid @enderror">
-                                <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Aktif (Dapat Login)</option>
-                                <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Nonaktif (Blokir)</option>
-                            </select>
-                            @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+                    <div class="col-span-1 md:col-span-2 space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Email Sistem <span class="text-rose-500">*</span></label>
+                        <input type="email" name="email" value="{{ old('email') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="email@contoh.com">
+                    </div>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Jenis Kelamin <span class="text-rose-500">*</span></label>
+                        <select name="jenis_kelamin" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                            <option value="">-- Pilih --</option>
+                            <option value="L" {{ old('jenis_kelamin') == 'L' ? 'selected' : '' }}>Laki-Laki</option>
+                            <option value="P" {{ old('jenis_kelamin') == 'P' ? 'selected' : '' }}>Perempuan</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nomor Telepon/WA</label>
+                        <input type="text" name="telepon" id="telepon" value="{{ old('telepon') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="08xx...">
+                    </div>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tempat Lahir</label>
+                        <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Kota Kelahiran">
+                    </div>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tanggal Lahir <span class="text-rose-500">*</span></label>
+                        <input type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                    </div>
+
+                    <div class="col-span-1 md:col-span-2 space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Alamat Lengkap</label>
+                        <input type="text" name="alamat" value="{{ old('alamat') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Jalan, RT/RW, Desa">
                     </div>
                 </div>
-
-                <div class="alert alert-info d-flex align-items-center" role="alert">
-                    <i class="fas fa-info-circle fa-2x me-3"></i>
-                    <div>
-                        <strong>Informasi:</strong>
-                        <ul class="mb-0 ps-3">
-                            <li>Password akan <strong>digenerate otomatis</strong> oleh sistem.</li>
-                            <li>Password akan muncul di layar setelah Anda menekan tombol Simpan.</li>
-                            <li>Detail profil lainnya (Alamat, RS, SIP) dapat dilengkapi mandiri oleh Bidan nanti.</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="d-flex justify-content-end gap-2 mt-4">
-                    <a href="{{ route('admin.bidans.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-times me-2"></i>Batal
-                    </a>
-                    <button type="submit" class="btn btn-success px-4">
-                        <i class="fas fa-save me-2"></i>Buat Akun
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
-</div>
-@endsection
 
-@push('scripts')
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pb-10">
+            <a href="{{ route('admin.bidans.index') }}" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-slate-500 bg-white border border-slate-200 hover:bg-slate-50 hover:text-obsidian-900 transition-all shadow-sm text-sm text-center smooth-route">
+                <i class="fas fa-times mr-1"></i> Batal
+            </a>
+            <button type="submit" id="btnSubmit" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-obsidian-900 bg-amber-500 hover:bg-amber-400 hover:-translate-y-1 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.4)] text-sm flex items-center justify-center gap-2">
+                <i class="fas fa-save"></i> Buat Akun Bidan
+            </button>
+        </div>
+    </form>
+</div>
+
 <script>
-    // Hanya izinkan angka untuk input NIK
-    document.getElementById('nik').addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '');
+    document.getElementById('nik').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); });
+    document.getElementById('telepon').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); });
+    
+    document.getElementById('bidanForm').addEventListener('submit', function() {
+        const btn = document.getElementById('btnSubmit');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
     });
 </script>
-@endpush
+@endsection

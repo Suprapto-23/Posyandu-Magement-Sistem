@@ -1,174 +1,170 @@
-{{--
-  PATH   : resources/views/admin/settings/index.blade.php
-  FUNGSI : Pengaturan sistem — profil posyandu + ganti password admin
---}}
-@extends('layouts.app')
+@extends('layouts.admin')
 @section('title', 'Pengaturan Sistem')
-
-@push('styles')
-<style>
-.set-hero { background:linear-gradient(135deg,#0f172a,#0d9488); border-radius:16px; padding:1.5rem; color:#fff; margin-bottom:1.5rem; }
-.set-hero h4 { font-size:1.2rem; font-weight:800; margin:0 0 .2rem; }
-.set-hero p  { font-size:.78rem; opacity:.75; margin:0; }
-.set-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; overflow:hidden; margin-bottom:1.25rem; }
-.set-head { padding:.85rem 1.15rem; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:.5rem; }
-.set-head h6 { font-size:.87rem; font-weight:800; color:#0f172a; margin:0; }
-.set-head i { color:#0d9488; }
-.set-body { padding:1.15rem; }
-.form-row2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
-.form-group { display:flex; flex-direction:column; gap:.35rem; margin-bottom:.85rem; }
-.form-group.full { grid-column:1 / -1; }
-.fl { font-size:.75rem; font-weight:700; color:#374151; }
-.fl .req { color:#dc2626; }
-.fi { height:40px; border:1.5px solid #e2e8f0; border-radius:10px; padding:0 .85rem; font-size:.84rem; font-family:inherit; outline:none; transition:border .15s; width:100%; }
-.fi:focus { border-color:#0d9488; box-shadow:0 0 0 3px rgba(13,148,136,.1); }
-.fi.is-invalid { border-color:#dc2626; }
-.err { font-size:.72rem; color:#dc2626; }
-.admin-chip { background:#f0fdfa; border:1.5px solid #99f6e4; border-radius:12px; padding:.85rem 1rem; display:flex; align-items:center; gap:.75rem; margin-bottom:1rem; }
-.admin-av { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#0d9488,#0ea5e9); display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:800; color:#fff; flex-shrink:0; }
-.sys-row { display:flex; justify-content:space-between; padding:.5rem 0; border-bottom:1px solid #f8fafc; font-size:.82rem; }
-.sys-row:last-child { border-bottom:none; }
-.sys-lbl { color:#64748b; font-weight:600; }
-.sys-val { color:#0f172a; font-weight:700; font-family:monospace; font-size:.78rem; }
-@media(max-width:576px){ .form-row2 { grid-template-columns:1fr; } }
-</style>
-@endpush
+@section('page-name', 'Setelan Web')
 
 @section('content')
+<div class="max-w-6xl mx-auto" style="animation: menuPop 0.4s ease-out forwards;">
 
-<div class="set-hero">
-    <h4><i class="fas fa-cog me-2"></i>Pengaturan Sistem</h4>
-    <p>Kelola profil posyandu dan keamanan akun admin</p>
-</div>
+    {{-- Hero Section (Executive Obsidian) --}}
+    <div class="bg-gradient-to-br from-[#0f172a] to-slate-800 rounded-[32px] p-8 md:p-10 mb-8 relative overflow-hidden shadow-[0_20px_40px_-10px_rgba(15,23,42,0.4)] border border-slate-700 flex flex-col items-center justify-center text-center group">
+        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 blur-[80px] rounded-full pointer-events-none"></div>
 
-<div class="row g-3">
-    {{-- Profil Posyandu --}}
-    <div class="col-lg-7">
-        <div class="set-card">
-            <div class="set-head"><i class="fas fa-hospital"></i><h6>Profil Posyandu</h6></div>
-            <div class="set-body">
-                <form method="POST" action="{{ route('admin.settings.update') }}">
-                    @csrf @method('PUT')
-
-                    <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:#64748b;margin-bottom:.75rem;letter-spacing:.06em">Identitas Posyandu</div>
-                    <div class="form-row2">
-                        <div class="form-group full">
-                            <label class="fl">Nama Posyandu <span class="req">*</span></label>
-                            <input type="text" name="posyandu_name" class="fi @error('posyandu_name') is-invalid @enderror"
-                                value="{{ old('posyandu_name', $settings['posyandu_name'] ?? '') }}"
-                                placeholder="Posyandu Melati">
-                            @error('posyandu_name')<span class="err">{{ $message }}</span>@enderror
-                        </div>
-                        <div class="form-group">
-                            <label class="fl">Nomor Telepon</label>
-                            <input type="text" name="posyandu_telepon" class="fi"
-                                value="{{ old('posyandu_telepon', $settings['posyandu_telepon'] ?? '') }}"
-                                placeholder="08xxxxxxxxxx">
-                        </div>
-                        <div class="form-group">
-                            <label class="fl">Email Posyandu</label>
-                            <input type="email" name="posyandu_email" class="fi @error('posyandu_email') is-invalid @enderror"
-                                value="{{ old('posyandu_email', $settings['posyandu_email'] ?? '') }}"
-                                placeholder="posyandu@example.com">
-                            @error('posyandu_email')<span class="err">{{ $message }}</span>@enderror
-                        </div>
-                        <div class="form-group full">
-                            <label class="fl">Alamat Lengkap</label>
-                            <input type="text" name="posyandu_alamat" class="fi"
-                                value="{{ old('posyandu_alamat', $settings['posyandu_alamat'] ?? '') }}"
-                                placeholder="Jl. Contoh No. 1">
-                        </div>
-                    </div>
-
-                    <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:#64748b;margin-bottom:.75rem;letter-spacing:.06em">Wilayah</div>
-                    <div class="form-row2">
-                        <div class="form-group">
-                            <label class="fl">Kelurahan / Desa</label>
-                            <input type="text" name="posyandu_kelurahan" class="fi"
-                                value="{{ old('posyandu_kelurahan', $settings['posyandu_kelurahan'] ?? '') }}">
-                        </div>
-                        <div class="form-group">
-                            <label class="fl">Kecamatan</label>
-                            <input type="text" name="posyandu_kecamatan" class="fi"
-                                value="{{ old('posyandu_kecamatan', $settings['posyandu_kecamatan'] ?? '') }}">
-                        </div>
-                        <div class="form-group">
-                            <label class="fl">Kota / Kabupaten</label>
-                            <input type="text" name="posyandu_kota" class="fi"
-                                value="{{ old('posyandu_kota', $settings['posyandu_kota'] ?? '') }}">
-                        </div>
-                        <div class="form-group">
-                            <label class="fl">Kode Pos</label>
-                            <input type="text" name="posyandu_kode_pos" class="fi"
-                                value="{{ old('posyandu_kode_pos', $settings['posyandu_kode_pos'] ?? '') }}"
-                                maxlength="5" placeholder="12345">
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-end mt-2">
-                        <button type="submit" class="btn-primary-app">
-                            <i class="fas fa-save"></i> Simpan Pengaturan
-                        </button>
-                    </div>
-                </form>
+        <div class="relative z-10 w-full flex flex-col items-center">
+            <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-amber-500 flex items-center justify-center text-3xl shadow-inner mb-4 transition-transform group-hover:rotate-180 duration-700">
+                <i class="fas fa-cog"></i>
             </div>
+            <h2 class="text-3xl font-black text-white font-poppins tracking-tight">
+                Konfigurasi Sistem Utama
+            </h2>
+            <p class="text-slate-400 text-sm font-medium mt-2 max-w-lg">
+                Kelola identitas Posyandu untuk keperluan kop surat laporan (Kader & Bidan) dan perbarui kata sandi administrator Anda secara berkala.
+            </p>
         </div>
     </div>
 
-    {{-- Keamanan + Info Sistem --}}
-    <div class="col-lg-5">
-        {{-- Admin Info --}}
-        <div class="set-card mb-3">
-            <div class="set-head"><i class="fas fa-shield-alt"></i><h6>Keamanan Akun Admin</h6></div>
-            <div class="set-body">
-                <div class="admin-chip">
-                    <div class="admin-av">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
-                    <div>
-                        <div style="font-size:.85rem;font-weight:800;color:#0f172a">{{ auth()->user()->name }}</div>
-                        <div style="font-size:.7rem;color:#64748b">{{ auth()->user()->email }}</div>
+    {{-- Notifikasi Sukses / Error --}}
+    @if(session('success'))
+    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-6 text-sm font-bold text-emerald-700 flex justify-center items-center text-center gap-3 shadow-sm">
+        <i class="fas fa-check-circle text-xl"></i> {{ session('success') }}
+    </div>
+    @endif
+    
+    @if($errors->any())
+    <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-6 text-sm font-bold text-rose-600 flex justify-center items-center text-center gap-3 shadow-sm">
+        <i class="fas fa-exclamation-circle text-xl"></i> Terdapat kesalahan pada input form. Silakan periksa kembali isian Anda.
+    </div>
+    @endif
+
+    {{-- Grid Layout 2 Kolom --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+        
+        {{-- ========================================================= --}}
+        {{-- CARD 1: PROFIL POSYANDU (Untuk Kop Surat Laporan PDF)     --}}
+        {{-- ========================================================= --}}
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div class="bg-slate-50/80 px-8 py-5 border-b border-slate-100 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-[#0f172a] text-amber-500 flex items-center justify-center text-lg shadow-sm shrink-0">
+                    <i class="fas fa-clinic-medical"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-black text-[#0f172a] uppercase tracking-widest font-poppins">Profil Posyandu</h4>
+                    <p class="text-[11px] font-bold text-slate-500 mt-0.5">Terintegrasi dengan Laporan PDF</p>
+                </div>
+            </div>
+            
+            <form action="{{ route('admin.settings.update') }}" method="POST" id="formProfil" class="p-8 flex-1 flex flex-col">
+                @csrf 
+                @method('PUT')
+                
+                <div class="space-y-5 flex-1">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nama Posyandu <span class="text-rose-500">*</span></label>
+                        <input type="text" name="posyandu_name" value="{{ old('posyandu_name', $settings['posyandu_name'] ?? '') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Contoh: Posyandu Melati 1">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Email (Opsional)</label>
+                            <input type="email" name="posyandu_email" value="{{ old('posyandu_email', $settings['posyandu_email'] ?? '') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="email@posyandu.com">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Telepon (Opsional)</label>
+                            <input type="text" name="posyandu_telepon" value="{{ old('posyandu_telepon', $settings['posyandu_telepon'] ?? '') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="08xx...">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Kelurahan / Desa</label>
+                        <input type="text" name="posyandu_kelurahan" value="{{ old('posyandu_kelurahan', $settings['posyandu_kelurahan'] ?? '') }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Nama Desa">
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Alamat Lengkap</label>
+                        <textarea name="posyandu_alamat" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all resize-none" placeholder="Jalan, RT/RW, Kecamatan">{{ old('posyandu_alamat', $settings['posyandu_alamat'] ?? '') }}</textarea>
                     </div>
                 </div>
 
-                <form method="POST" action="{{ route('admin.settings.change-password') }}">
-                    @csrf @method('PUT')
-
-                    <div class="form-group">
-                        <label class="fl">Password Saat Ini <span class="req">*</span></label>
-                        <input type="password" name="current_password"
-                            class="fi @error('current_password') is-invalid @enderror"
-                            placeholder="••••••••">
-                        @error('current_password')<span class="err">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="form-group">
-                        <label class="fl">Password Baru <span class="req">*</span></label>
-                        <input type="password" name="new_password"
-                            class="fi @error('new_password') is-invalid @enderror"
-                            placeholder="Min. 8 karakter">
-                        @error('new_password')<span class="err">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="form-group">
-                        <label class="fl">Konfirmasi Password Baru <span class="req">*</span></label>
-                        <input type="password" name="new_password_confirmation" class="fi" placeholder="Ulangi password baru">
-                    </div>
-
-                    <button type="submit" class="btn-primary-app w-100 justify-content-center">
-                        <i class="fas fa-lock"></i> Ubah Password
+                <div class="mt-8">
+                    <button type="submit" id="btnProfil" class="w-full py-3.5 rounded-2xl font-bold text-slate-900 bg-amber-500 hover:bg-amber-400 hover:-translate-y-1 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.4)] text-sm flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i> Simpan Profil Posyandu
                     </button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
 
-        {{-- Info Sistem --}}
-        <div class="set-card">
-            <div class="set-head"><i class="fas fa-server"></i><h6>Info Sistem</h6></div>
-            <div class="set-body">
-                <div class="sys-row"><span class="sys-lbl">Laravel</span><span class="sys-val">{{ app()->version() }}</span></div>
-                <div class="sys-row"><span class="sys-lbl">PHP</span><span class="sys-val">{{ phpversion() }}</span></div>
-                <div class="sys-row"><span class="sys-lbl">Environment</span><span class="sys-val">{{ app()->environment() }}</span></div>
-                <div class="sys-row"><span class="sys-lbl">Timezone</span><span class="sys-val">{{ config('app.timezone') }}</span></div>
-                <div class="sys-row"><span class="sys-lbl">Server Time</span><span class="sys-val">{{ now()->format('d M Y H:i') }}</span></div>
+        {{-- ========================================================= --}}
+        {{-- CARD 2: KEAMANAN (Ganti Password Administrator)           --}}
+        {{-- ========================================================= --}}
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div class="bg-slate-50/80 px-8 py-5 border-b border-slate-100 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center text-lg shadow-sm shrink-0">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-black text-[#0f172a] uppercase tracking-widest font-poppins">Keamanan Akun</h4>
+                    <p class="text-[11px] font-bold text-slate-500 mt-0.5">Ubah kata sandi Administrator Anda</p>
+                </div>
             </div>
+            
+            {{-- Form Password dengan Padding yang sudah disejajarkan --}}
+            <form action="{{ route('admin.settings.change-password') }}" method="POST" id="formPassword" class="p-8 flex-1 flex flex-col">
+                @csrf 
+                @method('PUT')
+                
+                <div class="space-y-5 flex-1">
+                    {{-- Password Lama --}}
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Password Saat Ini</label>
+                        <input type="password" name="current_password" required 
+                               class="w-full bg-slate-50 border @error('current_password') border-rose-500 bg-rose-50 @else border-slate-200 @enderror rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all">
+                        @error('current_password')
+                            <p class="text-[10px] text-rose-500 font-bold mt-1"><i class="fas fa-exclamation-triangle"></i> {{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Password Baru --}}
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Password Baru (Min 8 Karakter)</label>
+                        <input type="password" name="new_password" required 
+                               class="w-full bg-slate-50 border @error('new_password') border-rose-500 bg-rose-50 @else border-slate-200 @enderror rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all">
+                        @error('new_password')
+                            <p class="text-[10px] text-rose-500 font-bold mt-1"><i class="fas fa-exclamation-triangle"></i> {{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Konfirmasi --}}
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Ulangi Password Baru</label>
+                        <input type="password" name="new_password_confirmation" required 
+                               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all">
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    {{-- PERBAIKAN: Penambahan id="btnPassword" agar animasi JS jalan --}}
+                    <button type="submit" id="btnPassword" class="w-full py-3.5 rounded-2xl font-bold text-white bg-slate-800 hover:bg-[#0f172a] hover:-translate-y-1 transition-all shadow-[0_4px_20px_rgba(15,23,42,0.2)] text-sm flex items-center justify-center gap-2">
+                        <i class="fas fa-lock"></i> Perbarui Password Admin
+                    </button>
+                </div>
+            </form>
         </div>
+
     </div>
 </div>
+
+{{-- Script untuk animasi loading pada tombol submit --}}
+<script>
+    document.getElementById('formProfil').addEventListener('submit', function() {
+        const btn = document.getElementById('btnProfil');
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-lg"></i> Menyimpan...';
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
+    });
+
+    document.getElementById('formPassword').addEventListener('submit', function() {
+        const btn = document.getElementById('btnPassword');
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-lg"></i> Memvalidasi...';
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
+    });
+</script>
 @endsection

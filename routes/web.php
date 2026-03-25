@@ -80,6 +80,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','checkstatus','role:a
     Route::get('/settings',                [AdminSetting::class, 'index'])->name('settings.index');
     Route::put('/settings',                [AdminSetting::class, 'update'])->name('settings.update');
     Route::put('/settings/change-password',[AdminSetting::class, 'changePassword'])->name('settings.change-password');
+    
 });
 
 // ==================== BIDAN ====================
@@ -101,6 +102,13 @@ Route::prefix('bidan')->name('bidan.')->middleware(['auth','checkstatus','role:b
     Route::get('/pasien/balita', [BidanPasien::class, 'indexBalita'])->name('pasien.balita');
     Route::get('/pasien/remaja', [BidanPasien::class, 'indexRemaja'])->name('pasien.remaja');
     Route::get('/pasien/lansia', [BidanPasien::class, 'indexLansia'])->name('pasien.lansia');
+
+    // IMUNISASI (Akses Khusus Bidan)
+    Route::get('/imunisasi', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'index'])->name('imunisasi.index');
+    Route::get('/imunisasi/create', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'create'])->name('imunisasi.create');
+    Route::post('/imunisasi', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'store'])->name('imunisasi.store');
+    Route::get('/imunisasi/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'show'])->name('imunisasi.show');
+    Route::delete('/imunisasi/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'destroy'])->name('imunisasi.destroy');
 
     // REKAM MEDIS (RUTE BARU)
     Route::get('/rekam-medis', [BidanRekamMedisController::class, 'index'])->name('rekam-medis.index');
@@ -165,7 +173,15 @@ Route::prefix('kader')->name('kader.')->middleware(['auth','checkstatus','role:k
         Route::get('/{id}',                    [ImportController::class, 'show'])->name('show');
         Route::delete('/{id}',                 [ImportController::class, 'destroy'])->name('destroy');
     });
-
+// 👇 SISTEM NOTIFIKASI KADER (REAL-TIME) 👇
+    Route::prefix('notifikasi')->name('notifikasi.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Kader\NotifikasiController::class, 'index'])->name('index');
+        Route::get('/fetch', [\App\Http\Controllers\Kader\NotifikasiController::class, 'fetchRecent'])->name('fetch'); // Untuk AJAX
+        Route::post('/mark-all-read', [\App\Http\Controllers\Kader\NotifikasiController::class, 'markAllRead'])->name('markAllRead');
+        Route::post('/{id}/read', [\App\Http\Controllers\Kader\NotifikasiController::class, 'markAsRead'])->name('read');
+        Route::delete('/{id}', [\App\Http\Controllers\Kader\NotifikasiController::class, 'destroy'])->name('destroy');
+    });
+    
     Route::get('/profile',          [KaderProfile::class, 'index'])->name('profile.index');
     Route::put('/profile',          [KaderProfile::class, 'update'])->name('profile.update');
     Route::get('/profile/password', [KaderProfile::class, 'password'])->name('profile.password');

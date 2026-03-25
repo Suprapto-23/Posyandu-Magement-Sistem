@@ -1,134 +1,121 @@
-@extends('layouts.app')
-
-@section('title', 'Edit Bidan')
-
-@push('styles')
-<style>
-    .card-form {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        background: white;
-    }
-    
-    .card-header-form {
-        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-        color: white;
-        border-radius: 15px 15px 0 0 !important;
-        padding: 1.5rem;
-        border: none;
-    }
-    
-    .form-section {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .section-title {
-        color: #2c3e50;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #27ae60;
-    }
-    
-    .required-label::after {
-        content: " *";
-        color: #e74c3c;
-    }
-</style>
-@endpush
+@extends('layouts.admin')
+@section('title', 'Edit Data Bidan')
+@section('page-name', 'Edit Bidan')
 
 @section('content')
-<div class="main-content">
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <h2><i class="fas fa-user-edit me-2"></i>Edit Akses Bidan</h2>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.bidans.index') }}">Bidan</a></li>
-                        <li class="breadcrumb-item active">Edit</li>
-                    </ol>
-                </nav>
+<div class="max-w-4xl mx-auto" style="animation: menuPop 0.4s ease-out forwards;">
+
+    {{-- Hero (Simetri Rata Tengah) --}}
+    <div class="bg-gradient-to-br from-obsidian-900 to-slate-800 rounded-[32px] p-8 md:p-10 mb-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col items-center justify-center text-center group">
+        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <div class="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 blur-[60px] rounded-full pointer-events-none"></div>
+
+        <div class="relative z-10 w-full flex flex-col items-center">
+            <div class="inline-flex items-center gap-2 text-amber-500 text-[10px] font-black uppercase tracking-widest mb-3">
+                <a href="{{ route('admin.bidans.index') }}" class="text-slate-400 hover:text-amber-500 transition-colors smooth-route">Daftar Bidan</a>
+                <i class="fas fa-chevron-right text-[8px] text-slate-600"></i>
+                <span>Edit Data</span>
             </div>
-            <div class="mt-3 mt-md-0">
-                <a href="{{ route('admin.bidans.index') }}" class="btn btn-light">
-                    <i class="fas fa-arrow-left me-2"></i>Kembali
-                </a>
-            </div>
+            
+            <h2 class="text-3xl font-black text-white font-poppins tracking-tight flex items-center justify-center gap-3">
+                <i class="fas fa-user-edit text-amber-500"></i> Edit: {{ $bidan->profile->full_name ?? $bidan->name }}
+            </h2>
         </div>
     </div>
 
-    <div class="card-form mt-4">
-        <div class="card-header-form">
-            <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Data Akun</h4>
-            <p class="mb-0 opacity-75">Perbarui informasi dasar untuk {{ $bidan->name }}</p>
-        </div>
+    @if($errors->any())
+    <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-6 text-sm font-bold text-rose-600 flex justify-center text-center gap-3 shadow-sm">
+        <i class="fas fa-exclamation-circle text-lg"></i> Mohon periksa kembali isian form Anda.
+    </div>
+    @endif
+
+    <form action="{{ route('admin.bidans.update', $bidan->id) }}" method="POST" id="bidanForm">
+        @csrf @method('PUT')
         
-        <div class="card-body p-4">
-            <form action="{{ route('admin.bidans.update', $bidan->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-                
-                <div class="form-section">
-                    <h5 class="section-title"><i class="fas fa-user-cog"></i> Informasi Utama</h5>
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden mb-8">
+            <div class="bg-slate-50/80 px-8 py-5 border-b border-slate-100 flex items-center justify-center">
+                <h5 class="font-black text-obsidian-900 text-sm uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-id-badge text-amber-500"></i> Perbarui Data Bidan
+                </h5>
+            </div>
+            
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="full_name" class="form-label required-label">Nama Lengkap</label>
-                            <input type="text" 
-                                   class="form-control @error('full_name') is-invalid @enderror" 
-                                   id="full_name" 
-                                   name="full_name" 
-                                   value="{{ old('full_name', $bidan->profile->full_name ?? $bidan->name) }}"
-                                   placeholder="Nama lengkap bidan">
-                            @error('full_name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label required-label">Status Akun</label>
-                            <select class="form-select @error('status') is-invalid @enderror" 
-                                    id="status" 
-                                    name="status">
-                                <option value="active" {{ old('status', $bidan->status) == 'active' ? 'selected' : '' }}>Aktif</option>
-                                <option value="inactive" {{ old('status', $bidan->status) == 'inactive' ? 'selected' : '' }}>Nonaktif</option>
-                            </select>
-                            @error('status')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                    {{-- Input NIK & Email Readonly (Untuk Keamanan Kredensial Medis) --}}
+                    <div class="space-y-2 text-center md:text-left opacity-75">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nomor Induk Kependudukan (NIK)</label>
+                        <input type="text" value="{{ $bidan->profile?->nik ?? $bidan->nik ?? '-' }}" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-500 cursor-not-allowed">
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Email (Username)</label>
-                            <input type="text" class="form-control bg-light" value="{{ $bidan->email }}" readonly>
-                            <small class="text-muted">Email tidak dapat diubah dari menu edit.</small>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">NIK</label>
-                            <input type="text" class="form-control bg-light" value="{{ $bidan->profile->nik ?? '-' }}" readonly>
-                        </div>
+                    <div class="space-y-2 text-center md:text-left opacity-75">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Email (Username)</label>
+                        <input type="email" value="{{ $bidan->email }}" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-500 cursor-not-allowed">
+                    </div>
+
+                    <div class="col-span-1 md:col-span-2 space-y-2 text-center md:text-left border-t border-slate-100 mt-2 pt-6">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nama Lengkap <span class="text-rose-500">*</span></label>
+                        <input type="text" name="name" value="{{ old('name', $bidan->profile?->full_name ?? $bidan->name) }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                    </div>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Jenis Kelamin <span class="text-rose-500">*</span></label>
+                        <select name="jenis_kelamin" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                            <option value="">-- Pilih --</option>
+                            <option value="L" {{ old('jenis_kelamin', $bidan->profile?->jenis_kelamin) == 'L' ? 'selected' : '' }}>Laki-Laki</option>
+                            <option value="P" {{ old('jenis_kelamin', $bidan->profile?->jenis_kelamin) == 'P' ? 'selected' : '' }}>Perempuan</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nomor Telepon/WA</label>
+                        <input type="text" name="telepon" id="telepon" value="{{ old('telepon', $bidan->profile?->telepon) }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                    </div>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tempat Lahir</label>
+                        <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir', $bidan->profile?->tempat_lahir) }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                    </div>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tanggal Lahir <span class="text-rose-500">*</span></label>
+                        <input type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir', $bidan->profile?->tanggal_lahir) }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                    </div>
+
+                    <div class="col-span-1 md:col-span-2 space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Alamat Lengkap</label>
+                        <input type="text" name="alamat" value="{{ old('alamat', $bidan->profile?->alamat) }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                    </div>
+
+                    <div class="col-span-1 md:col-span-2 space-y-2 text-center md:text-left mt-2">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Status Akun <span class="text-rose-500">*</span></label>
+                        <select name="status" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-black text-obsidian-900 focus:bg-white focus:border-amber-500 outline-none transition-all">
+                            <option value="active" {{ old('status', $bidan->status) == 'active' ? 'selected' : '' }}>🟢 AKTIF</option>
+                            <option value="inactive" {{ old('status', $bidan->status) == 'inactive' ? 'selected' : '' }}>🔴 NONAKTIF</option>
+                        </select>
                     </div>
                 </div>
-                
-                <div class="d-flex justify-content-end gap-2 mt-4">
-                    <a href="{{ route('admin.bidans.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-times me-2"></i>Batal
-                    </a>
-                    <button type="submit" class="btn btn-success px-4">
-                        <i class="fas fa-save me-2"></i>Simpan Perubahan
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pb-10">
+            <a href="{{ route('admin.bidans.index') }}" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-slate-500 bg-white border border-slate-200 hover:bg-slate-50 hover:text-obsidian-900 transition-all shadow-sm text-sm text-center smooth-route">
+                <i class="fas fa-times mr-1"></i> Batal
+            </a>
+            <button type="submit" id="btnSubmit" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-bold text-obsidian-900 bg-amber-500 hover:bg-amber-400 hover:-translate-y-1 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.4)] text-sm flex items-center justify-center gap-2">
+                <i class="fas fa-save"></i> Simpan Perubahan
+            </button>
+        </div>
+    </form>
 </div>
+
+<script>
+    document.getElementById('telepon').addEventListener('input', function(e) { this.value = this.value.replace(/[^0-9]/g, ''); });
+    
+    document.getElementById('bidanForm').addEventListener('submit', function() {
+        const btn = document.getElementById('btnSubmit');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
+    });
+</script>
 @endsection

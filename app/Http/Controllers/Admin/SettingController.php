@@ -1,8 +1,4 @@
 <?php
-/**
- * PATH   : app/Http/Controllers/Admin/SettingController.php
- * FUNGSI : Pengaturan sistem — profil posyandu, ganti password admin
- */
 
 namespace App\Http\Controllers\Admin;
 
@@ -11,27 +7,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class SettingController extends Controller
 {
+    // Key yang digunakan sesuai kebutuhan laporan Posyandu
     private array $settingKeys = [
         'posyandu_name', 'posyandu_alamat', 'posyandu_telepon',
-        'posyandu_email', 'posyandu_kelurahan', 'posyandu_kecamatan',
-        'posyandu_kota', 'posyandu_kode_pos',
+        'posyandu_email', 'posyandu_kelurahan'
     ];
 
     public function index()
     {
-        $settings = [];
-        try {
-            $rows = DB::table('settings')
-                ->whereIn('key', $this->settingKeys)->get()->keyBy('key');
-            foreach ($this->settingKeys as $k) {
-                $settings[$k] = $rows[$k]->value ?? '';
-            }
-        } catch (\Throwable $e) {
-            foreach ($this->settingKeys as $k) $settings[$k] = '';
-        }
+        // Mengambil data dari tabel settings sesuai database kamu
+        $settings = DB::table('settings')
+            ->whereIn('key', $this->settingKeys)
+            ->pluck('value', 'key')
+            ->toArray();
 
         return view('admin.settings.index', compact('settings'));
     }
@@ -39,36 +31,52 @@ class SettingController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'posyandu_name'    => 'required|string|max:191',
-            'posyandu_telepon' => 'nullable|string|max:20',
-            'posyandu_email'   => 'nullable|email|max:191',
+            'posyandu_name' => 'required|string|max:191',
+            'posyandu_email' => 'nullable|email',
+            'posyandu_telepon' => 'nullable|string',
         ]);
 
-        foreach ($this->settingKeys as $k) {
+        // Simpan setiap key ke database (Update jika ada, Insert jika belum ada)
+        foreach ($this->settingKeys as $key) {
             DB::table('settings')->updateOrInsert(
-                ['key' => $k],
-                ['key' => $k, 'value' => $request->input($k, ''), 'group' => 'posyandu', 'updated_at' => now()]
+                ['key' => $key],
+                [
+                    'value' => $request->input($key, ''),
+                    'group' => 'posyandu', // Mengelompokkan setelan posyandu
+                    'updated_at' => now()
+                ]
             );
         }
 
-        return back()->with('success', 'Pengaturan berhasil disimpan.');
+        return back()->with('success', 'Konfigurasi Posyandu berhasil diperbarui. Data ini akan otomatis muncul pada Kop Surat Laporan Kader dan Bidan.');
     }
 
     public function changePassword(Request $request)
     {
+        // Validasi dengan pesan kustom bahasa Indonesia
         $request->validate([
             'current_password' => 'required',
             'new_password'     => 'required|min:8|confirmed',
         ], [
-            'new_password.min'       => 'Password baru minimal 8 karakter.',
-            'new_password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'current_password.required' => 'Password lama wajib diisi.',
+            'new_password.required'     => 'Password baru wajib diisi.',
+            'new_password.min'          => 'Password baru minimal 8 karakter.',
+            'new_password.confirmed'    => 'Konfirmasi password baru tidak cocok.',
         ]);
 
-        if (!Hash::check($request->current_password, Auth::user()->password)) {
-            return back()->withErrors(['current_password' => 'Password saat ini tidak benar.']);
+        $user = Auth::user();
+
+        // Cek kecocokan password lama
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Password saat ini yang Anda masukkan salah!']);
         }
 
-        Auth::user()->update(['password' => Hash::make($request->new_password)]);
-        return back()->with('success', 'Password admin berhasil diubah.');
+        // Update password baru
+        DB::table('users')->where('id', $user->id)->update([
+            'password' => Hash::make($request->new_password),
+            'updated_at' => now()
+        ]);
+
+        return back()->with('success', 'Password berhasil diperbarui. Keamanan akun Anda sekarang terjaga.');
     }
 }

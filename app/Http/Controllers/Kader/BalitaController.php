@@ -10,13 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class BalitaController extends Controller
 {
-    /**
-     * Menampilkan daftar data balita
-     */
     public function index(Request $request)
     {
         $search = $request->get('search');
@@ -32,20 +30,19 @@ class BalitaController extends Controller
             ->latest()
             ->paginate(15);
             
+        // Deteksi jika request dari Live Search (AJAX)
+        if ($request->ajax()) {
+            return view('kader.data.balita.index', compact('balitas', 'search'))->render();
+        }
+            
         return view('kader.data.balita.index', compact('balitas', 'search'));
     }
 
-    /**
-     * Form tambah data balita
-     */
     public function create()
     {
         return view('kader.data.balita.create');
     }
 
-    /**
-     * Simpan data balita baru
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -65,15 +62,9 @@ class BalitaController extends Controller
 
         DB::beginTransaction();
         try {
-            // 1. Cari user berdasarkan NIK Ibu
-            $linkedUser = $this->findUserByNik($request->nik_ibu);
-            
-            // 2. Generate Kode Unik Balita
             $kode = 'BLT-' . date('ym') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-            // 3. Simpan Data
             $balita = Balita::create([
-                'user_id'       => $linkedUser ? $linkedUser->id : null,
                 'kode_balita'   => $kode,
                 'nik'           => $request->nik,
                 'nama_lengkap'  => $request->nama_lengkap,
@@ -90,66 +81,60 @@ class BalitaController extends Controller
                 'created_by'    => Auth::id(),
             ]);
 
+            // Sinkronisasi Otomatis menggunakan Radar Sapu Jagat
+            $linkedUser = $this->findLinkedUser($request->nik_ibu, $request->nama_ibu);
+            if ($linkedUser) {
+                $balita->user_id = $linkedUser->id;
+                $balita->save(); 
+            }
+
             DB::commit();
             
-            $message = 'Data balita berhasil ditambahkan.';
             if ($linkedUser) {
-                $message .= ' Terintegrasi dengan akun: ' . $linkedUser->name;
+                return redirect()->route('kader.data.balita.index')
+                    ->with('success', 'Data Balita berhasil disimpan dan tersinkronisasi otomatis dengan akun Wali.');
             } else {
-                $message .= ' (Tidak ditemukan akun dengan NIK ini. Warga perlu daftar dengan NIK yang sama)';
+                return redirect()->route('kader.data.balita.index')
+                    ->with('warning', "Data berhasil disimpan. Sistem tidak dapat menemukan profil Warga dengan NIK {$request->nik_ibu}. Silakan hubungi Administrator untuk mendaftarkan akun warga tersebut.");
             }
-            
-            return redirect()->route('kader.data.balita.index')
-                ->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Gagal menyimpan balita: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal memproses data: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Detail data balita
-     */
     public function show($id) 
     {
         $balita = Balita::with(['kunjungans' => function($q) {
-                $q->with(['petugas', 'pemeriksaan'])
-                  ->latest()
-                  ->take(10);
-            }, 'user'])
-            ->findOrFail($id);
+                $q->with(['petugas', 'pemeriksaan'])->latest()->take(10);
+            }, 'user'])->findOrFail($id);
         
-        // Hitung usia detail
         $tgl_lahir = Carbon::parse($balita->tanggal_lahir);
         $diff = $tgl_lahir->diff(now());
-        $usia_tahun = $diff->y;
-        $usia_bulan = $diff->m;
-        $usia_hari = $diff->d;
-        $sisa_bulan = $usia_bulan; // untuk konsistensi dengan view
-
-        // Cek apakah ada user yang terhubung
+        
         $userTerhubung = $balita->user;
-        if (!$userTerhubung && $balita->nik_ibu) {
-            $userTerhubung = $this->findUserByNik($balita->nik_ibu);
+        if (!$userTerhubung) {
+            $userTerhubung = $this->findLinkedUser($balita->nik_ibu, $balita->nama_ibu);
         }
 
-        return view('kader.data.balita.show', compact('balita', 'usia_tahun', 'usia_bulan', 'usia_hari', 'sisa_bulan', 'userTerhubung'));
+        return view('kader.data.balita.show', [
+            'balita' => $balita,
+            'usia_tahun' => $diff->y,
+            'usia_bulan' => $diff->m,
+            'usia_hari' => $diff->d,
+            'sisa_bulan' => $diff->m,
+            'userTerhubung' => $userTerhubung
+        ]);
     }
 
-    /**
-     * Form edit data balita
-     */
     public function edit($id)
     {
         $balita = Balita::findOrFail($id);
         return view('kader.data.balita.edit', compact('balita'));
     }
 
-    /**
-     * Update data balita
-     */
     public function update(Request $request, $id)
     {
         $balita = Balita::findOrFail($id);
@@ -170,30 +155,20 @@ class BalitaController extends Controller
         ]);
 
         try {
-            // Cek ulang link user jika NIK Ibu berubah
-            $linkedUser = null;
-            if ($request->nik_ibu != $balita->nik_ibu) {
-                $linkedUser = $this->findUserByNik($request->nik_ibu);
+            $balita->update($request->except(['_token', '_method', 'user_id']));
+
+            // Sinkronisasi ulang saat diupdate
+            $linkedUser = $this->findLinkedUser($request->nik_ibu, $request->nama_ibu);
+            $balita->user_id = $linkedUser ? $linkedUser->id : null;
+            $balita->save(); // Force save bypass fillable
+
+            if ($linkedUser) {
+                return redirect()->route('kader.data.balita.index')
+                    ->with('success', 'Data Balita berhasil diperbarui dan tersinkronisasi.');
+            } else {
+                return redirect()->route('kader.data.balita.index')
+                    ->with('warning', "Data diperbarui. Sistem tidak dapat menemukan profil Warga dengan NIK {$request->nik_ibu}. Silakan hubungi Administrator untuk membuatkan akun.");
             }
-
-            $balita->update([
-                'user_id'       => $linkedUser ? $linkedUser->id : $balita->user_id,
-                'nik'           => $request->nik,
-                'nama_lengkap'  => $request->nama_lengkap,
-                'tempat_lahir'  => $request->tempat_lahir,
-                'tanggal_lahir' => $request->tanggal_lahir,
-                'jenis_kelamin' => $request->jenis_kelamin,
-                'nik_ibu'       => $request->nik_ibu,
-                'nama_ibu'      => $request->nama_ibu,
-                'nik_ayah'      => $request->nik_ayah,
-                'nama_ayah'     => $request->nama_ayah,
-                'alamat'        => $request->alamat,
-                'berat_lahir'   => $request->berat_lahir,
-                'panjang_lahir' => $request->panjang_lahir,
-            ]);
-
-            return redirect()->route('kader.data.balita.show', $id)
-                ->with('success', 'Data balita berhasil diperbarui.');
                 
         } catch (\Exception $e) {
             Log::error('Gagal update balita: ' . $e->getMessage());
@@ -201,55 +176,52 @@ class BalitaController extends Controller
         }
     }
 
-    /**
-     * Hapus data balita
-     */
     public function destroy($id)
     {
         $balita = Balita::findOrFail($id);
-        
-        // Cek apakah ada kunjungan terkait
         if ($balita->kunjungans()->count() > 0) {
-            return back()->with('error', 'Gagal hapus: Balita ini memiliki riwayat pemeriksaan. Hapus data kunjungan terlebih dahulu.');
+            return back()->with('error', 'Gagal menghapus: Balita ini memiliki rekam medis/kunjungan yang tersimpan di sistem.');
         }
-            
         $balita->delete();
-        return redirect()->route('kader.data.balita.index')->with('success', 'Data balita berhasil dihapus.');
+        return redirect()->route('kader.data.balita.index')->with('success', 'Data balita berhasil dihapus secara permanen dari direktori.');
     }
 
     /**
-     * Fungsi untuk sinkronisasi manual
+     * 🚀 RADAR SAPU JAGAT (Otomatis Mencari Afiliasi Akun)
      */
-    public function syncUser($id)
+    private function findLinkedUser($nik_ibu, $nama_ibu)
     {
-        $balita = Balita::findOrFail($id);
-        
-        // Cari user berdasarkan NIK Ibu
-        $user = $this->findUserByNik($balita->nik_ibu);
-        
-        if ($user) {
-            $balita->update(['user_id' => $user->id]);
-            return back()->with('success', 'Berhasil sinkronisasi dengan akun: ' . $user->name . ' (' . $user->email . ')');
-        } else {
-            return back()->with('error', 'Tidak ditemukan akun user dengan NIK: ' . $balita->nik_ibu);
+        $cleanNik = preg_replace('/[^0-9]/', '', (string)$nik_ibu);
+        $cleanName = trim((string)$nama_ibu);
+
+        // 1. Geledah Tabel Users
+        $users = User::all();
+        foreach($users as $user) {
+            if (!empty($cleanNik)) {
+                if (($user->nik ?? '') === $cleanNik) return $user;
+                if (($user->username ?? '') === $cleanNik) return $user;
+                if (($user->email ?? '') === $cleanNik) return $user;
+            }
+            if (!empty($cleanName)) {
+                if (stripos($user->name, $cleanName) !== false) return $user;
+                if (stripos($user->username ?? '', $cleanName) !== false) return $user;
+            }
         }
-    }
 
-    /**
-     * Helper untuk mencari user berdasarkan NIK
-     */
-    private function findUserByNik($nik)
-    {
-        if (empty($nik)) return null;
-        
-        // Cari di tabel users
-        $user = User::where('nik', $nik)->first();
-        if ($user) return $user;
-        
-        // Cari di tabel profiles
-        $profile = Profile::where('nik', $nik)->first();
-        if ($profile) return $profile->user;
-        
+        // 2. Geledah Tabel Profiles
+        if (Schema::hasTable('profiles')) {
+            $profiles = DB::table('profiles')->get();
+            foreach($profiles as $p) {
+                if (!empty($cleanNik)) {
+                    if (($p->nik ?? '') === $cleanNik) return User::find($p->user_id);
+                    if (($p->no_ktp ?? '') === $cleanNik) return User::find($p->user_id);
+                }
+                if (!empty($cleanName)) {
+                    if (stripos($p->full_name ?? '', $cleanName) !== false) return User::find($p->user_id);
+                }
+            }
+        }
+
         return null;
     }
 }

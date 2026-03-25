@@ -1,0 +1,180 @@
+
+
+<?php $__env->startSection('title', 'Edit Data Lansia'); ?>
+<?php $__env->startSection('page-name', 'Edit Pasien'); ?>
+
+<?php $__env->startPush('styles'); ?>
+<style>
+    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .crm-label { display: block; font-size: 0.75rem; font-weight: 600; color: #4b5563; margin-bottom: 0.375rem; }
+    .crm-input {
+        width: 100%; background-color: #ffffff; border: 1px solid #d1d5db;
+        color: #111827; font-size: 0.875rem; border-radius: 0.5rem; 
+        padding: 0.625rem 0.75rem; outline: none; transition: all 0.2s ease;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .crm-input:focus { border-color: #059669; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
+    
+    .crm-error-input { border-color: #ef4444 !important; background-color: #fef2f2 !important; }
+    .crm-error-text { color: #ef4444; font-size: 0.75rem; margin-top: 0.375rem; font-weight: 500; display: block; }
+</style>
+<?php $__env->stopPush(); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="max-w-4xl mx-auto fade-in">
+    
+    <div class="mb-6 flex items-center gap-3">
+        <a href="<?php echo e(route('kader.data.lansia.index')); ?>" class="w-10 h-10 rounded-lg bg-white border border-gray-200 text-gray-500 flex items-center justify-center hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900 tracking-tight">Edit Data Lansia</h1>
+            <p class="text-sm text-gray-500 mt-0.5">Memperbarui informasi profil milik <span class="font-semibold text-gray-900"><?php echo e($lansia->nama_lengkap); ?></span>.</p>
+        </div>
+    </div>
+
+    <div class="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 shadow-sm">
+        <i class="fas fa-exclamation-triangle text-amber-600 mt-0.5"></i>
+        <div>
+            <h4 class="text-sm font-semibold text-amber-800">Perhatian Integrasi NIK</h4>
+            <p class="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                Jika Anda mengubah <strong>NIK Lansia</strong>, sistem akan otomatis memutuskan koneksi lama dan mencari kecocokan dengan akun Warga yang baru.
+            </p>
+        </div>
+    </div>
+
+    <form action="<?php echo e(route('kader.data.lansia.update', $lansia->id)); ?>" method="POST">
+        <?php echo csrf_field(); ?> <?php echo method_field('PUT'); ?>
+        
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-6">
+            
+            <div class="p-6 md:p-8 border-b border-gray-200">
+                <h3 class="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
+                    <i class="fas fa-user-circle text-gray-400"></i> Identitas Pribadi
+                </h3>
+                
+                <div class="mb-5">
+                    <label class="crm-label">Nama Lengkap <span class="text-rose-500">*</span></label>
+                    <input type="text" name="nama_lengkap" value="<?php echo e(old('nama_lengkap', $lansia->nama_lengkap)); ?>" required class="crm-input <?php $__errorArgs = ['nama_lengkap'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> crm-error-input <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                    <?php $__errorArgs = ['nama_lengkap'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="crm-error-text"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                    <div>
+                        <label class="crm-label">NIK (Kunci Integrasi) <span class="text-rose-500">*</span></label>
+                        <input type="number" name="nik" value="<?php echo e(old('nik', $lansia->nik)); ?>" required class="crm-input font-mono <?php $__errorArgs = ['nik'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> crm-error-input <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                        <?php $__errorArgs = ['nik'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <span class="crm-error-text"><?php echo e($message); ?></span> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                    </div>
+                    <div>
+                        <label class="crm-label">Jenis Kelamin <span class="text-rose-500">*</span></label>
+                        <select name="jenis_kelamin" required class="crm-input <?php $__errorArgs = ['jenis_kelamin'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> crm-error-input <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                            <option value="L" <?php echo e(old('jenis_kelamin', $lansia->jenis_kelamin) == 'L' ? 'selected' : ''); ?>>Laki-laki</option>
+                            <option value="P" <?php echo e(old('jenis_kelamin', $lansia->jenis_kelamin) == 'P' ? 'selected' : ''); ?>>Perempuan</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                    <div>
+                        <label class="crm-label">Tempat Lahir <span class="text-rose-500">*</span></label>
+                        <input type="text" name="tempat_lahir" value="<?php echo e(old('tempat_lahir', $lansia->tempat_lahir)); ?>" required class="crm-input <?php $__errorArgs = ['tempat_lahir'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> crm-error-input <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                    </div>
+                    <div>
+                        <label class="crm-label">Tanggal Lahir <span class="text-rose-500">*</span></label>
+                        <input type="date" id="tanggal_lahir" name="tanggal_lahir" value="<?php echo e(old('tanggal_lahir', $lansia->tanggal_lahir->format('Y-m-d'))); ?>" required class="crm-input <?php $__errorArgs = ['tanggal_lahir'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> crm-error-input <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="crm-label">Alamat Lengkap <span class="text-rose-500">*</span></label>
+                    <textarea name="alamat" rows="2" required class="crm-input resize-none"><?php echo e(old('alamat', $lansia->alamat)); ?></textarea>
+                </div>
+            </div>
+
+            <div class="p-6 md:p-8 bg-gray-50/50">
+                <h3 class="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
+                    <i class="fas fa-stethoscope text-gray-400"></i> Riwayat Kesehatan (Opsional)
+                </h3>
+
+                <div>
+                    <label class="crm-label">Penyakit Bawaan</label>
+                    <textarea name="penyakit_bawaan" rows="3" class="crm-input"><?php echo e(old('penyakit_bawaan', $lansia->penyakit_bawaan)); ?></textarea>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-3">
+                <a href="<?php echo e(route('kader.data.lansia.index')); ?>" class="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-colors text-center">
+                    Batal
+                </a>
+                <button type="submit" class="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-500/20 transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i> Simpan Perubahan
+                </button>
+            </div>
+            
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('tanggal_lahir').max = new Date().toISOString().split('T')[0];
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.name === 'nik' && this.value.length > 16) {
+                this.value = this.value.slice(0, 16);
+            }
+        });
+    });
+</script>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.kader', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/kader/data/lansia/edit.blade.php ENDPATH**/ ?>

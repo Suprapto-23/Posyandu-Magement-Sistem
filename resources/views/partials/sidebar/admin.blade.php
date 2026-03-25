@@ -1,66 +1,48 @@
-{{--
-  PATH   : resources/views/partials/sidebar/admin.blade.php
-  FUNGSI : Sidebar menu khusus role admin
-  CSS    : Menggunakan class dari layouts/app.blade.php (sb-link, sb-section, dll)
---}}
+@php
+    // Palet Warna Executive Obsidian (Dark Slate & Amber Gold)
+    $activeClass = 'bg-slate-800 border-l-4 border-amber-500 text-amber-400 shadow-sm transition-all';
+    $inactiveClass = 'text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-all border-l-4 border-transparent';
+    
+    $activeIconClass = 'text-amber-400';
+    $inactiveIconClass = 'text-slate-500 group-hover:text-slate-300';
+@endphp
 
-<div class="sb-brand-area">
-    <div class="sb-brand-ic"><i class="fas fa-user-shield"></i></div>
+<div class="space-y-6">
+    
     <div>
-        <div class="sb-brand-name">Panel Admin</div>
-        <div class="sb-brand-sub">
-            {{ Str::limit(auth()->user()->profile?->full_name ?? auth()->user()->name, 20) }}
+        <p class="px-5 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 font-poppins">Core System</p>
+        <a href="{{ route('admin.dashboard') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-r-xl font-bold text-sm {{ request()->routeIs('admin.dashboard*') ? $activeClass : $inactiveClass }}">
+            <i class="fas fa-tachometer-alt w-6 text-center text-[18px] transition-colors {{ request()->routeIs('admin.dashboard*') ? $activeIconClass : $inactiveIconClass }}"></i>
+            <span class="font-poppins tracking-wide">Dashboard</span>
+        </a>
+    </div>
+
+    <div>
+        <p class="px-5 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 font-poppins">Data Master</p>
+        <div class="space-y-1">
+            
+            <a href="{{ route('admin.users.index') }}" class="smooth-route group flex items-center justify-between px-4 py-3 rounded-r-xl font-bold text-sm {{ request()->routeIs('admin.users.*') ? $activeClass : $inactiveClass }}">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-users w-6 text-center text-[18px] transition-colors {{ request()->routeIs('admin.users.*') ? $activeIconClass : $inactiveIconClass }}"></i>
+                    <span class="font-poppins tracking-wide">User Warga</span>
+                </div>
+                <span class="bg-slate-800 text-slate-400 text-[9px] font-black px-2 py-0.5 rounded uppercase border border-slate-700">NIK</span>
+            </a>
+
+            <a href="{{ route('admin.kaders.index') }}" class="smooth-route group flex items-center justify-between px-4 py-3 rounded-r-xl font-bold text-sm {{ request()->routeIs('admin.kaders.*') ? $activeClass : $inactiveClass }}">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-user-nurse w-6 text-center text-[18px] transition-colors {{ request()->routeIs('admin.kaders.*') ? $activeIconClass : $inactiveIconClass }}"></i>
+                    <span class="font-poppins tracking-wide">Akun Kader</span>
+                </div>
+            </a>
+
+            <a href="{{ route('admin.bidans.index') }}" class="smooth-route group flex items-center justify-between px-4 py-3 rounded-r-xl font-bold text-sm {{ request()->routeIs('admin.bidans.*') ? $activeClass : $inactiveClass }}">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-user-md w-6 text-center text-[18px] transition-colors {{ request()->routeIs('admin.bidans.*') ? $activeIconClass : $inactiveIconClass }}"></i>
+                    <span class="font-poppins tracking-wide">Akun Bidan</span>
+                </div>
+            </a>
+            
         </div>
     </div>
 </div>
-
-{{-- Dashboard --}}
-<a class="sb-link {{ request()->routeIs('admin.dashboard*') ? 'active' : '' }}"
-   href="{{ route('admin.dashboard') }}">
-    <i class="fas fa-tachometer-alt"></i>
-    <span>Dashboard</span>
-</a>
-
-<div class="sb-divider"></div>
-<div class="sb-section">Manajemen Akun</div>
-
-<a class="sb-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
-   href="{{ route('admin.users.index') }}">
-    <i class="fas fa-users"></i>
-    <span>User Warga</span>
-    <span class="sb-badge nik">NIK</span>
-</a>
-
-<a class="sb-link {{ request()->routeIs('admin.kaders.*') ? 'active' : '' }}"
-   href="{{ route('admin.kaders.index') }}">
-    <i class="fas fa-user-nurse"></i>
-    <span>Kader</span>
-    <span class="sb-badge email">Email</span>
-</a>
-
-<a class="sb-link {{ request()->routeIs('admin.bidans.*') ? 'active' : '' }}"
-   href="{{ route('admin.bidans.index') }}">
-    <i class="fas fa-user-md"></i>
-    <span>Bidan</span>
-    <span class="sb-badge email">Email</span>
-</a>
-
-<div class="sb-divider"></div>
-<div class="sb-section">Sistem</div>
-
-<a class="sb-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"
-   href="{{ route('admin.settings.index') }}">
-    <i class="fas fa-cog"></i>
-    <span>Pengaturan</span>
-</a>
-
-<div class="sb-divider"></div>
-
-<form action="{{ route('logout') }}" method="POST" style="margin: .1rem .55rem;">
-    @csrf
-    <button type="submit" class="sb-link sb-logout"
-        style="width: 100%; background: none; border: none; text-align: left; cursor: pointer; padding: .62rem 1rem;">
-        <i class="fas fa-sign-out-alt"></i>
-        <span>Keluar</span>
-    </button>
-</form>

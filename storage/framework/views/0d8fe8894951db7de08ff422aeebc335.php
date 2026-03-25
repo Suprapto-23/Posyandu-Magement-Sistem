@@ -53,7 +53,7 @@
 
 <body class="text-slate-800 antialiased selection:bg-cyan-100 selection:text-cyan-900">
 
-    <div id="globalLoader" class="fixed inset-0 bg-white/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-400 opacity-0 pointer-events-none">
+    <div id="globalLoader" class="fixed inset-0 bg-white/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-150 opacity-0 pointer-events-none">
         <div class="relative w-20 h-20 flex items-center justify-center mb-5">
             <div class="absolute inset-0 border-4 border-cyan-100 rounded-full"></div>
             <div class="absolute inset-0 border-4 border-cyan-600 rounded-full border-t-transparent animate-spin"></div>
@@ -210,7 +210,7 @@
     </div>
 
     <script>
-        // SPA Loader Logic
+        // --- LOGIKA LOADER SAT-SET (SUPER CEPAT) ---
         const showGlobalLoader = (text = 'MEMUAT SISTEM...') => {
             const loader = document.getElementById('globalLoader');
             if(loader) {
@@ -223,16 +223,24 @@
             }
         };
 
-        window.addEventListener('pageshow', () => {
+        const hideGlobalLoader = () => {
             const loader = document.getElementById('globalLoader');
             if(loader) {
                 loader.classList.remove('opacity-100');
                 loader.classList.add('opacity-0', 'pointer-events-none');
-                setTimeout(() => loader.style.display = 'none', 400);
+                // Sembunyikan elemen dalam 150ms (sangat cepat)
+                setTimeout(() => loader.style.display = 'none', 150);
             }
-        });
+        };
+
+        // Eksekusi hide seketika saat kerangka HTML/DOM siap (Tidak nunggu gambar lambat)
+        document.addEventListener('DOMContentLoaded', hideGlobalLoader);
+        
+        // Eksekusi juga saat user pakai tombol Back/Forward di browser
+        window.addEventListener('pageshow', hideGlobalLoader);
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Animasi Loader hanya saat klik menu link biasa
             document.querySelectorAll('.smooth-route').forEach(link => {
                 link.addEventListener('click', function(e) {
                     if(!this.classList.contains('target-blank') && this.target !== '_blank' && !e.ctrlKey) {
@@ -241,7 +249,7 @@
                 });
             });
 
-            // Mobile Sidebar Logic
+            // --- Logika Sidebar Mobile ---
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('mobileOverlay');
             const menuToggle = document.getElementById('menuToggle');
@@ -266,7 +274,7 @@
             if (closeSidebar) closeSidebar.addEventListener('click', toggleSidebar);
             if (overlay) overlay.addEventListener('click', toggleSidebar);
 
-            // Dropdown Logic
+            // --- Logika Dropdown Navbar ---
             const userBtn = document.getElementById('userDropdownBtn');
             const userMenu = document.getElementById('userDropdown');
             const notifBtn = document.getElementById('notifDropdownBtn');
@@ -297,7 +305,7 @@
             if(userMenu) userMenu.addEventListener('click', (e) => e.stopPropagation());
         });
 
-        // Dropdown Submenu Sidebar Logic
+        // --- Logika Dropdown Submenu Sidebar ---
         function toggleSubmenu(menuId, iconId) {
             const menu = document.getElementById(menuId);
             const icon = document.getElementById(iconId);
@@ -314,6 +322,7 @@
             }
         }
     </script>
+    
     <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/layouts/bidan.blade.php ENDPATH**/ ?>

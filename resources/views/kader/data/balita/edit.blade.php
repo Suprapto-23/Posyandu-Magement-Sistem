@@ -1,174 +1,148 @@
 @extends('layouts.kader')
 
-@section('title', 'Edit Data Balita')
-@section('page-name', 'Edit Balita')
+@section('title', 'Edit Data Remaja')
+@section('page-name', 'Edit Pasien')
 
 @push('styles')
 <style>
-    .animate-slide-up {
-        opacity: 0;
-        animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    /* Animasi masuk khas CRM */
+    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     
-    .form-group {
-        margin-bottom: 1.25rem;
+    /* Styling Form Input Clean */
+    .crm-label {
+        display: block; font-size: 0.75rem; font-weight: 600; color: #4b5563; /* gray-600 */
+        margin-bottom: 0.375rem;
     }
-    .form-label {
-        display: block;
-        font-size: 0.70rem;
-        font-weight: 800;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.5rem;
+    .crm-input {
+        width: 100%; background-color: #ffffff; border: 1px solid #d1d5db; /* gray-300 */
+        color: #111827; /* gray-900 */ font-size: 0.875rem; border-radius: 0.5rem; 
+        padding: 0.625rem 0.75rem; outline: none; transition: all 0.2s ease;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     }
-    .form-input {
-        width: 100%;
-        background-color: #f8fafc;
-        border: 2px solid #e2e8f0;
-        color: #0f172a;
-        font-size: 0.875rem;
-        border-radius: 0.75rem;
-        padding: 0.75rem 1rem;
-        outline: none;
-        transition: all 0.3s ease;
-        font-weight: 600;
-        box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.02);
+    .crm-input:focus {
+        border-color: #4f46e5; /* indigo-600 */
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
     }
-    .form-input:focus {
-        background-color: #ffffff;
-        border-color: #f59e0b; /* Amber-500 */
-        box-shadow: 0 4px 12px -3px rgba(245, 158, 11, 0.15);
-        transform: translateY(-1px);
-    }
-    .form-error {
-        border-color: #f43f5e !important;
-        background-color: #fff1f2 !important;
-    }
+    .crm-input::placeholder { color: #9ca3af; font-weight: 400; }
+    
+    /* Styling Error */
+    .crm-error-input { border-color: #ef4444 !important; background-color: #fef2f2 !important; }
+    .crm-error-text { color: #ef4444; font-size: 0.75rem; margin-top: 0.375rem; font-weight: 500; display: block; }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-4xl mx-auto animate-slide-up">
+<div class="max-w-4xl mx-auto fade-in">
     
-    <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 mb-4 shadow-inner">
-            <i class="fas fa-edit text-3xl"></i>
+    {{-- Header Clean --}}
+    <div class="mb-6 flex items-center gap-3">
+        <a href="{{ route('kader.data.remaja.index') }}" class="w-10 h-10 rounded-lg bg-white border border-gray-200 text-gray-500 flex items-center justify-center hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900 tracking-tight">Edit Data Remaja</h1>
+            <p class="text-sm text-gray-500 mt-0.5">Memperbarui informasi profil milik <span class="font-semibold text-gray-900">{{ $remaja->nama_lengkap }}</span>.</p>
         </div>
-        <h1 class="text-3xl font-black text-slate-900 tracking-tight">Edit Data Balita</h1>
-        <p class="text-slate-500 mt-2 font-medium text-sm max-w-lg mx-auto">Memperbarui informasi profil milik <span class="font-bold text-amber-600">{{ $balita->nama_lengkap }}</span>.</p>
     </div>
 
-    <form action="{{ route('kader.data.balita.update', $balita->id) }}" method="POST">
+    {{-- Warning Alert Elegan --}}
+    <div class="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 shadow-sm">
+        <i class="fas fa-exclamation-triangle text-amber-600 mt-0.5"></i>
+        <div>
+            <h4 class="text-sm font-semibold text-amber-800">Perhatian Integrasi NIK</h4>
+            <p class="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                Jika Anda mengubah <strong>NIK Remaja</strong>, sistem akan secara otomatis memutus koneksi dari akun Warga lama dan mencari akun Warga baru yang sesuai dengan NIK tersebut.
+            </p>
+        </div>
+    </div>
+
+    <form action="{{ route('kader.data.remaja.update', $remaja->id) }}" method="POST">
         @csrf @method('PUT')
         
-        <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex flex-col mb-8">
+        <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-6">
             
-            <div class="p-6 sm:p-10 border-b border-slate-100">
-                <div class="flex items-center gap-3 mb-6">
-                    <span class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-sm">1</span>
-                    <h3 class="text-lg font-extrabold text-slate-800">Identitas Anak</h3>
-                </div>
+            {{-- Section 1: Identitas Pribadi --}}
+            <div class="p-6 md:p-8 border-b border-gray-200">
+                <h3 class="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
+                    <i class="fas fa-user-circle text-gray-400"></i> Identitas Pribadi
+                </h3>
                 
-                <div class="form-group">
-                    <label class="form-label">Nama Lengkap Anak <span class="text-rose-500">*</span></label>
-                    <input type="text" name="nama_lengkap" value="{{ old('nama_lengkap', $balita->nama_lengkap) }}" required class="form-input @error('nama_lengkap') form-error @enderror">
-                    @error('nama_lengkap') <p class="text-rose-500 text-xs font-bold mt-1.5">{{ $message }}</p> @enderror
+                <div class="mb-5">
+                    <label class="crm-label">Nama Lengkap <span class="text-rose-500">*</span></label>
+                    <input type="text" name="nama_lengkap" value="{{ old('nama_lengkap', $remaja->nama_lengkap) }}" required class="crm-input @error('nama_lengkap') crm-error-input @enderror">
+                    @error('nama_lengkap') <span class="crm-error-text">{{ $message }}</span> @enderror
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                    <div class="form-group">
-                        <label class="form-label">NIK Balita</label>
-                        <input type="number" name="nik" value="{{ old('nik', $balita->nik) }}" class="form-input @error('nik') form-error @enderror">
-                        @error('nik') <p class="text-rose-500 text-xs font-bold mt-1.5">{{ $message }}</p> @enderror
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                    <div>
+                        <label class="crm-label">NIK (Kunci Integrasi) <span class="text-rose-500">*</span></label>
+                        <input type="number" name="nik" value="{{ old('nik', $remaja->nik) }}" required class="crm-input font-mono @error('nik') crm-error-input @enderror">
+                        @error('nik') <span class="crm-error-text">{{ $message }}</span> @enderror
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Jenis Kelamin <span class="text-rose-500">*</span></label>
-                        <select name="jenis_kelamin" required class="form-input @error('jenis_kelamin') form-error @enderror">
-                            <option value="L" {{ old('jenis_kelamin', $balita->jenis_kelamin) == 'L' ? 'selected' : '' }}>Laki-laki</option>
-                            <option value="P" {{ old('jenis_kelamin', $balita->jenis_kelamin) == 'P' ? 'selected' : '' }}>Perempuan</option>
+                    <div>
+                        <label class="crm-label">Jenis Kelamin <span class="text-rose-500">*</span></label>
+                        <select name="jenis_kelamin" required class="crm-input @error('jenis_kelamin') crm-error-input @enderror">
+                            <option value="L" {{ old('jenis_kelamin', $remaja->jenis_kelamin) == 'L' ? 'selected' : '' }}>Laki-laki</option>
+                            <option value="P" {{ old('jenis_kelamin', $remaja->jenis_kelamin) == 'P' ? 'selected' : '' }}>Perempuan</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                    <div class="form-group">
-                        <label class="form-label">Tempat Lahir <span class="text-rose-500">*</span></label>
-                        <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir', $balita->tempat_lahir) }}" required class="form-input @error('tempat_lahir') form-error @enderror">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                    <div>
+                        <label class="crm-label">Tempat Lahir <span class="text-rose-500">*</span></label>
+                        <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir', $remaja->tempat_lahir) }}" required class="crm-input @error('tempat_lahir') crm-error-input @enderror">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Tanggal Lahir <span class="text-rose-500">*</span></label>
-                        <input type="date" id="tanggal_lahir" name="tanggal_lahir" value="{{ old('tanggal_lahir', $balita->tanggal_lahir->format('Y-m-d')) }}" required class="form-input @error('tanggal_lahir') form-error @enderror">
+                    <div>
+                        <label class="crm-label">Tanggal Lahir <span class="text-rose-500">*</span></label>
+                        <input type="date" id="tanggal_lahir" name="tanggal_lahir" value="{{ old('tanggal_lahir', $remaja->tanggal_lahir->format('Y-m-d')) }}" required class="crm-input @error('tanggal_lahir') crm-error-input @enderror">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 mb-0">
-                    <div class="form-group mb-0 sm:mb-0">
-                        <label class="form-label">Berat Lahir (kg)</label>
-                        <input type="number" step="0.01" name="berat_lahir" value="{{ old('berat_lahir', $balita->berat_lahir) }}" class="form-input">
-                    </div>
-                    <div class="form-group mb-0">
-                        <label class="form-label">Panjang Lahir (cm)</label>
-                        <input type="number" step="0.01" name="panjang_lahir" value="{{ old('panjang_lahir', $balita->panjang_lahir) }}" class="form-input">
-                    </div>
+                <div>
+                    <label class="crm-label">Alamat Lengkap <span class="text-rose-500">*</span></label>
+                    <textarea name="alamat" rows="2" required class="crm-input resize-none">{{ old('alamat', $remaja->alamat) }}</textarea>
                 </div>
             </div>
 
-            <div class="p-6 sm:p-10 bg-amber-50/20">
-                <div class="flex items-center gap-3 mb-6">
-                    <span class="w-8 h-8 rounded-full bg-slate-400 text-white flex items-center justify-center font-bold text-sm">2</span>
-                    <h3 class="text-lg font-extrabold text-slate-800">Data Orang Tua</h3>
-                </div>
+            {{-- Section 2: Pendidikan & Orang Tua --}}
+            <div class="p-6 md:p-8 bg-gray-50/50">
+                <h3 class="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
+                    <i class="fas fa-graduation-cap text-gray-400"></i> Pendidikan & Data Wali
+                </h3>
 
-                <div class="p-4 bg-amber-100/50 border border-amber-200 rounded-xl flex gap-3 mb-6">
-                    <i class="fas fa-exclamation-triangle text-amber-600 mt-0.5 text-sm"></i>
-                    <p class="text-xs font-bold text-amber-900 leading-relaxed">
-                        Jika NIK Ibu diubah, sistem akan mencoba memutuskan sinkronisasi yang lama dan menyambungkan kembali ke akun yang baru.
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                    <div class="form-group">
-                        <label class="form-label">NIK Ibu Kandung <span class="text-rose-500">*</span></label>
-                        <input type="number" name="nik_ibu" value="{{ old('nik_ibu', $balita->nik_ibu) }}" required class="form-input bg-white @error('nik_ibu') form-error @enderror">
-                        @error('nik_ibu') <p class="text-rose-500 text-xs font-bold mt-1.5">{{ $message }}</p> @enderror
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                    <div>
+                        <label class="crm-label">Nama Sekolah <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                        <input type="text" name="sekolah" value="{{ old('sekolah', $remaja->sekolah) }}" class="crm-input">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Nama Ibu Kandung <span class="text-rose-500">*</span></label>
-                        <input type="text" name="nama_ibu" value="{{ old('nama_ibu', $balita->nama_ibu) }}" required class="form-input bg-white">
+                    <div>
+                        <label class="crm-label">Kelas <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                        <input type="text" name="kelas" value="{{ old('kelas', $remaja->kelas) }}" class="crm-input">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-                    <div class="form-group">
-                        <label class="form-label">NIK Ayah</label>
-                        <input type="number" name="nik_ayah" value="{{ old('nik_ayah', $balita->nik_ayah) }}" class="form-input bg-white">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="crm-label">Nama Orang Tua <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                        <input type="text" name="nama_ortu" value="{{ old('nama_ortu', $remaja->nama_ortu) }}" class="crm-input">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Nama Ayah</label>
-                        <input type="text" name="nama_ayah" value="{{ old('nama_ayah', $balita->nama_ayah) }}" class="form-input bg-white">
+                    <div>
+                        <label class="crm-label">No. HP Orang Tua <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                        <input type="number" name="telepon_ortu" value="{{ old('telepon_ortu', $remaja->telepon_ortu) }}" class="crm-input">
                     </div>
-                </div>
-
-                <div class="form-group mb-0">
-                    <label class="form-label">Alamat Domisili <span class="text-rose-500">*</span></label>
-                    <textarea name="alamat" rows="3" required class="form-input bg-white resize-none">{{ old('alamat', $balita->alamat) }}</textarea>
                 </div>
             </div>
             
-            <div class="p-6 sm:px-10 sm:py-6 bg-white border-t border-slate-100">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
-                    <a href="{{ route('kader.data.balita.show', $balita->id) }}" class="w-full py-3.5 bg-slate-100 border border-slate-200 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-200 hover:text-slate-800 transition-colors flex items-center justify-center gap-2">
-                        <i class="fas fa-times"></i> Batal & Kembali
-                    </a>
-                    <button type="submit" class="w-full py-3.5 bg-amber-500 text-white font-extrabold text-sm rounded-xl hover:bg-amber-600 shadow-[0_4px_12px_rgba(245,158,11,0.3)] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i> Simpan Perubahan
-                    </button>
-                </div>
+            {{-- Footer Actions --}}
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-3">
+                <a href="{{ route('kader.data.remaja.index') }}" class="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-colors text-center">
+                    Batal
+                </a>
+                <button type="submit" class="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500/20 transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i> Simpan Perubahan
+                </button>
             </div>
             
         </div>
@@ -176,10 +150,15 @@
 </div>
 
 <script>
+    // Batasi input tanggal lahir maksimal hari ini
     document.getElementById('tanggal_lahir').max = new Date().toISOString().split('T')[0];
+    
+    // Batasi NIK tepat 16 digit angka
     document.querySelectorAll('input[type="number"]').forEach(input => {
         input.addEventListener('input', function() {
-            if (this.value.length > 16) this.value = this.value.slice(0, 16);
+            if (this.name === 'nik' && this.value.length > 16) {
+                this.value = this.value.slice(0, 16);
+            }
         });
     });
 </script>

@@ -1,171 +1,117 @@
-@extends('layouts.app')
-
+@extends('layouts.admin')
 @section('title', 'Edit User Warga')
-
-@push('styles')
-<style>
-:root{--t:#0d9488;--t2:#0ea5e9;--tbg:#f0fdfa;--bdr:#e2e8f0;--text:#0f172a;--muted:#64748b;--r:14px;--rs:9px;--shad:0 1px 3px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.04);}
-.f-hero{background:linear-gradient(135deg,#0d9488,#0ea5e9);border-radius:var(--r);padding:1.4rem 1.75rem;color:#fff;margin-bottom:1.25rem;position:relative;overflow:hidden;}
-.f-hero::before{content:'';position:absolute;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.07);top:-40px;right:-30px;pointer-events:none;}
-.f-hero h4{font-size:1.15rem;font-weight:800;margin:0;letter-spacing:-.02em;}
-.f-hero p{font-size:.8rem;opacity:.82;margin:.2rem 0 0;}
-.f-card{background:#fff;border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--shad);overflow:hidden;margin-bottom:1.1rem;}
-.f-section-head{display:flex;align-items:center;gap:.55rem;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--t);padding:.9rem 1.25rem;border-bottom:1px solid #f1f5f9;background:var(--tbg);}
-.f-body{padding:1.25rem;}
-.f-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
-.f-group{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.9rem;}
-.f-group label{font-size:.78rem;font-weight:700;color:var(--text);}
-.f-group label .req{color:#ef4444;margin-left:.15rem;}
-.f-group input,.f-group select,.f-group textarea{border:1.5px solid var(--bdr);border-radius:var(--rs);padding:.5rem .85rem;font-size:.85rem;color:var(--text);outline:none;transition:border-color .15s;background:#fff;width:100%;}
-.f-group input:focus,.f-group select:focus,.f-group textarea:focus{border-color:var(--t);box-shadow:0 0 0 3px rgba(13,148,136,.1);}
-.f-group input.is-invalid,.f-group select.is-invalid{border-color:#ef4444;}
-.f-group .err{font-size:.72rem;color:#ef4444;}
-.f-group .hint{font-size:.71rem;color:var(--muted);}
-.f-actions{display:flex;justify-content:space-between;align-items:center;padding:.9rem 1.25rem;border-top:1px solid #f1f5f9;background:#fafcff;}
-.btn-cancel{display:inline-flex;align-items:center;gap:.4rem;padding:.48rem 1rem;border-radius:var(--rs);font-size:.82rem;font-weight:600;color:var(--muted);border:1.5px solid var(--bdr);background:#fff;text-decoration:none;transition:all .15s;}
-.btn-cancel:hover{background:#f8fafc;color:var(--text);}
-.btn-save{display:inline-flex;align-items:center;gap:.4rem;padding:.48rem 1.25rem;border-radius:var(--rs);font-size:.82rem;font-weight:700;color:#fff;border:none;background:linear-gradient(135deg,var(--t),var(--t2));cursor:pointer;transition:opacity .15s;}
-.btn-save:hover{opacity:.88;}
-@media(max-width:600px){.f-row{grid-template-columns:1fr;}}
-</style>
-@endpush
+@section('page-name', 'Edit Warga')
 
 @section('content')
-<div class="container-fluid px-0" style="max-width:760px;">
+<div class="max-w-4xl mx-auto" style="animation: menuPop 0.4s ease-out forwards;">
 
-    {{-- Hero --}}
-    <div class="f-hero">
-        <div style="position:relative;z-index:2;">
-            <div style="font-size:.65rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.75;">
-                <a href="{{ route('admin.users.index') }}" style="color:rgba(255,255,255,.8);text-decoration:none;">User Warga</a>
-                / <a href="{{ route('admin.users.show', $user->id) }}" style="color:rgba(255,255,255,.8);text-decoration:none;">Detail</a>
-                / Edit
+    {{-- Hero (Simetri Rata Tengah) --}}
+    <div class="bg-gradient-to-br from-obsidian-900 to-slate-800 rounded-[32px] p-8 md:p-10 mb-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col items-center justify-center text-center group">
+        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <div class="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 blur-[60px] rounded-full pointer-events-none"></div>
+
+        <div class="relative z-10 w-full flex flex-col items-center">
+            <div class="inline-flex items-center gap-2 text-amber-500 text-[10px] font-black uppercase tracking-widest mb-3">
+                <a href="{{ route('admin.users.index') }}" class="text-slate-400 hover:text-amber-500 transition-colors smooth-route">Daftar Warga</a>
+                <i class="fas fa-chevron-right text-[8px] text-slate-600"></i>
+                <span>Edit Profil</span>
             </div>
-            <h4><i class="fas fa-user-edit me-2"></i>Edit Data User Warga</h4>
-            <p>{{ $user->profile?->full_name ?? $user->name }}</p>
+            
+            <h2 class="text-3xl font-black text-white font-poppins tracking-tight flex items-center justify-center gap-3">
+                <i class="fas fa-user-edit text-amber-500"></i> Edit Data: {{ $user->name }}
+            </h2>
         </div>
     </div>
 
+    {{-- PESAN ERROR DIPERBAIKI (Akan menampilkan detail error dari Controller) --}}
     @if($errors->any())
-    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:1rem;font-size:.82rem;color:#dc2626;">
-        <i class="fas fa-exclamation-circle me-1"></i> Mohon periksa kembali data yang diisi.
+    <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-6 text-sm font-bold text-rose-600 shadow-sm">
+        <div class="flex items-center justify-center gap-2 mb-2">
+            <i class="fas fa-exclamation-circle text-lg"></i> 
+            <span>Gagal update! Periksa kesalahan berikut:</span>
+        </div>
+        <ul class="list-disc list-inside text-xs text-center">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
     </div>
     @endif
 
     <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
         @csrf @method('PUT')
+        
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden mb-8">
+            <div class="bg-slate-50/80 px-8 py-5 border-b border-slate-100 flex items-center justify-center">
+                <h5 class="font-black text-obsidian-900 text-sm uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-id-card-alt text-amber-500"></i> Update Data Pribadi
+                </h5>
+            </div>
+            
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="col-span-1 md:col-span-2 space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nomor Induk Kependudukan (NIK) <span class="text-rose-500">*</span></label>
+                        <input type="text" name="nik" value="{{ old('nik', $user->nik) }}" maxlength="16" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Masukkan 16 digit NIK">
+                    </div>
 
-        {{-- Data Pribadi --}}
-        <div class="f-card">
-            <div class="f-section-head"><i class="fas fa-user"></i> Data Pribadi</div>
-            <div class="f-body">
-                <div class="f-row">
-                    <div class="f-group">
-                        <label>Nama Lengkap<span class="req">*</span></label>
-                        <input type="text" name="full_name"
-                            value="{{ old('full_name', $user->profile?->full_name ?? $user->name) }}"
-                            placeholder="Nama sesuai KTP"
-                            class="{{ $errors->has('full_name') ? 'is-invalid' : '' }}">
-                        @error('full_name') <span class="err">{{ $message }}</span> @enderror
+                    {{-- DIPERBAIKI: name="full_name" agar dikenali Controller --}}
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nama Lengkap <span class="text-rose-500">*</span></label>
+                        <input type="text" name="full_name" value="{{ old('full_name', $user->profile->full_name ?? $user->name) }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Sesuai KTP">
                     </div>
-                    <div class="f-group">
-                        <label>NIK (16 digit)<span class="req">*</span></label>
-                        <input type="text" name="nik" id="nikInput" maxlength="16"
-                            value="{{ old('nik', $user->profile?->nik ?? $user->nik) }}"
-                            placeholder="16 digit NIK KTP"
-                            class="{{ $errors->has('nik') ? 'is-invalid' : '' }}">
-                        <span class="hint"><i class="fas fa-info-circle me-1"></i>Mengganti NIK akan mengubah username login</span>
-                        @error('nik') <span class="err">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-                <div class="f-row">
-                    <div class="f-group">
-                        <label>Jenis Kelamin<span class="req">*</span></label>
-                        <select name="jenis_kelamin" class="{{ $errors->has('jenis_kelamin') ? 'is-invalid' : '' }}">
-                            <option value="">Pilih...</option>
-                            <option value="L" {{ old('jenis_kelamin', $user->profile?->jenis_kelamin) == 'L' ? 'selected' : '' }}>Laki-laki</option>
-                            <option value="P" {{ old('jenis_kelamin', $user->profile?->jenis_kelamin) == 'P' ? 'selected' : '' }}>Perempuan</option>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Jenis Kelamin <span class="text-rose-500">*</span></label>
+                        <select name="jenis_kelamin" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                            <option value="">-- Pilih --</option>
+                            <option value="L" {{ old('jenis_kelamin', $user->profile->jenis_kelamin ?? '') == 'L' ? 'selected' : '' }}>Laki-Laki</option>
+                            <option value="P" {{ old('jenis_kelamin', $user->profile->jenis_kelamin ?? '') == 'P' ? 'selected' : '' }}>Perempuan</option>
                         </select>
-                        @error('jenis_kelamin') <span class="err">{{ $message }}</span> @enderror
                     </div>
-                    <div class="f-group">
-                        <label>Nomor Telepon</label>
-                        <input type="text" name="telepon" id="telponInput"
-                            value="{{ old('telepon', $user->profile?->telepon) }}"
-                            placeholder="08xxxxxxxxxx">
-                        @error('telepon') <span class="err">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        {{-- Alamat --}}
-        <div class="f-card">
-            <div class="f-section-head"><i class="fas fa-map-marker-alt"></i> Alamat & Tanggal Lahir</div>
-            <div class="f-body">
-                <div class="f-group">
-                    <label>Alamat Lengkap</label>
-                    <textarea name="alamat" rows="3">{{ old('alamat', $user->profile?->alamat) }}</textarea>
-                    @error('alamat') <span class="err">{{ $message }}</span> @enderror
-                </div>
-                <div class="f-row">
-                    <div class="f-group">
-                        <label>Tempat Lahir</label>
-                        <input type="text" name="tempat_lahir"
-                            value="{{ old('tempat_lahir', $user->profile?->tempat_lahir) }}"
-                            placeholder="Kota/Kabupaten">
+                    {{-- DIPERBAIKI: Ditambahkan atribut required --}}
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tempat Lahir <span class="text-rose-500">*</span></label>
+                        <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir', $user->profile->tempat_lahir ?? '') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Kota Kelahiran">
                     </div>
-                    <div class="f-group">
-                        <label>Tanggal Lahir</label>
-                        <input type="date" name="tanggal_lahir"
-                            value="{{ old('tanggal_lahir', $user->profile?->tanggal_lahir
-                                ? \Carbon\Carbon::parse($user->profile->tanggal_lahir)->format('Y-m-d')
-                                : '') }}">
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        {{-- Status --}}
-        <div class="f-card">
-            <div class="f-section-head"><i class="fas fa-shield-alt"></i> Status Akun</div>
-            <div class="f-body">
-                <div class="f-row">
-                    <div class="f-group">
-                        <label>Status Akun<span class="req">*</span></label>
-                        <select name="status">
-                            <option value="active"   {{ old('status',$user->status) == 'active'   ? 'selected' : '' }}>Aktif</option>
-                            <option value="inactive" {{ old('status',$user->status) == 'inactive' ? 'selected' : '' }}>Nonaktif</option>
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tanggal Lahir <span class="text-rose-500">*</span></label>
+                        <input type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir', $user->profile->tanggal_lahir ?? '') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                    </div>
+
+                    {{-- DIPERBAIKI: Ditambahkan atribut required --}}
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nomor Telepon/WA <span class="text-rose-500">*</span></label>
+                        <input type="text" name="telepon" value="{{ old('telepon', $user->profile->telepon ?? '') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="08xx...">
+                    </div>
+
+                    {{-- DIPERBAIKI: Ditambahkan atribut required --}}
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Alamat Lengkap <span class="text-rose-500">*</span></label>
+                        <input type="text" name="alamat" value="{{ old('alamat', $user->profile->alamat ?? '') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Jalan, RT/RW, Desa">
+                    </div>
+                    
+                    <div class="col-span-1 md:col-span-2 space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Status Akun <span class="text-rose-500">*</span></label>
+                        <select name="status" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-black text-obsidian-900 focus:bg-white focus:border-amber-500 outline-none transition-all">
+                            <option value="active" {{ old('status', $user->status) == 'active' ? 'selected' : '' }}>🟢 AKTIF</option>
+                            <option value="inactive" {{ old('status', $user->status) == 'inactive' ? 'selected' : '' }}>🔴 NONAKTIF</option>
                         </select>
                     </div>
                 </div>
-                <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:var(--rs);padding:.7rem 1rem;font-size:.8rem;color:#92400e;">
-                    <i class="fas fa-info-circle me-1"></i>
-                    Untuk mengubah password, gunakan tombol "Generate Password" atau "Reset Password" di halaman daftar user.
-                </div>
             </div>
         </div>
 
-        <div class="f-actions">
-            <a href="{{ route('admin.users.show', $user->id) }}" class="btn-cancel">
-                <i class="fas fa-times"></i> Batal
+        <div class="flex items-center justify-center gap-4 pb-10">
+            <a href="{{ route('admin.users.index') }}" class="px-8 py-3.5 rounded-2xl font-bold text-slate-500 bg-white border border-slate-200 hover:bg-slate-50 hover:text-obsidian-900 transition-all shadow-sm text-sm smooth-route">
+                <i class="fas fa-times mr-1"></i> Batal
             </a>
-            <button type="submit" class="btn-save">
-                <i class="fas fa-save"></i> Simpan Perubahan
+            <button type="submit" class="px-8 py-3.5 rounded-2xl font-bold text-obsidian-900 bg-amber-500 hover:bg-amber-400 hover:-translate-y-1 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.4)] text-sm">
+                <i class="fas fa-save mr-1"></i> Update Data
             </button>
         </div>
     </form>
-
 </div>
 @endsection
-
-@push('scripts')
-<script>
-document.getElementById('nikInput').addEventListener('input', function() {
-    this.value = this.value.replace(/\D/g, '');
-});
-document.getElementById('telponInput').addEventListener('input', function() {
-    this.value = this.value.replace(/[^0-9+]/g, '');
-});
-</script>
-@endpush

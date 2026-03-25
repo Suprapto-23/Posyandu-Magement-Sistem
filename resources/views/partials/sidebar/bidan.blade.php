@@ -1,15 +1,12 @@
 @php
     $pendingCount = \App\Models\Pemeriksaan::where('status_verifikasi', 'pending')->count();
         
-    function activeMenu($routePattern) {
-        return request()->routeIs($routePattern) 
-            ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_8px_16px_rgba(8,145,178,0.25)] transform scale-[1.02] transition-all' 
-            : 'text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-all border border-transparent hover:border-slate-100';
-    }
+    // PERBAIKAN: Menggunakan Variabel Murni, BUKAN Function
+    $activeClass = 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_8px_16px_rgba(8,145,178,0.25)] transform scale-[1.02] transition-all';
+    $inactiveClass = 'text-slate-500 hover:bg-slate-50 hover:text-cyan-700 transition-all border border-transparent hover:border-slate-100';
     
-    function activeIcon($routePattern) {
-        return request()->routeIs($routePattern) ? 'text-white' : 'text-slate-400 group-hover:text-cyan-500';
-    }
+    $activeIconClass = 'text-white';
+    $inactiveIconClass = 'text-slate-400 group-hover:text-cyan-500';
     
     $isDataWargaActive = request()->routeIs('bidan.pasien.*');
 @endphp
@@ -18,8 +15,8 @@
     
     <div>
         <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 opacity-80 font-poppins">Overview</p>
-        <a href="{{ route('bidan.dashboard') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm {{ activeMenu('bidan.dashboard') }}">
-            <i class="fas fa-th-large w-6 text-center text-[18px] transition-colors {{ activeIcon('bidan.dashboard') }}"></i>
+        <a href="{{ route('bidan.dashboard') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm {{ request()->routeIs('bidan.dashboard') ? $activeClass : $inactiveClass }}">
+            <i class="fas fa-th-large w-6 text-center text-[18px] transition-colors {{ request()->routeIs('bidan.dashboard') ? $activeIconClass : $inactiveIconClass }}"></i>
             <span class="font-poppins tracking-wide">Dashboard Utama</span>
         </a>
     </div>
@@ -27,9 +24,9 @@
     <div>
         <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 opacity-80 font-poppins">Layanan Klinis</p>
         <div class="space-y-2">
-            <a href="{{ route('bidan.pemeriksaan.index') }}" class="smooth-route group flex items-center justify-between px-4 py-3 rounded-2xl font-bold text-sm {{ activeMenu('bidan.pemeriksaan.index') }}">
+            <a href="{{ route('bidan.pemeriksaan.index') }}" class="smooth-route group flex items-center justify-between px-4 py-3 rounded-2xl font-bold text-sm {{ request()->routeIs('bidan.pemeriksaan.index') ? $activeClass : $inactiveClass }}">
                 <div class="flex items-center gap-3">
-                    <i class="fas fa-user-md w-6 text-center text-[18px] transition-colors {{ activeIcon('bidan.pemeriksaan.index') }}"></i>
+                    <i class="fas fa-user-md w-6 text-center text-[18px] transition-colors {{ request()->routeIs('bidan.pemeriksaan.index') ? $activeIconClass : $inactiveIconClass }}"></i>
                     <span class="font-poppins tracking-wide">Validasi Medis</span>
                 </div>
                 @if($pendingCount > 0)
@@ -37,13 +34,18 @@
                 @endif
             </a>
 
-            <a href="{{ route('bidan.pemeriksaan.create') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm {{ activeMenu('bidan.pemeriksaan.create') }}">
-                <i class="fas fa-stethoscope w-6 text-center text-[18px] transition-colors {{ activeIcon('bidan.pemeriksaan.create') }}"></i>
+            <a href="{{ route('bidan.pemeriksaan.create') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm {{ request()->routeIs('bidan.pemeriksaan.create') ? $activeClass : $inactiveClass }}">
+                <i class="fas fa-stethoscope w-6 text-center text-[18px] transition-colors {{ request()->routeIs('bidan.pemeriksaan.create') ? $activeIconClass : $inactiveIconClass }}"></i>
                 <span class="font-poppins tracking-wide">Input Pemeriksaan</span>
             </a>
+            
+            <a href="{{ route('bidan.imunisasi.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm {{ request()->routeIs('bidan.imunisasi*') ? $activeClass : $inactiveClass }}">
+                <i class="fas fa-syringe w-6 text-center text-[18px] transition-colors {{ request()->routeIs('bidan.imunisasi*') ? $activeIconClass : $inactiveIconClass }}"></i>
+                <span class="font-poppins tracking-wide">Register Imunisasi</span>
+            </a>
 
-            <a href="{{ route('bidan.rekam-medis.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm {{ activeMenu('bidan.rekam-medis*') }}">
-                <i class="fas fa-notes-medical w-6 text-center text-[18px] transition-colors {{ activeIcon('bidan.rekam-medis*') }}"></i>
+            <a href="{{ route('bidan.rekam-medis.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm {{ request()->routeIs('bidan.rekam-medis*') ? $activeClass : $inactiveClass }}">
+                <i class="fas fa-notes-medical w-6 text-center text-[18px] transition-colors {{ request()->routeIs('bidan.rekam-medis*') ? $activeIconClass : $inactiveIconClass }}"></i>
                 <span class="font-poppins tracking-wide">Buku Rekam Medis</span>
             </a>
         </div>
@@ -75,13 +77,13 @@
     <div>
         <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 opacity-80 font-poppins">Manajemen Data</p>
         <div class="space-y-2">
-            <a href="{{ route('bidan.jadwal.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm {{ activeMenu('bidan.jadwal*') }}">
-                <i class="fas fa-calendar-check w-6 text-center text-[18px] transition-colors {{ activeIcon('bidan.jadwal*') }}"></i>
+            <a href="{{ route('bidan.jadwal.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm {{ request()->routeIs('bidan.jadwal*') ? $activeClass : $inactiveClass }}">
+                <i class="fas fa-calendar-check w-6 text-center text-[18px] transition-colors {{ request()->routeIs('bidan.jadwal*') ? $activeIconClass : $inactiveIconClass }}"></i>
                 <span class="font-poppins tracking-wide">Jadwal Posyandu</span>
             </a>
             
-            <a href="{{ route('bidan.laporan.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm {{ activeMenu('bidan.laporan*') }}">
-                <i class="fas fa-file-pdf w-6 text-center text-[18px] transition-colors {{ activeIcon('bidan.laporan*') }}"></i>
+            <a href="{{ route('bidan.laporan.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm {{ request()->routeIs('bidan.laporan*') ? $activeClass : $inactiveClass }}">
+                <i class="fas fa-file-pdf w-6 text-center text-[18px] transition-colors {{ request()->routeIs('bidan.laporan*') ? $activeIconClass : $inactiveIconClass }}"></i>
                 <span class="font-poppins tracking-wide">Cetak Laporan PDF</span>
             </a>
         </div>

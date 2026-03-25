@@ -8,10 +8,10 @@ use App\Models\Remaja;
 use App\Models\Lansia;
 use App\Models\Kunjungan;
 use App\Models\Imunisasi;
-use App\Models\JadwalPosyandu; // PASTIKAN INI DI-IMPORT
+use App\Models\JadwalPosyandu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -19,7 +19,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        // Statistik Utama
+        // 1. Statistik Utama (Kartu Atas)
         $stats = [
             'total_balita' => Balita::count(),
             'total_remaja' => Remaja::count(),
@@ -28,19 +28,22 @@ class DashboardController extends Controller
             'kunjungan_saya_hari_ini' => Kunjungan::where('petugas_id', $user->id)
                 ->whereDate('created_at', today())
                 ->count(),
-           'imunisasi_hari_ini' => Imunisasi::whereDate('tanggal_imunisasi', today())->count(),
+            'imunisasi_hari_ini' => Imunisasi::whereDate('tanggal_imunisasi', today())->count(),
             'jadwal_hari_ini' => JadwalPosyandu::whereDate('tanggal', today())
                 ->where('status', 'aktif')
                 ->count(),
         ];
         
-        // Data untuk chart
-        $kunjungan_7_hari = $this->getKunjungan7Hari();
+        // 2. Data Grafik Kunjungan 7 Hari Terakhir (Dinamis, termasuk yang 0)
+        $trendKunjungan = $this->getKunjungan7Hari();
+        $chartLabels = $trendKunjungan['labels'];
+        $chartData = $trendKunjungan['data'];
+
         $pendaftaran_bulan_ini = $this->getPendaftaranBulanIni();
         
-        // Data terbaru
         $balita_baru = Balita::latest()->take(5)->get();
-        $kunjungan_baru = Kunjungan::with(['pasien'])->latest()->take(5)->get();
+        $kunjungan_baru = Kunjungan::with('pasien')->latest()->take(5)->get();
+        
         $jadwal_mendatang = JadwalPosyandu::where('tanggal', '>=', today())
             ->where('status', 'aktif')
             ->orderBy('tanggal')
@@ -49,7 +52,8 @@ class DashboardController extends Controller
         
         return view('kader.dashboard', compact(
             'stats', 
-            'kunjungan_7_hari',
+            'chartLabels',
+            'chartData',
             'pendaftaran_bulan_ini',
             'balita_baru',
             'kunjungan_baru',
@@ -57,16 +61,30 @@ class DashboardController extends Controller
         ));
     }
     
+    /**
+     * FUNGSI DIPERBAIKI: Mengambil array 7 hari terakhir secara pasti (meski data kosong)
+     */
     private function getKunjungan7Hari()
     {
-        return Kunjungan::select(
-            DB::raw('DATE(created_at) as tanggal'),
-            DB::raw('COUNT(*) as total')
-        )
-        ->whereDate('created_at', '>=', now()->subDays(7))
-        ->groupBy('tanggal')
-        ->orderBy('tanggal')
-        ->get();
+        $labels = [];
+        $data = [];
+
+        // Looping 7 hari ke belakang (Dari H-6 sampai Hari Ini)
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::today()->subDays($i);
+            
+            // Format label X-Axis, contoh: "19 Mar"
+            $labels[] = $date->translatedFormat('d M'); 
+            
+            // Hitung kunjungan di hari tersebut
+            $count = Kunjungan::whereDate('created_at', $date->format('Y-m-d'))->count();
+            $data[] = $count;
+        }
+
+        return [
+            'labels' => $labels,
+            'data' => $data
+        ];
     }
     
     private function getPendaftaranBulanIni()
@@ -74,23 +92,10 @@ class DashboardController extends Controller
         $bulan_ini = now()->month;
         $tahun_ini = now()->year;
         
-        $balita = Balita::whereMonth('created_at', $bulan_ini)
-            ->whereYear('created_at', $tahun_ini)
-            ->count();
-        
-        $remaja = Remaja::whereMonth('created_at', $bulan_ini)
-            ->whereYear('created_at', $tahun_ini)
-            ->count();
-        
-        $lansia = Lansia::whereMonth('created_at', $bulan_ini)
-            ->whereYear('created_at', $tahun_ini)
-            ->count();
-        
         return [
-            'balita' => $balita,
-            'remaja' => $remaja,
-            'lansia' => $lansia,
-            'total' => $balita + $remaja + $lansia
+            'balita' => Balita::whereMonth('created_at', $bulan_ini)->whereYear('created_at', $tahun_ini)->count(),
+            'remaja' => Remaja::whereMonth('created_at', $bulan_ini)->whereYear('created_at', $tahun_ini)->count(),
+            'lansia' => Lansia::whereMonth('created_at', $bulan_ini)->whereYear('created_at', $tahun_ini)->count()
         ];
     }
 }

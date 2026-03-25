@@ -1,433 +1,170 @@
-@extends('layouts.app')
-
-@section('title', 'Manajemen Kader')
-
-@push('styles')
-<style>
-    .page-header {
-        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
-    }
-
-    .card-custom {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-        margin-bottom: 1.5rem;
-        overflow: hidden;
-        background: white;
-    }
-
-    .card-header-custom {
-        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        border: none;
-        padding: 1.25rem 1.5rem;
-    }
-
-    .card-header-custom h4 {
-        margin: 0;
-        color: white;
-        font-weight: 600;
-    }
-
-    .card-header-custom .btn {
-        background: white;
-        border: none;
-        border-radius: 10px;
-        padding: 0.5rem 1.25rem;
-        font-weight: 500;
-        color: #f39c12;
-        transition: all 0.3s ease;
-    }
-
-    .card-header-custom .btn:hover {
-        background: #f8f9fa;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Search and Filter */
-    .search-filter-card {
-        background: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    }
-
-    .form-control-custom, .form-select-custom {
-        border: 2px solid #e9ecef;
-        border-radius: 10px;
-        padding: 0.75rem 1rem;
-        transition: all 0.3s ease;
-    }
-
-    .form-control-custom:focus, .form-select-custom:focus {
-        border-color: #f39c12;
-        box-shadow: 0 0 0 0.2rem rgba(243, 156, 18, 0.25);
-    }
-
-    /* Table */
-    .table-container {
-        overflow-x: auto;
-    }
-
-    .table-custom {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        margin: 0;
-    }
-
-    .table-custom thead th {
-        background-color: #f8f9fa;
-        border: none;
-        padding: 1rem 1.25rem;
-        font-weight: 600;
-        color: #2c3e50;
-        border-bottom: 2px solid #f39c12;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .table-custom tbody tr {
-        transition: all 0.3s ease;
-    }
-
-    .table-custom tbody tr:hover {
-        background-color: rgba(243, 156, 18, 0.05);
-        transform: translateY(-2px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .table-custom tbody td {
-        padding: 1rem 1.25rem;
-        border-bottom: 1px solid #f1f1f1;
-        vertical-align: middle;
-    }
-
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #f39c12, #e67e22);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-        margin-right: 0.75rem;
-    }
-
-    .user-info {
-        display: flex;
-        align-items: center;
-    }
-
-    .user-name {
-        font-weight: 600;
-        color: #2c3e50;
-        margin: 0;
-        font-size: 0.95rem;
-    }
-
-    .user-email {
-        font-size: 0.75rem;
-        color: #7f8c8d;
-        margin: 0;
-    }
-
-    /* Status Badge */
-    .status-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .status-active {
-        background-color: rgba(46, 204, 113, 0.2);
-        color: #27ae60;
-    }
-
-    .status-inactive {
-        background-color: rgba(231, 76, 60, 0.2);
-        color: #e74c3c;
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .btn-action {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        border: none;
-    }
-
-    .btn-view {
-        background-color: rgba(52, 152, 219, 0.1);
-        color: #3498db;
-    }
-
-    .btn-view:hover {
-        background-color: #3498db;
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .btn-edit {
-        background-color: rgba(155, 89, 182, 0.1);
-        color: #9b59b6;
-    }
-
-    .btn-edit:hover {
-        background-color: #9b59b6;
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .btn-delete {
-        background-color: rgba(231, 76, 60, 0.1);
-        color: #e74c3c;
-    }
-
-    .btn-delete:hover {
-        background-color: #e74c3c;
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .btn-reset {
-        background-color: rgba(243, 156, 18, 0.1);
-        color: #f39c12;
-    }
-
-    .btn-reset:hover {
-        background-color: #f39c12;
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    /* No Data */
-    .no-data {
-        text-align: center;
-        padding: 3rem;
-    }
-
-    .no-data i {
-        font-size: 4rem;
-        color: rgba(0, 0, 0, 0.1);
-        margin-bottom: 1rem;
-    }
-
-    .no-data h5 {
-        color: rgba(0, 0, 0, 0.4);
-        font-weight: 600;
-        margin-bottom: 1rem;
-    }
-</style>
-@endpush
+@extends('layouts.admin')
+@section('title', 'Manajemen Akun Kader')
+@section('page-name', 'Data Kader')
 
 @section('content')
-<div class="main-content">
-    <!-- Page Header -->
-    @if(session('password'))
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <h5 class="alert-heading"><i class="fas fa-key"></i> Password Berhasil Dibuat!</h5>
-        <hr>
-        <p><strong>Email:</strong> {{ session('email') ?? 'N/A' }}</p>
-        <p><strong>Password:</strong> <code class="text-danger fs-5">{{ session('password') }}</code></p>
-        <hr>
-        <p class="mb-0"><small><i class="fas fa-exclamation-triangle"></i> Segera catat password ini!</small></p>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="max-w-6xl mx-auto" style="animation: menuPop 0.4s ease-out forwards;">
+
+    {{-- Hero Section (Simetri Rata Tengah) --}}
+    <div class="bg-gradient-to-br from-obsidian-900 to-slate-800 rounded-[32px] p-10 mb-8 relative overflow-hidden shadow-[0_20px_40px_-10px_rgba(15,23,42,0.4)] border border-slate-700 flex flex-col items-center justify-center text-center group">
+        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-amber-500/20 blur-[80px] rounded-full pointer-events-none transition-all duration-700 group-hover:bg-amber-500/30"></div>
+
+        <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 text-amber-400 text-[11px] font-black px-4 py-1.5 rounded-full mb-4 uppercase tracking-widest shadow-sm">
+                <i class="fas fa-user-nurse"></i> Otoritas Kader
+            </div>
+            <h2 class="text-3xl md:text-4xl font-black text-white mb-3 font-poppins tracking-tight">Daftar Akun Kader</h2>
+            <p class="text-slate-400 text-sm font-medium max-w-lg mx-auto mb-6">Kelola akses pendata lapangan. Kader bertugas melakukan input data pemeriksaan balita, remaja, dan lansia.</p>
+            
+            <a href="{{ route('admin.kaders.create') }}" class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-obsidian-900 font-bold px-6 py-3 rounded-xl transition-all shadow-[0_4px_20px_rgba(245,158,11,0.4)] hover:shadow-[0_4px_25px_rgba(245,158,11,0.6)] hover:-translate-y-1 smooth-route">
+                <i class="fas fa-plus"></i> Tambah Kader Baru
+            </a>
+        </div>
+    </div>
+
+    {{-- Mini Stats Cards --}}
+    @if(isset($stats))
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-xl"><i class="fas fa-users"></i></div>
+            <div>
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Kader</div>
+                <div class="text-2xl font-black text-obsidian-900">{{ $stats['total'] ?? 0 }}</div>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div>
+            <div>
+                <div class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Kader Aktif</div>
+                <div class="text-2xl font-black text-obsidian-900">{{ $stats['aktif'] ?? 0 }}</div>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl"><i class="fas fa-ban"></i></div>
+            <div>
+                <div class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Nonaktif</div>
+                <div class="text-2xl font-black text-obsidian-900">{{ $stats['nonaktif'] ?? 0 }}</div>
+            </div>
+        </div>
     </div>
     @endif
 
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <h2><i class="fas fa-user-nurse me-2"></i>Manajemen Kader Posyandu</h2>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item active">Kader</li>
-                    </ol>
-                </nav>
-            </div>
-            <div class="mt-3 mt-md-0">
-                <a href="{{ route('admin.kaders.create') }}" class="btn btn-light">
-                    <i class="fas fa-user-plus me-2"></i>Tambah Kader
-                </a>
-            </div>
-        </div>
+    {{-- Alerts --}}
+    @if(session('success'))
+    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-8 flex flex-col sm:flex-row items-center justify-center text-center gap-3 text-emerald-700 font-bold shadow-sm">
+        <div class="flex items-center gap-2"><i class="fas fa-check-circle text-xl"></i> {{ session('success') }}</div>
+        @if(session('reset_password'))
+            <span class="bg-white px-3 py-1 rounded-lg border border-emerald-200 text-xs font-mono text-obsidian-900">Pass Baru: {{ session('reset_password') }}</span>
+        @endif
     </div>
+    @endif
 
-    <!-- Search and Filter -->
-    <div class="search-filter-card">
-        <form method="GET">
-            <div class="row align-items-end">
-                <div class="col-md-6 mb-3 mb-md-0">
-                    <label class="form-label fw-bold">Cari Nama/Email/NIK</label>
-                    <input type="text" 
-                           name="search" 
-                           class="form-control form-control-custom" 
-                           placeholder="Cari nama, email, atau NIK..."
-                           value="{{ request('search') }}">
-                </div>
-                <div class="col-md-3 mb-3 mb-md-0">
-                    <label class="form-label fw-bold">Status</label>
-                    <select name="status" class="form-select form-select-custom">
-                        <option value="">Semua Status</option>
-                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Aktif</option>
-                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Nonaktif</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn w-100" style="background: #f39c12; color: white;">
-                        <i class="fas fa-search me-1"></i>Cari
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- Kader Table -->
-    <div class="card-custom">
-        <div class="card-header-custom">
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <h4><i class="fas fa-list me-2"></i>Daftar Kader Posyandu</h4>
-                <div class="text-white">
-                    Total: <strong>{{ $kaders->total() }}</strong> Kader
-                </div>
-            </div>
+    {{-- Data Table --}}
+    <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden mb-8">
+        <div class="px-8 py-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/50">
+            <h3 class="text-lg font-black text-obsidian-900 font-poppins flex items-center justify-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white text-obsidian-900 border border-slate-200 flex items-center justify-center text-sm shadow-sm"><i class="fas fa-list"></i></div>
+                Direktori Kader
+            </h3>
+            
+            <form method="GET" class="flex relative w-full sm:w-auto">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Nama / NIK..." class="w-full sm:w-72 bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all shadow-sm">
+            </form>
         </div>
-        <div class="card-body">
-            <div class="table-container">
-                <table class="table table-custom">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Kader</th>
-                            <th>Email</th>
-                            <th>Jabatan</th>
-                            <th>Status Kader</th>
-                            <th>Status Akun</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($kaders as $kader)
-                        @php
-                            $profile = $kader->profile;
-                            $initials = strtoupper(substr($profile->full_name ?? 'K', 0, 1));
-                        @endphp
-                        <tr>
-                            <td>{{ $loop->iteration + ($kaders->currentPage() - 1) * $kaders->perPage() }}</td>
-                            <td>
-                                <div class="user-info">
-                                    <div class="user-avatar">{{ $initials }}</div>
-                                    <div>
-                                        <p class="user-name">{{ $profile->full_name ?? 'N/A' }}</p>
-                                        <p class="user-email">{{ $kader->email }}</p>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/80 border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest text-center">
+                        <th class="py-4 px-6">Profil Kader</th>
+                        <th class="py-4 px-6">NIK & Jabatan</th>
+                        <th class="py-4 px-6">Kontak</th>
+                        <th class="py-4 px-6">Status</th>
+                        <th class="py-4 px-6">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm font-medium text-slate-700">
+                    @forelse($kaders ?? [] as $k)
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors text-center">
+                        
+                        {{-- Profil --}}
+                        <td class="py-4 px-6">
+                            <div class="flex items-center justify-center md:justify-start gap-3 w-max mx-auto">
+                                <div class="w-10 h-10 rounded-full bg-obsidian-900 text-amber-500 flex items-center justify-center font-black shadow-sm shrink-0">
+                                    {{ strtoupper(substr($k->profile->full_name ?? $k->name, 0, 1)) }}
+                                </div>
+                                <div class="text-left">
+                                    <div class="font-bold text-slate-900">{{ $k->profile->full_name ?? $k->name }}</div>
+                                    <div class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                        <i class="fas fa-envelope text-slate-400"></i> {{ $k->email }}
                                     </div>
                                 </div>
-                            </td>
-                            <td>{{ $kader->email }}</td>
-                            <td>
-                                <span class="badge bg-info">{{ $kader->kader->jabatan ?? '-' }}</span>
-                            </td>
-                            <td>
-                                @if($kader->kader)
-                                    <span class="status-badge {{ $kader->kader->status_kader == 'aktif' ? 'status-active' : 'status-inactive' }}">
-                                        {{ $kader->kader->status_kader == 'aktif' ? 'Aktif' : 'Nonaktif' }}
-                                    </span>
-                                @else
-                                    <span class="badge bg-secondary">-</span>
-                                @endif
-                            </td>
-                            <td>
-                                <span class="status-badge status-{{ $kader->status }}">
-                                    {{ $kader->status == 'active' ? 'Aktif' : 'Nonaktif' }}
+                            </div>
+                        </td>
+
+                        {{-- NIK & Jabatan --}}
+                        <td class="py-4 px-6">
+                            <div class="flex flex-col items-center gap-1">
+                                <span class="font-mono text-xs font-bold bg-slate-100 px-3 py-1 rounded-lg border border-slate-200 text-slate-600 tracking-wider">
+                                    {{ $k->nik ?? $k->profile?->nik ?? '-' }}
                                 </span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{{ route('admin.kaders.show', $kader->id) }}" 
-                                       class="btn-action btn-view" 
-                                       title="Lihat Detail">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('admin.kaders.edit', $kader->id) }}" 
-                                       class="btn-action btn-edit" 
-                                       title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('admin.kaders.reset-password', $kader->id) }}" 
-                                          method="POST" 
-                                          style="display: inline;">
-                                        @csrf
-                                        <button type="submit" 
-                                                class="btn-action btn-reset" 
-                                                title="Reset Password"
-                                                onclick="return confirm('Reset password kader ini?')">
-                                            <i class="fas fa-key"></i>
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('admin.kaders.destroy', $kader->id) }}" 
-                                          method="POST" 
-                                          style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                class="btn-action btn-delete" 
-                                                title="Hapus"
-                                                onclick="return confirm('Yakin menghapus kader ini?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7">
-                                <div class="no-data">
-                                    <i class="fas fa-user-nurse-slash"></i>
-                                    <h5>Belum ada data kader</h5>
-                                    <p class="text-muted">Silakan tambahkan kader baru</p>
-                                    <a href="{{ route('admin.kaders.create') }}" class="btn btn-warning mt-2">
-                                        <i class="fas fa-plus me-2"></i>Tambah Kader Pertama
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Pagination -->
-            @if($kaders->hasPages())
-                <div class="mt-4">
-                    {{ $kaders->links('vendor.pagination.bootstrap-5') }}
-                </div>
-            @endif
+                                <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest">{{ $k->kader?->jabatan ?? 'Kader Biasa' }}</span>
+                            </div>
+                        </td>
+
+                        {{-- Kontak --}}
+                        <td class="py-4 px-6 text-slate-500">
+                            {{ $k->profile?->telepon ?? '-' }}
+                        </td>
+
+                        {{-- Status --}}
+                        <td class="py-4 px-6">
+                            @if($k->status === 'active')
+                                <span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase"><i class="fas fa-check-circle mr-1"></i> Aktif</span>
+                            @else
+                                <span class="bg-rose-50 text-rose-600 border border-rose-200 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase"><i class="fas fa-ban mr-1"></i> Nonaktif</span>
+                            @endif
+                        </td>
+
+                        {{-- Aksi --}}
+                        <td class="py-4 px-6">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{{ route('admin.kaders.show', $k->id) }}" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all smooth-route" title="Detail"><i class="fas fa-eye"></i></a>
+                                <a href="{{ route('admin.kaders.edit', $k->id) }}" class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white flex items-center justify-center transition-all smooth-route" title="Edit"><i class="fas fa-edit"></i></a>
+                                
+                                {{-- Tombol Reset Password Khusus Kader --}}
+                                <form action="{{ route('admin.kaders.reset-password', $k->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" onclick="return confirm('Reset password kader ini ke default?')" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-obsidian-900 hover:text-white flex items-center justify-center transition-all" title="Reset Password"><i class="fas fa-key"></i></button>
+                                </form>
+
+                                <form action="{{ route('admin.kaders.destroy', $k->id) }}" method="POST" class="inline">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" onclick="return confirm('Hapus data kader ini secara permanen?')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white flex items-center justify-center transition-all" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="py-16 text-center">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 text-slate-300 mb-4 border border-slate-100"><i class="fas fa-user-nurse-slash text-2xl"></i></div>
+                            <h4 class="text-sm font-black text-slate-500 uppercase tracking-widest">Belum Ada Data Kader</h4>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
+    
+    @if(isset($kaders) && $kaders->hasPages())
+    <div class="mt-6 flex justify-center">
+        {{ $kaders->withQueryString()->links() }}
+    </div>
+    @endif
+
 </div>
 @endsection

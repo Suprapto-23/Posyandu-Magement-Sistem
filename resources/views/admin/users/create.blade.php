@@ -1,178 +1,109 @@
-@extends('layouts.app')
-
+@extends('layouts.admin')
 @section('title', 'Tambah User Warga')
-
-@push('styles')
-<style>
-:root{--t:#0d9488;--t2:#0ea5e9;--tbg:#f0fdfa;--bdr:#e2e8f0;--text:#0f172a;--muted:#64748b;--r:14px;--rs:9px;--shad:0 1px 3px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.04);}
-.f-hero{background:linear-gradient(135deg,#0d9488,#0ea5e9);border-radius:var(--r);padding:1.4rem 1.75rem;color:#fff;margin-bottom:1.25rem;position:relative;overflow:hidden;}
-.f-hero::before{content:'';position:absolute;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.07);top:-40px;right:-30px;pointer-events:none;}
-.f-hero h4{font-size:1.15rem;font-weight:800;margin:0;letter-spacing:-.02em;}
-.f-hero p{font-size:.8rem;opacity:.82;margin:.2rem 0 0;}
-.f-card{background:#fff;border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--shad);overflow:hidden;margin-bottom:1.1rem;}
-.f-section-head{display:flex;align-items:center;gap:.55rem;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--t);padding:.9rem 1.25rem;border-bottom:1px solid #f1f5f9;background:var(--tbg);}
-.f-section-head i{font-size:.85rem;}
-.f-body{padding:1.25rem;}
-.f-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
-.f-group{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.9rem;}
-.f-group label{font-size:.78rem;font-weight:700;color:var(--text);}
-.f-group label .req{color:#ef4444;margin-left:.15rem;}
-.f-group input,.f-group select,.f-group textarea{
-    border:1.5px solid var(--bdr);border-radius:var(--rs);
-    padding:.5rem .85rem;font-size:.85rem;color:var(--text);
-    outline:none;transition:border-color .15s;background:#fff;width:100%;
-}
-.f-group input:focus,.f-group select:focus,.f-group textarea:focus{border-color:var(--t);box-shadow:0 0 0 3px rgba(13,148,136,.1);}
-.f-group input.is-invalid,.f-group select.is-invalid,.f-group textarea.is-invalid{border-color:#ef4444;}
-.f-group .err{font-size:.72rem;color:#ef4444;}
-.f-group .hint{font-size:.71rem;color:var(--muted);}
-.info-box{background:var(--tbg);border:1px solid #99f6e4;border-radius:var(--rs);padding:.9rem 1.1rem;font-size:.8rem;color:var(--t);}
-.info-box ul{margin:.4rem 0 0;padding-left:1.1rem;}
-.info-box ul li{margin-bottom:.2rem;}
-.f-actions{display:flex;justify-content:space-between;align-items:center;padding:.9rem 1.25rem;border-top:1px solid #f1f5f9;background:#fafcff;}
-.btn-cancel{display:inline-flex;align-items:center;gap:.4rem;padding:.48rem 1rem;border-radius:var(--rs);font-size:.82rem;font-weight:600;color:var(--muted);border:1.5px solid var(--bdr);background:#fff;text-decoration:none;transition:all .15s;}
-.btn-cancel:hover{background:#f8fafc;color:var(--text);}
-.btn-save{display:inline-flex;align-items:center;gap:.4rem;padding:.48rem 1.25rem;border-radius:var(--rs);font-size:.82rem;font-weight:700;color:#fff;border:none;background:linear-gradient(135deg,var(--t),var(--t2));cursor:pointer;transition:opacity .15s;}
-.btn-save:hover{opacity:.88;}
-@media(max-width:600px){.f-row{grid-template-columns:1fr;}}
-</style>
-@endpush
+@section('page-name', 'Tambah Warga')
 
 @section('content')
-<div class="container-fluid px-0" style="max-width:760px;">
+<div class="max-w-4xl mx-auto" style="animation: menuPop 0.4s ease-out forwards;">
 
-    {{-- Hero --}}
-    <div class="f-hero">
-        <div style="position:relative;z-index:2;">
-            <div style="font-size:.65rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.75;">
-                <a href="{{ route('admin.users.index') }}" style="color:rgba(255,255,255,.8);text-decoration:none;">
-                    User Warga
-                </a> / Tambah Baru
+    {{-- Hero (Simetri Rata Tengah) --}}
+    <div class="bg-gradient-to-br from-obsidian-900 to-slate-800 rounded-[32px] p-8 md:p-10 mb-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col items-center justify-center text-center group">
+        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <div class="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 blur-[60px] rounded-full pointer-events-none"></div>
+
+        <div class="relative z-10 w-full flex flex-col items-center">
+            <div class="inline-flex items-center gap-2 text-amber-500 text-[10px] font-black uppercase tracking-widest mb-3">
+                <a href="{{ route('admin.users.index') }}" class="text-slate-400 hover:text-amber-500 transition-colors smooth-route">Daftar Warga</a>
+                <i class="fas fa-chevron-right text-[8px] text-slate-600"></i>
+                <span>Tambah Baru</span>
             </div>
-            <h4><i class="fas fa-user-plus me-2"></i>Daftarkan User Warga Baru</h4>
-            <p>NIK yang didaftarkan akan otomatis terhubung ke data balita/remaja/lansia yang sesuai.</p>
+            
+            <h2 class="text-3xl font-black text-white font-poppins tracking-tight flex items-center justify-center gap-3">
+                <i class="fas fa-user-plus text-amber-500"></i> Pendaftaran Warga
+            </h2>
         </div>
     </div>
 
+    {{-- INI KOTAK ERROR BARU: AKAN MENAMPILKAN DETAIL ERROR JIKA GAGAL --}}
     @if($errors->any())
-    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--rs);padding:.75rem 1rem;margin-bottom:1rem;font-size:.82rem;color:#dc2626;">
-        <i class="fas fa-exclamation-circle me-1"></i> Mohon periksa kembali data yang diisi.
+    <div class="bg-rose-50 border border-rose-200 rounded-2xl p-6 mb-6 text-sm font-bold text-rose-600 shadow-sm">
+        <div class="flex items-center gap-2 mb-3">
+            <i class="fas fa-exclamation-triangle text-xl"></i>
+            <span class="text-base">Gagal Menyimpan! Terdapat kesalahan berikut:</span>
+        </div>
+        <ul class="list-disc list-inside ml-6 text-rose-500 font-medium">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
     </div>
     @endif
 
     <form action="{{ route('admin.users.store') }}" method="POST">
         @csrf
+        
+        {{-- INPUT TERSEMBUNYI UNTUK STATUS (Agar langsung terisi "active" tanpa repot memilih) --}}
+        <input type="hidden" name="status" value="active">
 
-        {{-- Seksi 1: Data Pribadi --}}
-        <div class="f-card">
-            <div class="f-section-head"><i class="fas fa-user"></i> Data Pribadi</div>
-            <div class="f-body">
-                <div class="f-row">
-                    <div class="f-group">
-                        <label>Nama Lengkap<span class="req">*</span></label>
-                        <input type="text" name="full_name" value="{{ old('full_name') }}"
-                            placeholder="Nama sesuai KTP" class="{{ $errors->has('full_name') ? 'is-invalid' : '' }}">
-                        @error('full_name') <span class="err">{{ $message }}</span> @enderror
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden mb-8">
+            <div class="bg-slate-50/80 px-8 py-5 border-b border-slate-100 flex items-center justify-center">
+                <h5 class="font-black text-obsidian-900 text-sm uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-id-card text-amber-500"></i> Informasi Data Diri
+                </h5>
+            </div>
+            
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="col-span-1 md:col-span-2 space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nomor Induk Kependudukan (NIK) <span class="text-rose-500">*</span></label>
+                        <input type="text" name="nik" value="{{ old('nik') }}" maxlength="16" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Masukkan 16 digit NIK">
                     </div>
-                    <div class="f-group">
-                        <label>NIK (16 digit)<span class="req">*</span></label>
-                        <input type="text" name="nik" id="nikInput" value="{{ old('nik') }}"
-                            placeholder="16 digit NIK KTP" maxlength="16"
-                            class="{{ $errors->has('nik') ? 'is-invalid' : '' }}">
-                        <span class="hint"><i class="fas fa-info-circle me-1"></i>NIK digunakan sebagai username login</span>
-                        @error('nik') <span class="err">{{ $message }}</span> @enderror
+
+                    {{-- PERUBAHAN UTAMA: name="full_name" (Tadinya name="name") --}}
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nama Lengkap <span class="text-rose-500">*</span></label>
+                        <input type="text" name="full_name" value="{{ old('full_name') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Sesuai KTP">
                     </div>
-                </div>
-                <div class="f-row">
-                    <div class="f-group">
-                        <label>Jenis Kelamin<span class="req">*</span></label>
-                        <select name="jenis_kelamin" class="{{ $errors->has('jenis_kelamin') ? 'is-invalid' : '' }}">
-                            <option value="">Pilih...</option>
-                            <option value="L" {{ old('jenis_kelamin') == 'L' ? 'selected' : '' }}>Laki-laki</option>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Jenis Kelamin <span class="text-rose-500">*</span></label>
+                        <select name="jenis_kelamin" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                            <option value="">-- Pilih --</option>
+                            <option value="L" {{ old('jenis_kelamin') == 'L' ? 'selected' : '' }}>Laki-Laki</option>
                             <option value="P" {{ old('jenis_kelamin') == 'P' ? 'selected' : '' }}>Perempuan</option>
                         </select>
-                        @error('jenis_kelamin') <span class="err">{{ $message }}</span> @enderror
                     </div>
-                    <div class="f-group">
-                        <label>Nomor Telepon</label>
-                        <input type="text" name="telepon" id="telponInput" value="{{ old('telepon') }}"
-                            placeholder="08xxxxxxxxxx">
-                        @error('telepon') <span class="err">{{ $message }}</span> @enderror
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tempat Lahir <span class="text-rose-500">*</span></label>
+                        <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Kota Kelahiran">
+                    </div>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tanggal Lahir <span class="text-rose-500">*</span></label>
+                        <input type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all">
+                    </div>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nomor Telepon/WA <span class="text-rose-500">*</span></label>
+                        <input type="text" name="telepon" value="{{ old('telepon') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="08xx...">
+                    </div>
+
+                    <div class="space-y-2 text-center md:text-left">
+                        <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Alamat Lengkap <span class="text-rose-500">*</span></label>
+                        <input type="text" name="alamat" value="{{ old('alamat') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-obsidian-900 focus:bg-white focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all" placeholder="Jalan, RT/RW, Desa">
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Seksi 2: Alamat & Kelahiran --}}
-        <div class="f-card">
-            <div class="f-section-head"><i class="fas fa-map-marker-alt"></i> Alamat & Tanggal Lahir</div>
-            <div class="f-body">
-                <div class="f-group">
-                    <label>Alamat Lengkap</label>
-                    <textarea name="alamat" rows="3" placeholder="Masukkan alamat lengkap">{{ old('alamat') }}</textarea>
-                    @error('alamat') <span class="err">{{ $message }}</span> @enderror
-                </div>
-                <div class="f-row">
-                    <div class="f-group">
-                        <label>Tempat Lahir</label>
-                        <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir') }}" placeholder="Kota/Kabupaten">
-                        @error('tempat_lahir') <span class="err">{{ $message }}</span> @enderror
-                    </div>
-                    <div class="f-group">
-                        <label>Tanggal Lahir</label>
-                        <input type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir') }}">
-                        @error('tanggal_lahir') <span class="err">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Seksi 3: Akun --}}
-        <div class="f-card">
-            <div class="f-section-head"><i class="fas fa-shield-alt"></i> Pengaturan Akun</div>
-            <div class="f-body">
-                <div class="f-row">
-                    <div class="f-group">
-                        <label>Status Akun<span class="req">*</span></label>
-                        <select name="status">
-                            <option value="active"   {{ old('status','active') == 'active'   ? 'selected' : '' }}>Aktif</option>
-                            <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Nonaktif</option>
-                        </select>
-                        @error('status') <span class="err">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-                <div class="info-box">
-                    <strong><i class="fas fa-key me-1"></i>Informasi Password:</strong>
-                    <ul>
-                        <li>Password akan digenerate otomatis oleh sistem (8 karakter acak)</li>
-                        <li>Password akan ditampilkan sekali setelah user berhasil dibuat</li>
-                        <li>NIK digunakan sebagai username login, bukan email</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        {{-- Actions --}}
-        <div class="f-actions">
-            <a href="{{ route('admin.users.index') }}" class="btn-cancel">
-                <i class="fas fa-arrow-left"></i> Kembali
+        <div class="flex items-center justify-center gap-4 pb-10">
+            <a href="{{ route('admin.users.index') }}" class="px-8 py-3.5 rounded-2xl font-bold text-slate-500 bg-white border border-slate-200 hover:bg-slate-50 hover:text-obsidian-900 transition-all shadow-sm text-sm smooth-route">
+                <i class="fas fa-times mr-1"></i> Batal
             </a>
-            <button type="submit" class="btn-save">
-                <i class="fas fa-save"></i> Simpan & Daftarkan
+            <button type="submit" class="px-8 py-3.5 rounded-2xl font-bold text-obsidian-900 bg-amber-500 hover:bg-amber-400 hover:-translate-y-1 transition-all shadow-[0_4px_20px_rgba(245,158,11,0.4)] text-sm">
+                <i class="fas fa-save mr-1"></i> Simpan Data
             </button>
         </div>
     </form>
-
 </div>
 @endsection
-
-@push('scripts')
-<script>
-document.getElementById('nikInput').addEventListener('input', function() {
-    this.value = this.value.replace(/\D/g, '');
-});
-document.getElementById('telponInput').addEventListener('input', function() {
-    this.value = this.value.replace(/[^0-9+]/g, '');
-});
-</script>
-@endpush

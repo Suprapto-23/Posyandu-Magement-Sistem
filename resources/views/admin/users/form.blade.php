@@ -5,7 +5,7 @@
   NOTE   : Login warga menggunakan NIK (bukan email)
            Email dibuat otomatis: {nik}@posyandu.user
 --}}
-@extends('layouts.app')
+@extends('layouts.admin')
 @php $isEdit = isset($user); @endphp
 @section('title', $isEdit ? 'Edit Warga' : 'Tambah Warga Baru')
 

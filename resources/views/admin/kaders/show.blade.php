@@ -1,239 +1,108 @@
-@extends('layouts.app')
-
-@section('title', 'Detail Kader')
-
-@push('styles')
-<style>
-    .profile-header {
-        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-    }
-    
-    .profile-avatar {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-        font-weight: bold;
-        color: white;
-        margin: 0 auto 1rem;
-        border: 5px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    .info-card {
-        background: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e9ecef;
-    }
-    
-    .info-title {
-        color: #2c3e50;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #f39c12;
-    }
-    
-    .info-row {
-        display: flex;
-        margin-bottom: 0.75rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px dashed #eee;
-    }
-    
-    .info-label {
-        flex: 0 0 150px;
-        font-weight: 500;
-        color: #6c757d;
-    }
-    
-    .info-value {
-        flex: 1;
-        color: #2c3e50;
-    }
-</style>
-@endpush
+@extends('layouts.admin')
+@section('title', 'Detail Profil Kader')
+@section('page-name', 'Profil Kader')
 
 @section('content')
-<div class="main-content">
-    <!-- Profile Header -->
-    <div class="profile-header">
-        <div class="text-center">
-            <div class="profile-avatar">
-                {{ strtoupper(substr($kader->profile->full_name ?? 'K', 0, 1)) }}
-            </div>
-            <h2 class="mb-2">{{ $kader->profile->full_name }}</h2>
-            <p class="mb-0 opacity-75">
-                <i class="fas fa-envelope me-1"></i>{{ $kader->email }}
-            </p>
-        </div>
-    </div>
-    
-    <!-- Action Buttons -->
-    <div class="d-flex justify-content-end mb-4 gap-2">
-        <a href="{{ route('admin.kaders.edit', $kader->id) }}" class="btn btn-warning">
-            <i class="fas fa-edit me-2"></i>Edit
-        </a>
-        <form action="{{ route('admin.kaders.reset-password', $kader->id) }}" method="POST" style="display: inline;">
-            @csrf
-            <button type="submit" class="btn btn-info text-white" onclick="return confirm('Reset password kader ini?')">
-                <i class="fas fa-key me-2"></i>Reset Password
-            </button>
-        </form>
-        <form action="{{ route('admin.kaders.destroy', $kader->id) }}" method="POST" style="display: inline;">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Yakin menghapus kader ini?')">
-                <i class="fas fa-trash me-2"></i>Hapus
-            </button>
-        </form>
-        <a href="{{ route('admin.kaders.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Kembali
-        </a>
-    </div>
-    
-    <div class="row">
-        <!-- Data Pribadi -->
-        <div class="col-md-6">
-            <div class="info-card">
-                <h5 class="info-title"><i class="fas fa-user me-2"></i>Data Pribadi</h5>
-                
-                <div class="info-row">
-                    <div class="info-label">Nama Lengkap</div>
-                    <div class="info-value">{{ $kader->profile->full_name ?? '-' }}</div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">NIK</div>
-                    <div class="info-value">{{ $kader->profile->nik ?? '-' }}</div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Jenis Kelamin</div>
-                    <div class="info-value">
-                        @if($kader->profile->jenis_kelamin == 'L')
-                            Laki-laki
-                        @elseif($kader->profile->jenis_kelamin == 'P')
-                            Perempuan
-                        @else
-                            -
-                        @endif
-                    </div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Telepon</div>
-                    <div class="info-value">{{ $kader->profile->telepon ?? '-' }}</div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Alamat</div>
-                    <div class="info-value">{{ $kader->profile->alamat ?? '-' }}</div>
-                </div>
-            </div>
-        </div>
+<div class="max-w-5xl mx-auto" style="animation: menuPop 0.4s ease-out forwards;">
+
+    {{-- Hero Section (Simetri Rata Tengah) --}}
+    <div class="bg-gradient-to-br from-obsidian-900 to-slate-800 rounded-[32px] p-8 md:p-12 mb-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col items-center justify-center text-center group">
+        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
         
-        <!-- Data Kader -->
-        <div class="col-md-6">
-            <div class="info-card">
-                <h5 class="info-title"><i class="fas fa-user-nurse me-2"></i>Data Kader</h5>
-                
-                <div class="info-row">
-                    <div class="info-label">Email</div>
-                    <div class="info-value">{{ $kader->email }}</div>
+        <div class="relative z-10 w-full flex flex-col items-center">
+            {{-- Avatar Besar --}}
+            <div class="w-24 h-24 rounded-full bg-obsidian-900 border-2 border-amber-500 text-amber-500 flex items-center justify-center font-black text-4xl shadow-[0_0_25px_rgba(245,158,11,0.4)] mb-5">
+                {{ strtoupper(substr($kader->profile->full_name ?? $kader->name, 0, 1)) }}
+            </div>
+            
+            <h2 class="text-3xl font-black text-white font-poppins tracking-tight">
+                {{ $kader->profile->full_name ?? $kader->name }}
+            </h2>
+            
+            {{-- Badge Jabatan, Status & NIK --}}
+            <div class="mt-3 flex flex-wrap items-center justify-center gap-3">
+                <span class="bg-amber-500/20 border border-amber-500/50 text-amber-400 font-bold text-[11px] uppercase tracking-widest px-4 py-1.5 rounded-lg">
+                    <i class="fas fa-id-badge mr-1"></i> {{ $kader->kader?->jabatan ?? 'Kader Biasa' }}
+                </span>
+                <span class="bg-white/10 backdrop-blur-md border border-white/20 text-slate-200 font-mono text-xs font-bold px-4 py-1.5 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-id-card text-amber-500"></i> NIK: {{ $kader->nik ?? $kader->profile?->nik ?? '-' }}
+                </span>
+                @if($kader->status === 'active')
+                    <span class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 font-bold text-[11px] uppercase tracking-widest px-4 py-1.5 rounded-lg"><i class="fas fa-check-circle mr-1"></i> Aktif</span>
+                @else
+                    <span class="bg-rose-500/20 border border-rose-500/50 text-rose-400 font-bold text-[11px] uppercase tracking-widest px-4 py-1.5 rounded-lg"><i class="fas fa-ban mr-1"></i> Nonaktif</span>
+                @endif
+            </div>
+
+            {{-- Tombol Aksi --}}
+            <div class="mt-8 flex gap-3">
+                <a href="{{ route('admin.kaders.index') }}" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all smooth-route"><i class="fas fa-arrow-left mr-1"></i> Kembali</a>
+                <a href="{{ route('admin.kaders.edit', $kader->id) }}" class="bg-amber-500 hover:bg-amber-400 text-obsidian-900 text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_15px_rgba(245,158,11,0.3)] smooth-route"><i class="fas fa-edit mr-1"></i> Edit Profil</a>
+            </div>
+        </div>
+    </div>
+
+    {{-- Grid 2 Kolom untuk Biodata & Sistem --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        
+        {{-- Card 1: Biodata Pribadi --}}
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8 hover:shadow-md hover:border-slate-300 transition-all">
+            <div class="flex items-center gap-4 mb-6 border-b border-slate-100 pb-4">
+                <div class="w-12 h-12 rounded-2xl bg-slate-50 text-obsidian-900 border border-slate-200 flex items-center justify-center text-xl shadow-sm shrink-0">
+                    <i class="fas fa-user"></i>
                 </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Jabatan</div>
-                    <div class="info-value">{{ $kader->kader->jabatan ?? '-' }}</div>
+                <h4 class="text-sm font-black text-obsidian-900 uppercase tracking-widest font-poppins">Biodata Diri</h4>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Jenis Kelamin</span>
+                    <span class="text-sm font-bold text-slate-800">{{ ($kader->profile?->jenis_kelamin == 'L') ? 'Laki-Laki' : (($kader->profile?->jenis_kelamin == 'P') ? 'Perempuan' : '-') }}</span>
                 </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Tanggal Bergabung</div>
-                    <div class="info-value">
-                        {{ $kader->kader->tanggal_bergabung ? \Carbon\Carbon::parse($kader->kader->tanggal_bergabung)->format('d-m-Y') : '-' }}
-                    </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tempat Lahir</span>
+                    <span class="text-sm font-bold text-slate-800">{{ $kader->profile?->tempat_lahir ?? '-' }}</span>
                 </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Status Kader</div>
-                    <div class="info-value">
-                        @if($kader->kader)
-                            <span class="badge {{ $kader->kader->status_kader == 'aktif' ? 'bg-success' : 'bg-danger' }}">
-                                {{ $kader->kader->status_kader == 'aktif' ? 'AKTIF' : 'NONAKTIF' }}
-                            </span>
-                        @else
-                            <span class="badge bg-secondary">-</span>
-                        @endif
-                    </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Lahir</span>
+                    <span class="text-sm font-bold text-slate-800">{{ $kader->profile?->tanggal_lahir ? \Carbon\Carbon::parse($kader->profile->tanggal_lahir)->translatedFormat('d F Y') : '-' }}</span>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Usia</span>
+                    <span class="text-sm font-black text-amber-600">{{ $kader->profile?->tanggal_lahir ? \Carbon\Carbon::parse($kader->profile->tanggal_lahir)->age . ' Tahun' : '-' }}</span>
                 </div>
             </div>
         </div>
-        
-        <!-- Info Akun -->
-        <div class="col-md-12">
-            <div class="info-card">
-                <h5 class="info-title"><i class="fas fa-user-circle me-2"></i>Informasi Akun</h5>
-                
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="info-row">
-                            <div class="info-label">User ID</div>
-                            <div class="info-value">{{ $kader->id }}</div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <div class="info-row">
-                            <div class="info-label">Role</div>
-                            <div class="info-value">
-                                <span class="badge bg-warning">{{ strtoupper($kader->role) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <div class="info-row">
-                            <div class="info-label">Status Akun</div>
-                            <div class="info-value">
-                                <span class="badge {{ $kader->status == 'active' ? 'bg-success' : 'bg-danger' }}">
-                                    {{ $kader->status == 'active' ? 'AKTIF' : 'NONAKTIF' }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <div class="info-row">
-                            <div class="info-label">Login Terakhir</div>
-                            <div class="info-value">
-                                {{ $kader->last_login_at ? \Carbon\Carbon::parse($kader->last_login_at)->format('d-m-Y H:i') : 'Belum pernah' }}
-                            </div>
-                        </div>
-                    </div>
+
+        {{-- Card 2: Informasi Kontak & Sistem --}}
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8 hover:shadow-md hover:border-slate-300 transition-all">
+            <div class="flex items-center gap-4 mb-6 border-b border-slate-100 pb-4">
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-xl shadow-sm shrink-0">
+                    <i class="fas fa-desktop"></i>
                 </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Dibuat Pada</div>
-                    <div class="info-value">{{ $kader->created_at->format('d-m-Y H:i') }}</div>
+                <h4 class="text-sm font-black text-obsidian-900 uppercase tracking-widest font-poppins">Akses & Kontak</h4>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Email (Login)</span>
+                    <span class="text-sm font-bold text-slate-800 break-all">{{ $kader->email }}</span>
                 </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Diperbarui Pada</div>
-                    <div class="info-value">{{ $kader->updated_at->format('d-m-Y H:i') }}</div>
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Telepon / WhatsApp</span>
+                    <span class="text-sm font-bold text-slate-800">{{ $kader->profile?->telepon ?? '-' }}</span>
+                </div>
+                <div class="flex flex-col border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Alamat Lengkap</span>
+                    <span class="text-sm font-bold text-slate-800 leading-relaxed">{{ $kader->profile?->alamat ?? '-' }}</span>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Login Terakhir</span>
+                    <span class="text-sm font-bold text-slate-800">{{ $kader->last_login_at ? \Carbon\Carbon::parse($kader->last_login_at)->translatedFormat('d M Y, H:i') : 'Belum Pernah' }}</span>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 @endsection

@@ -1,122 +1,108 @@
-@extends('layouts.app')
-
-@section('title', 'Detail Bidan')
-
-@push('styles')
-<style>
-    .profile-header {
-        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-    }
-    .profile-avatar {
-        width: 120px; height: 120px; border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 3rem; font-weight: bold; color: white;
-        margin: 0 auto 1rem; border: 5px solid rgba(255, 255, 255, 0.3);
-    }
-    .info-card {
-        background: white; border-radius: 15px; padding: 1.5rem;
-        margin-bottom: 1.5rem; box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e9ecef;
-    }
-    .info-title {
-        color: #2c3e50; font-weight: 600; margin-bottom: 1rem;
-        padding-bottom: 0.5rem; border-bottom: 2px solid #27ae60;
-    }
-    .info-row {
-        display: flex; margin-bottom: 0.75rem; padding-bottom: 0.75rem;
-        border-bottom: 1px dashed #eee;
-    }
-    .info-label { flex: 0 0 150px; font-weight: 500; color: #6c757d; }
-    .info-value { flex: 1; color: #2c3e50; }
-</style>
-@endpush
+@extends('layouts.admin')
+@section('title', 'Detail Profil Bidan')
+@section('page-name', 'Profil Bidan')
 
 @section('content')
-<div class="main-content">
-    <div class="profile-header">
-        <div class="text-center">
-            <div class="profile-avatar">
-                {{ strtoupper(substr($bidan->profile->full_name ?? 'B', 0, 1)) }}
-            </div>
-            <h2 class="mb-2">{{ $bidan->profile->full_name ?? $bidan->name }}</h2>
-            <p class="mb-0 opacity-75">
-                <i class="fas fa-envelope me-1"></i>{{ $bidan->email }}
-            </p>
-        </div>
-    </div>
-    
-    <div class="d-flex justify-content-end mb-4 gap-2">
-        <a href="{{ route('admin.bidans.edit', $bidan->id) }}" class="btn btn-success">
-            <i class="fas fa-edit me-2"></i>Edit
-        </a>
-        <form action="{{ route('admin.bidans.reset-password', $bidan->id) }}" method="POST" style="display: inline;">
-            @csrf
-            <button type="submit" class="btn btn-info text-white" onclick="return confirm('Reset password bidan ini?')">
-                <i class="fas fa-key me-2"></i>Reset Password
-            </button>
-        </form>
-        <form action="{{ route('admin.bidans.destroy', $bidan->id) }}" method="POST" style="display: inline;">
-            @csrf @method('DELETE')
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Yakin menghapus bidan ini?')">
-                <i class="fas fa-trash me-2"></i>Hapus
-            </button>
-        </form>
-        <a href="{{ route('admin.bidans.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Kembali
-        </a>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-6">
-            <div class="info-card">
-                <h5 class="info-title"><i class="fas fa-user me-2"></i>Data Identitas</h5>
-                
-                <div class="info-row">
-                    <div class="info-label">Nama Lengkap</div>
-                    <div class="info-value">{{ $bidan->profile->full_name ?? '-' }}</div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">NIK</div>
-                    <div class="info-value">{{ $bidan->profile->nik ?? '-' }}</div>
-                </div>
+<div class="max-w-5xl mx-auto" style="animation: menuPop 0.4s ease-out forwards;">
 
-                <div class="info-row">
-                    <div class="info-label">Email</div>
-                    <div class="info-value">{{ $bidan->email }}</div>
+    {{-- Hero Section (Simetri Rata Tengah) --}}
+    <div class="bg-gradient-to-br from-obsidian-900 to-slate-800 rounded-[32px] p-8 md:p-12 mb-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col items-center justify-center text-center group">
+        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
+        
+        <div class="relative z-10 w-full flex flex-col items-center">
+            {{-- Avatar Besar (Aksen Emerald/Hijau Medis) --}}
+            <div class="w-24 h-24 rounded-full bg-obsidian-900 border-2 border-emerald-500 text-emerald-400 flex items-center justify-center font-black text-4xl shadow-[0_0_25px_rgba(16,185,129,0.3)] mb-5">
+                {{ strtoupper(substr($bidan->profile->full_name ?? $bidan->name, 0, 1)) }}
+            </div>
+            
+            <h2 class="text-3xl font-black text-white font-poppins tracking-tight">
+                {{ $bidan->profile->full_name ?? $bidan->name }}
+            </h2>
+            
+            {{-- Badge Otoritas & Status --}}
+            <div class="mt-3 flex flex-wrap items-center justify-center gap-3">
+                <span class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 font-bold text-[11px] uppercase tracking-widest px-4 py-1.5 rounded-lg">
+                    <i class="fas fa-stethoscope mr-1"></i> Bidan Posyandu
+                </span>
+                <span class="bg-white/10 backdrop-blur-md border border-white/20 text-slate-200 font-mono text-xs font-bold px-4 py-1.5 rounded-lg flex items-center gap-2">
+                    <i class="fas fa-id-card text-emerald-400"></i> NIK: {{ $bidan->nik ?? $bidan->profile?->nik ?? '-' }}
+                </span>
+                @if($bidan->status === 'active')
+                    <span class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 font-bold text-[11px] uppercase tracking-widest px-4 py-1.5 rounded-lg"><i class="fas fa-check-circle mr-1"></i> Aktif</span>
+                @else
+                    <span class="bg-rose-500/20 border border-rose-500/50 text-rose-400 font-bold text-[11px] uppercase tracking-widest px-4 py-1.5 rounded-lg"><i class="fas fa-ban mr-1"></i> Nonaktif</span>
+                @endif
+            </div>
+
+            {{-- Tombol Aksi --}}
+            <div class="mt-8 flex gap-3">
+                <a href="{{ route('admin.bidans.index') }}" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all smooth-route"><i class="fas fa-arrow-left mr-1"></i> Kembali</a>
+                <a href="{{ route('admin.bidans.edit', $bidan->id) }}" class="bg-amber-500 hover:bg-amber-400 text-obsidian-900 text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_4px_15px_rgba(245,158,11,0.3)] smooth-route"><i class="fas fa-edit mr-1"></i> Edit Profil</a>
+            </div>
+        </div>
+    </div>
+
+    {{-- Grid 2 Kolom untuk Biodata & Sistem --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        
+        {{-- Card 1: Biodata Pribadi --}}
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8 hover:shadow-md hover:border-slate-300 transition-all">
+            <div class="flex items-center gap-4 mb-6 border-b border-slate-100 pb-4">
+                <div class="w-12 h-12 rounded-2xl bg-slate-50 text-obsidian-900 border border-slate-200 flex items-center justify-center text-xl shadow-sm shrink-0">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h4 class="text-sm font-black text-obsidian-900 uppercase tracking-widest font-poppins">Biodata Bidan</h4>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Jenis Kelamin</span>
+                    <span class="text-sm font-bold text-slate-800">{{ ($bidan->profile?->jenis_kelamin == 'L') ? 'Laki-Laki' : (($bidan->profile?->jenis_kelamin == 'P') ? 'Perempuan' : '-') }}</span>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tempat Lahir</span>
+                    <span class="text-sm font-bold text-slate-800">{{ $bidan->profile?->tempat_lahir ?? '-' }}</span>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Lahir</span>
+                    <span class="text-sm font-bold text-slate-800">{{ $bidan->profile?->tanggal_lahir ? \Carbon\Carbon::parse($bidan->profile->tanggal_lahir)->translatedFormat('d F Y') : '-' }}</span>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Usia</span>
+                    <span class="text-sm font-black text-amber-600">{{ $bidan->profile?->tanggal_lahir ? \Carbon\Carbon::parse($bidan->profile->tanggal_lahir)->age . ' Tahun' : '-' }}</span>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-6">
-            <div class="info-card">
-                <h5 class="info-title"><i class="fas fa-user-circle me-2"></i>Status Akun</h5>
-                
-                <div class="info-row">
-                    <div class="info-label">Status</div>
-                    <div class="info-value">
-                        <span class="badge {{ $bidan->status == 'active' ? 'bg-success' : 'bg-danger' }}">
-                            {{ $bidan->status == 'active' ? 'AKTIF' : 'NONAKTIF' }}
-                        </span>
-                    </div>
+
+        {{-- Card 2: Informasi Kontak & Sistem --}}
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-sm p-8 hover:shadow-md hover:border-slate-300 transition-all">
+            <div class="flex items-center gap-4 mb-6 border-b border-slate-100 pb-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-xl shadow-sm shrink-0">
+                    <i class="fas fa-desktop"></i>
                 </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Bergabung Sejak</div>
-                    <div class="info-value">{{ $bidan->created_at->translatedFormat('d F Y') }}</div>
+                <h4 class="text-sm font-black text-obsidian-900 uppercase tracking-widest font-poppins">Akses & Kontak</h4>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Email (Sistem)</span>
+                    <span class="text-sm font-bold text-slate-800 break-all">{{ $bidan->email }}</span>
                 </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Terakhir Update</div>
-                    <div class="info-value">{{ $bidan->updated_at->diffForHumans() }}</div>
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Telepon / WhatsApp</span>
+                    <span class="text-sm font-bold text-slate-800">{{ $bidan->profile?->telepon ?? '-' }}</span>
+                </div>
+                <div class="flex flex-col border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Alamat Lengkap</span>
+                    <span class="text-sm font-bold text-slate-800 leading-relaxed">{{ $bidan->profile?->alamat ?? '-' }}</span>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:justify-between border-b border-slate-50 pb-3 gap-1">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Terakhir Login</span>
+                    <span class="text-sm font-bold text-slate-800">{{ $bidan->last_login_at ? \Carbon\Carbon::parse($bidan->last_login_at)->translatedFormat('d M Y, H:i') : 'Belum Pernah' }}</span>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 @endsection
