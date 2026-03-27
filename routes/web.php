@@ -18,6 +18,7 @@ use App\Http\Controllers\Bidan\PemeriksaanController as BidanPemeriksaan;
 use App\Http\Controllers\Bidan\JadwalController      as BidanJadwal;
 use App\Http\Controllers\Bidan\PasienController      as BidanPasien;
 use App\Http\Controllers\Bidan\RekamMedisController as BidanRekamMedisController;
+use App\Http\Controllers\Bidan\KonselingController   as BidanKonseling; // 👈 Pastikan BidanKonseling dipanggil
 
 // Kader
 use App\Http\Controllers\Kader\DashboardController   as KaderDashboard;
@@ -31,17 +32,18 @@ use App\Http\Controllers\Kader\LaporanController;
 use App\Http\Controllers\Kader\JadwalController;
 use App\Http\Controllers\Kader\ImportController;
 use App\Http\Controllers\Kader\ProfileController    as KaderProfile;
+use App\Http\Controllers\Kader\NotifikasiController as KaderNotifikasi;
 
 // User (Warga)
 use App\Http\Controllers\User\DashboardController   as UserDashboard;
 use App\Http\Controllers\User\BalitaController      as UserBalita;
 use App\Http\Controllers\User\RemajaController      as UserRemaja;
 use App\Http\Controllers\User\LansiaController      as UserLansia;
-use App\Http\Controllers\User\RiwayatController;
-use App\Http\Controllers\User\KonselingController;
 use App\Http\Controllers\User\JadwalController      as UserJadwal;
 use App\Http\Controllers\User\ProfileController     as UserProfile;
 use App\Http\Controllers\User\NotifikasiController  as UserNotifikasi;
+use App\Http\Controllers\User\RiwayatController;
+use App\Http\Controllers\User\KonselingController   as UserKonseling; // 👈 Pastikan UserKonseling dipanggil
 
 // ==================== ROOT ====================
 Route::get('/', function () {
@@ -80,7 +82,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','checkstatus','role:a
     Route::get('/settings',                [AdminSetting::class, 'index'])->name('settings.index');
     Route::put('/settings',                [AdminSetting::class, 'update'])->name('settings.update');
     Route::put('/settings/change-password',[AdminSetting::class, 'changePassword'])->name('settings.change-password');
-    
 });
 
 // ==================== BIDAN ====================
@@ -88,36 +89,38 @@ Route::prefix('bidan')->name('bidan.')->middleware(['auth','checkstatus','role:b
     Route::get('/', fn() => redirect()->route('bidan.dashboard'));
     Route::get('/dashboard', [BidanDashboard::class, 'index'])->name('dashboard');
 
-    // PEMERIKSAAN
     Route::get('/pemeriksaan',             [BidanPemeriksaan::class, 'index'])->name('pemeriksaan.index');
     Route::get('/pemeriksaan/create',      [BidanPemeriksaan::class, 'create'])->name('pemeriksaan.create');
     Route::post('/pemeriksaan',            [BidanPemeriksaan::class, 'store'])->name('pemeriksaan.store');
     Route::get('/pemeriksaan/{id}',        [BidanPemeriksaan::class, 'show'])->name('pemeriksaan.show');
     Route::put('/pemeriksaan/{id}/verifikasi', [BidanPemeriksaan::class, 'verifikasi'])->name('pemeriksaan.verifikasi');
 
-    // JADWAL
     Route::resource('jadwal', BidanJadwal::class);
 
-    // DATA WARGA
     Route::get('/pasien/balita', [BidanPasien::class, 'indexBalita'])->name('pasien.balita');
     Route::get('/pasien/remaja', [BidanPasien::class, 'indexRemaja'])->name('pasien.remaja');
     Route::get('/pasien/lansia', [BidanPasien::class, 'indexLansia'])->name('pasien.lansia');
 
-    // IMUNISASI (Akses Khusus Bidan)
     Route::get('/imunisasi', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'index'])->name('imunisasi.index');
     Route::get('/imunisasi/create', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'create'])->name('imunisasi.create');
     Route::post('/imunisasi', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'store'])->name('imunisasi.store');
     Route::get('/imunisasi/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'show'])->name('imunisasi.show');
     Route::delete('/imunisasi/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'destroy'])->name('imunisasi.destroy');
 
-    // REKAM MEDIS (RUTE BARU)
     Route::get('/rekam-medis', [BidanRekamMedisController::class, 'index'])->name('rekam-medis.index');
     Route::get('/rekam-medis/{pasien_type}/{pasien_id}', [BidanRekamMedisController::class, 'show'])->name('rekam-medis.show');
 
-    // LAPORAN & TANDA TANGAN
     Route::get('/laporan',       [\App\Http\Controllers\Bidan\LaporanController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/cetak', [\App\Http\Controllers\Bidan\LaporanController::class, 'cetak'])->name('laporan.cetak');
     Route::post('/laporan/upload-ttd', [\App\Http\Controllers\Bidan\LaporanController::class, 'uploadTtd'])->name('laporan.upload-ttd');
+
+    // 👇 RUTE KOTAK MASUK BIDAN (SUDAH DIPERBAIKI) 👇
+    Route::prefix('konseling')->name('konseling.')->group(function () {
+        Route::get('/', [BidanKonseling::class, 'index'])->name('index');
+        Route::get('/fetch-list', [BidanKonseling::class, 'fetchList'])->name('fetch-list');
+        Route::get('/fetch-chat/{user_id}', [BidanKonseling::class, 'fetchChat'])->name('fetch-chat');
+        Route::post('/reply/{user_id}', [BidanKonseling::class, 'reply'])->name('reply');
+    });
 });
 
 // ==================== KADER ====================
@@ -150,14 +153,11 @@ Route::prefix('kader')->name('kader.')->middleware(['auth','checkstatus','role:k
 
     Route::resource('kunjungan', KunjunganController::class);
 
- // REPORT / LAPORAN KADER
     Route::prefix('laporan')->name('laporan.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Kader\LaporanController::class, 'index'])->name('index');
         Route::get('/balita', [\App\Http\Controllers\Kader\LaporanController::class, 'balita'])->name('balita');
         Route::get('/remaja', [\App\Http\Controllers\Kader\LaporanController::class, 'remaja'])->name('remaja');
         Route::get('/lansia', [\App\Http\Controllers\Kader\LaporanController::class, 'lansia'])->name('lansia');
-        
-        // 👇 TAMBAHKAN BARIS INI UNTUK FUNGSI UNDUH PDF 👇
         Route::get('/generate/{type}', [\App\Http\Controllers\Kader\LaporanController::class, 'generate'])->name('generate');
     });
 
@@ -173,13 +173,13 @@ Route::prefix('kader')->name('kader.')->middleware(['auth','checkstatus','role:k
         Route::get('/{id}',                    [ImportController::class, 'show'])->name('show');
         Route::delete('/{id}',                 [ImportController::class, 'destroy'])->name('destroy');
     });
-// 👇 SISTEM NOTIFIKASI KADER (REAL-TIME) 👇
+
     Route::prefix('notifikasi')->name('notifikasi.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Kader\NotifikasiController::class, 'index'])->name('index');
-        Route::get('/fetch', [\App\Http\Controllers\Kader\NotifikasiController::class, 'fetchRecent'])->name('fetch'); // Untuk AJAX
-        Route::post('/mark-all-read', [\App\Http\Controllers\Kader\NotifikasiController::class, 'markAllRead'])->name('markAllRead');
-        Route::post('/{id}/read', [\App\Http\Controllers\Kader\NotifikasiController::class, 'markAsRead'])->name('read');
-        Route::delete('/{id}', [\App\Http\Controllers\Kader\NotifikasiController::class, 'destroy'])->name('destroy');
+        Route::get('/', [KaderNotifikasi::class, 'index'])->name('index');
+        Route::get('/fetch', [KaderNotifikasi::class, 'fetchRecent'])->name('fetch');
+        Route::post('/mark-all-read', [KaderNotifikasi::class, 'markAllRead'])->name('markAllRead');
+        Route::post('/{id}/read', [KaderNotifikasi::class, 'markAsRead'])->name('read');
+        Route::delete('/{id}', [KaderNotifikasi::class, 'destroy'])->name('destroy');
     });
     
     Route::get('/profile',          [KaderProfile::class, 'index'])->name('profile.index');
@@ -200,19 +200,24 @@ Route::prefix('user')->name('user.')->middleware(['auth','checkstatus','role:use
     Route::resource('remaja', UserRemaja::class);
     Route::resource('lansia', UserLansia::class);
 
-    Route::get('riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
-
     Route::get('/jadwal', [UserJadwal::class, 'index'])->name('jadwal.index');
 
-    Route::get('/notifikasi',                [UserNotifikasi::class, 'index'])->name('notifikasi.index');
-    Route::get('/notifikasi/latest',         [UserNotifikasi::class, 'latest'])->name('notifikasi.latest');
-    Route::get('/notifikasi/{id}/read',      [UserNotifikasi::class, 'markRead'])->name('notifikasi.read');
-    Route::post('/notifikasi/mark-all-read', [UserNotifikasi::class, 'markAllRead'])->name('notifikasi.markall');
+    Route::prefix('notifikasi')->name('notifikasi.')->group(function () {
+        Route::get('/', [UserNotifikasi::class, 'index'])->name('index');
+        Route::get('/fetch', [UserNotifikasi::class, 'fetchRecent'])->name('fetch');
+        Route::post('/mark-all-read', [UserNotifikasi::class, 'markAllRead'])->name('markall');
+        Route::post('/{id}/read', [UserNotifikasi::class, 'markRead'])->name('read');
+    });
 
-    Route::get('/konseling',  [KonselingController::class, 'index'])->name('konseling.index');
-    Route::post('/konseling', [KonselingController::class, 'store'])->name('konseling.store');
-
-    // 👇 INI YANG DIPERBAIKI (Ubah 'profile.index' menjadi 'profile.edit') 👇
     Route::get('/profile',   [UserProfile::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [UserProfile::class, 'update'])->name('profile.update');
+    
+    Route::get('riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
+
+    // 👇 RUTE RUANG CHAT WARGA (SUDAH DIPERBAIKI) 👇
+    Route::prefix('konseling')->name('konseling.')->group(function () {
+        Route::get('/', [UserKonseling::class, 'index'])->name('index');
+        Route::get('/fetch-chat', [UserKonseling::class, 'fetchChat'])->name('fetch-chat');
+        Route::post('/store', [UserKonseling::class, 'store'])->name('store');
+    });
 });

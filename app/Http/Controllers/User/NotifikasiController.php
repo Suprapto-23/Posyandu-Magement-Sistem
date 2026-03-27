@@ -126,4 +126,46 @@ class NotifikasiController extends Controller
             return response()->json(['status' => 'ok', 'notifikasi' => [], 'unread_count' => 0]);
         }
     }
+    /**
+     * FUNGSI AJAX REAL-TIME UNTUK DROPDOWN USER (WARGA)
+     */
+    public function fetchRecent()
+    {
+        $unreadCount = Notifikasi::where('user_id', Auth::id())->where('is_read', false)->count();
+        $latestNotifs = Notifikasi::where('user_id', Auth::id())->latest()->take(5)->get();
+
+        $html = '';
+        if ($latestNotifs->isEmpty()) {
+            $html .= '<div class="flex flex-col items-center justify-center py-8 text-slate-400">';
+            $html .= '<i class="fas fa-bell-slash text-3xl mb-2 opacity-30"></i>';
+            $html .= '<p class="text-[12px] font-medium">Belum ada pesan</p>';
+            $html .= '</div>';
+        } else {
+            foreach ($latestNotifs as $n) {
+                $bg = $n->is_read ? 'bg-white border-l-4 border-l-transparent' : 'bg-teal-50/40 border-l-4 border-l-teal-500';
+                $iconBg = $n->is_read ? 'bg-slate-100 text-slate-500 border-transparent' : 'bg-teal-100 text-teal-600 border-teal-200';
+                $titleCol = $n->is_read ? 'text-slate-600' : 'text-slate-800';
+                
+                $icon = str_contains(strtolower($n->judul), 'jadwal') ? 'calendar-alt' : 'envelope';
+                $route = route('user.notifikasi.index');
+                
+                $html .= "
+                <a href=\"{$route}\" class=\"flex gap-4 px-5 py-4 hover:bg-slate-50 transition-colors border-b border-slate-100 {$bg}\">
+                    <div class=\"w-9 h-9 rounded-full flex items-center justify-center shrink-0 border {$iconBg}\">
+                        <i class=\"fas fa-{$icon} text-sm\"></i>
+                    </div>
+                    <div>
+                        <p class=\"text-[13px] font-bold {$titleCol} leading-tight\">{$n->judul}</p>
+                        <p class=\"text-[12px] text-slate-500 mt-0.5 line-clamp-1\">{$n->pesan}</p>
+                    </div>
+                </a>";
+            }
+        }
+
+        return response()->json([
+            'unreadCount' => $unreadCount,
+            'html' => $html
+        ]);
+    }
+    
 }

@@ -43,7 +43,10 @@
                 <i class="fas fa-syringe w-6 text-center text-[18px] transition-colors <?php echo e(request()->routeIs('bidan.imunisasi*') ? $activeIconClass : $inactiveIconClass); ?>"></i>
                 <span class="font-poppins tracking-wide">Register Imunisasi</span>
             </a>
-
+<a href="<?php echo e(route('bidan.konseling.index')); ?>" class="smooth-route group flex items-center gap-3 px-3 py-3 rounded-xl <?php echo e(request()->routeIs('bidan.konseling.*') ? 'bg-sky-50 text-sky-700 font-bold border-r-4 border-sky-500' : 'text-slate-500 font-semibold hover:bg-slate-50 hover:text-sky-600'); ?>">
+    <i class="fas fa-comments-medical w-5 text-center text-lg <?php echo e(request()->routeIs('bidan.konseling.*') ? 'text-sky-600' : 'text-slate-400 group-hover:text-sky-500'); ?>"></i>
+    <span class="text-sm">Ruang Konseling</span>
+</a>
             <a href="<?php echo e(route('bidan.rekam-medis.index')); ?>" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm <?php echo e(request()->routeIs('bidan.rekam-medis*') ? $activeClass : $inactiveClass); ?>">
                 <i class="fas fa-notes-medical w-6 text-center text-[18px] transition-colors <?php echo e(request()->routeIs('bidan.rekam-medis*') ? $activeIconClass : $inactiveIconClass); ?>"></i>
                 <span class="font-poppins tracking-wide">Buku Rekam Medis</span>
