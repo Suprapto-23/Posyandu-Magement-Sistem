@@ -13,126 +13,87 @@
 @endpush
 
 @section('content')
-<div class="max-w-[1400px] mx-auto animate-slide-up">
+<div class="max-w-7xl mx-auto animate-slide-up">
 
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 mt-4">
         <div class="flex items-center gap-5">
             <div class="w-16 h-16 rounded-[20px] bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-2xl shadow-[0_8px_20px_rgba(79,70,229,0.3)] shrink-0">
-                <i class="fas fa-history"></i>
+                <i class="fas fa-server"></i>
             </div>
             <div>
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight font-poppins">Log Aktivitas Import</h1>
-                <p class="text-slate-500 mt-1 font-medium text-[14px]">Pantau riwayat migrasi data Excel ke dalam server. Secara default menampilkan data hari ini.</p>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight font-poppins">Log Server Eksekusi</h1>
+                <p class="text-slate-500 mt-1 font-medium text-[13px]">Memantau aktivitas mass-upload data ke dalam database.</p>
             </div>
         </div>
-        <a href="{{ route('kader.import.create') }}" class="smooth-route inline-flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 text-white font-black text-[13px] rounded-2xl hover:bg-indigo-700 shadow-[0_4px_15px_rgba(79,70,229,0.3)] hover:-translate-y-1 transition-all uppercase tracking-widest w-full sm:w-auto shrink-0">
+        <a href="{{ route('kader.import.create') }}" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-indigo-600 text-white font-extrabold text-sm rounded-xl hover:bg-indigo-700 shadow-[0_4px_12px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 transition-all">
             <i class="fas fa-plus"></i> Import Baru
         </a>
     </div>
 
-    <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-4 sm:p-5 mb-8 flex flex-col sm:flex-row items-center gap-4">
-        <form action="{{ route('kader.import.history') }}" method="GET" class="w-full flex flex-col sm:flex-row items-center gap-4">
-            <div class="w-full sm:w-1/2 relative">
-                <i class="fas fa-calendar-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
-                <input type="date" name="tanggal" value="{{ $tanggal ?? date('Y-m-d') }}" class="w-full bg-slate-50 border-2 border-slate-100 text-slate-800 text-[14px] rounded-xl pl-12 pr-4 py-3.5 outline-none font-bold focus:border-indigo-500 focus:bg-white transition-colors cursor-pointer shadow-sm">
-            </div>
-            
-            <div class="flex items-center gap-3 w-full sm:w-auto">
-                <button type="submit" class="w-full sm:w-auto px-8 py-3.5 bg-slate-800 text-white font-black text-[13px] rounded-xl hover:bg-slate-900 transition-colors flex items-center justify-center gap-2 shadow-sm uppercase tracking-widest">
-                    <i class="fas fa-filter"></i> Terapkan
-                </button>
-                <a href="{{ route('kader.import.history') }}" class="w-full sm:w-auto px-6 py-3.5 bg-slate-100 text-slate-600 border border-slate-200 font-black text-[13px] rounded-xl hover:bg-slate-200 hover:text-slate-800 transition-colors flex items-center justify-center gap-2 shadow-sm text-center uppercase tracking-widest smooth-route">
-                    <i class="fas fa-sync-alt"></i> Reset
-                </a>
-            </div>
-        </form>
-    </div>
-
-    <div class="bg-white rounded-[32px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
-        
-        <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/80">
-            <h3 class="text-lg font-black text-slate-800 font-poppins">
-                <i class="fas fa-list-ul text-indigo-500 mr-2"></i> Hasil Pencarian: <span class="text-indigo-600 border-b-2 border-indigo-200">{{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}</span>
-            </h3>
-        </div>
-
-        @if($imports->count() > 0)
+    @if($imports->count() > 0)
+    <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
         <div class="overflow-x-auto custom-scrollbar">
-            <table class="w-full text-left border-collapse min-w-[1000px]">
+            <table class="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
-                    <tr class="bg-white border-b border-slate-100">
-                        <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Waktu Proses</th>
-                        <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama File & Modul</th>
-                        <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
-                        <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Visualisasi Hasil</th>
-                        <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Tindakan</th>
+                    <tr class="bg-slate-50/80 border-b border-slate-100">
+                        <th class="px-6 py-5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Detail File</th>
+                        <th class="px-6 py-5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Waktu Eksekusi</th>
+                        <th class="px-6 py-5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest text-center">Status Engine</th>
+                        <th class="px-6 py-5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest text-center">Target Modul</th>
+                        <th class="px-6 py-5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest text-right">Aksi Server</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
+                <tbody class="divide-y divide-slate-100">
                     @foreach($imports as $import)
-                    <tr class="hover:bg-indigo-50/40 transition-colors group">
+                    <tr class="hover:bg-slate-50/50 transition-colors group">
                         
-                        <td class="px-8 py-5 align-middle">
-                            <p class="font-black text-slate-800 text-[14px]">{{ $import->created_at->format('d M Y') }}</p>
-                            <p class="text-[11px] font-bold text-slate-400 mt-1 flex items-center gap-1.5"><i class="fas fa-clock"></i> {{ $import->created_at->format('H:i:s') }}</p>
-                        </td>
-
-                        <td class="px-8 py-5 align-middle">
+                        <td class="px-6 py-4">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shrink-0 border border-emerald-100"><i class="fas fa-file-excel"></i></div>
+                                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-lg shadow-sm border border-indigo-100">
+                                    <i class="fas fa-file-excel"></i>
+                                </div>
                                 <div>
-                                    <p class="font-bold text-slate-700 text-[13px] mb-1.5 truncate max-w-[250px]" title="{{ $import->nama_file }}">{{ $import->nama_file }}</p>
-                                    @if($import->jenis_data == 'balita') <span class="px-2.5 py-1 bg-rose-100 text-rose-700 text-[9px] font-black rounded-md uppercase tracking-widest border border-rose-200 shadow-sm">Modul Balita</span>
-                                    @elseif($import->jenis_data == 'remaja') <span class="px-2.5 py-1 bg-sky-100 text-sky-700 text-[9px] font-black rounded-md uppercase tracking-widest border border-sky-200 shadow-sm">Modul Remaja</span>
-                                    @else <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-[9px] font-black rounded-md uppercase tracking-widest border border-emerald-200 shadow-sm">Modul Lansia</span> @endif
+                                    <p class="font-extrabold text-slate-800 text-sm mb-0.5">{{ Str::limit($import->nama_file, 25) }}</p>
+                                    <p class="text-[11px] font-bold text-slate-400">Ukuran: Disembunyikan</p>
                                 </div>
                             </div>
                         </td>
 
-                        <td class="px-8 py-5 text-center align-middle">
+                        <td class="px-6 py-4">
+                            <p class="font-bold text-slate-800 text-[13px] mb-0.5">{{ $import->created_at->translatedFormat('d M Y') }}</p>
+                            <p class="text-[11px] font-bold text-slate-400"><i class="far fa-clock mr-1"></i> Pukul {{ $import->created_at->format('H:i') }} WIB</p>
+                        </td>
+
+                        <td class="px-6 py-4 text-center">
                             @if($import->status == 'completed')
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 text-[11px] font-black border border-emerald-100 shadow-sm"><i class="fas fa-check-circle"></i> Selesai</span>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-extrabold border border-emerald-200">
+                                    <i class="fas fa-check-circle"></i> Berhasil
+                                </span>
                             @elseif($import->status == 'processing')
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-600 text-[11px] font-black border border-amber-100 shadow-sm animate-pulse"><i class="fas fa-sync fa-spin"></i> Proses</span>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-extrabold border border-amber-200">
+                                    <i class="fas fa-sync fa-spin"></i> Memproses
+                                </span>
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-600 text-[11px] font-black border border-rose-100 shadow-sm"><i class="fas fa-times-circle"></i> Gagal</span>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 text-[11px] font-extrabold border border-rose-200">
+                                    <i class="fas fa-times-circle"></i> Gagal Eksekusi
+                                </span>
                             @endif
                         </td>
 
-                        <td class="px-8 py-5 align-middle w-[250px]">
-                            @php
-                                $total = $import->total_data > 0 ? $import->total_data : 1; // avoid div by zero
-                                $berhasil = $import->data_berhasil ?? 0;
-                                $gagal = $import->data_gagal ?? 0;
-                                $pBerhasil = ($berhasil / $total) * 100;
-                                $pGagal = ($gagal / $total) * 100;
-                            @endphp
-                            
-                            <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest mb-1.5">
-                                <span class="text-emerald-600"><i class="fas fa-check"></i> {{ $berhasil }}</span>
-                                <span class="text-slate-400">TOTAL: {{ $import->total_data ?? '-' }}</span>
-                                <span class="text-rose-500">{{ $gagal }} <i class="fas fa-times"></i></span>
-                            </div>
-                            
-                            <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex">
-                                @if($import->status == 'completed' || $import->status == 'failed')
-                                    <div class="h-full bg-emerald-500" style="width: {{ $pBerhasil }}%"></div>
-                                    <div class="h-full bg-rose-500" style="width: {{ $pGagal }}%"></div>
-                                @else
-                                    <div class="h-full w-full bg-slate-300 animate-pulse"></div>
-                                @endif
-                            </div>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-slate-200">
+                                {{ $import->jenis_data }}
+                            </span>
                         </td>
 
-                        <td class="px-8 py-5 text-right align-middle">
-                            <div class="flex items-center justify-end gap-3">
-                                <a href="{{ route('kader.import.show', $import->id) }}" title="Laporan Detail" class="smooth-route inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-indigo-600 font-bold text-[11px] hover:bg-indigo-50 hover:border-indigo-200 shadow-sm transition-all uppercase tracking-widest">
-                                    <i class="fas fa-search"></i> Detail
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{{ route('kader.import.show', $import->id) }}" class="inline-flex w-9 h-9 rounded-xl bg-white border border-slate-200 items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 shadow-sm transition-all" title="Lihat Terminal Log">
+                                    <i class="fas fa-terminal"></i>
                                 </a>
-                                
-                                <form action="{{ route('kader.import.destroy', $import->id) }}" method="POST" class="m-0" onsubmit="return confirm('PERINGATAN: Menghapus log ini akan menghapus file fisik Excel Anda dari server selamanya. Anda yakin?')">
+                                <form action="{{ route('kader.import.destroy', $import->id) }}" method="POST" onsubmit="return confirm('Hapus riwayat eksekusi ini?');" class="inline-block">
                                     @csrf @method('DELETE')
-                                    <button type="submit" title="Hapus Berkas" class="inline-flex w-9 h-9 rounded-xl bg-white border border-slate-200 items-center justify-center text-slate-400 hover:text-white hover:bg-rose-500 hover:border-rose-500 shadow-sm transition-all">
+                                    <button type="submit" class="inline-flex w-9 h-9 rounded-xl bg-white border border-slate-200 items-center justify-center text-slate-400 hover:text-white hover:bg-rose-500 hover:border-rose-500 shadow-sm transition-all" title="Hapus Riwayat">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>
@@ -148,15 +109,18 @@
         <div class="px-8 py-5 border-t border-slate-100 bg-slate-50/50">
             {{ $imports->links() }}
         </div>
-
-        @else
-        <div class="text-center py-24 relative overflow-hidden">
-            <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] text-[250px] pointer-events-none"><i class="fas fa-box-open"></i></div>
-            <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center text-slate-300 mx-auto mb-6 text-4xl shadow-sm border border-slate-100 relative z-10"><i class="fas fa-calendar-times"></i></div>
-            <h4 class="text-xl font-black text-slate-800 font-poppins relative z-10">Buku Log Kosong</h4>
-            <p class="text-[14px] text-slate-500 mt-2 font-medium max-w-sm mx-auto relative z-10">Tidak ada riwayat upload yang tercatat pada tanggal yang Anda pilih.</p>
-        </div>
-        @endif
     </div>
+    @else
+    <div class="text-center py-24 relative overflow-hidden bg-white rounded-[32px] border border-slate-200 shadow-sm">
+        <div class="absolute inset-0 flex items-center justify-center opacity-[0.02] text-[250px] pointer-events-none"><i class="fas fa-server"></i></div>
+        <div class="w-24 h-24 bg-slate-50 rounded-[24px] flex items-center justify-center text-slate-300 mx-auto mb-6 text-4xl shadow-inner border border-slate-100 relative z-10"><i class="fas fa-box-open"></i></div>
+        <h4 class="text-xl font-black text-slate-800 font-poppins relative z-10">Database Log Kosong</h4>
+        <p class="text-[14px] text-slate-500 mt-2 max-w-sm mx-auto relative z-10 font-medium">Anda belum pernah melakukan import massal. Data server masih kosong.</p>
+        <a href="{{ route('kader.import.create') }}" class="inline-flex items-center gap-2 mt-6 text-indigo-600 font-bold hover:text-indigo-700 relative z-10 bg-indigo-50 px-5 py-2.5 rounded-lg border border-indigo-100">
+            <i class="fas fa-bolt"></i> Mulai Eksekusi Pertama
+        </a>
+    </div>
+    @endif
+
 </div>
 @endsection

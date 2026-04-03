@@ -11,6 +11,7 @@ class Pemeriksaan extends Model
 
     protected $table = 'pemeriksaans';
 
+    // Menggunakan guarded agar kita tidak perlu repot menulis fillable yang sangat panjang
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -18,16 +19,19 @@ class Pemeriksaan extends Model
         'verified_at'     => 'datetime',
         'berat_badan'     => 'float',
         'tinggi_badan'    => 'float',
+        'imt'             => 'float',   // Tambahan: Casting ke desimal
         'suhu_tubuh'      => 'float',
         'lingkar_kepala'  => 'float',
         'lingkar_lengan'  => 'float',
+        'lingkar_perut'   => 'float',
+        'hemoglobin'      => 'float',
         'asam_urat'       => 'float',
         'kolesterol'      => 'integer',
-        // gula_darah sengaja tidak di-cast karena kolom DB-nya varchar(50)
+        // gula_darah dan kemandirian sengaja tidak di-cast karena varchar/enum
     ];
 
     // =========================================================
-    // RELASI
+    // RELASI DATABASE
     // =========================================================
 
     public function balita()
@@ -43,6 +47,12 @@ class Pemeriksaan extends Model
     public function lansia()
     {
         return $this->belongsTo(Lansia::class, 'pasien_id');
+    }
+
+    // Tambahan: Relasi ke tabel Ibu Hamil
+    public function ibuHamil()
+    {
+        return $this->belongsTo(IbuHamil::class, 'pasien_id');
     }
 
     public function kunjungan()
@@ -63,30 +73,36 @@ class Pemeriksaan extends Model
     }
 
     // =========================================================
-    // ACCESSORS
+    // ACCESSORS (Logika Cerdas Pengolah Data Otomatis)
     // =========================================================
 
-    /** Nama pasien otomatis sesuai kategori */
+    /** Nama pasien otomatis mendeteksi dari berbagai tabel (Termasuk Bayi & Bumil) */
     public function getNamaPasienAttribute(): string
     {
         return match($this->kategori_pasien) {
-            'balita' => $this->balita?->nama_lengkap ?? 'Balita Tidak Ditemukan',
-            'remaja' => $this->remaja?->nama_lengkap ?? 'Remaja Tidak Ditemukan',
-            'lansia' => $this->lansia?->nama_lengkap ?? 'Lansia Tidak Ditemukan',
-            default  => 'Pasien Tidak Ditemukan',
+            'bayi', 'balita' => $this->balita?->nama_lengkap ?? 'Anak/Balita Tidak Ditemukan',
+            'remaja'         => $this->remaja?->nama_lengkap ?? 'Remaja Tidak Ditemukan',
+            'lansia'         => $this->lansia?->nama_lengkap ?? 'Lansia Tidak Ditemukan',
+            'ibu_hamil'      => $this->ibuHamil?->nama_lengkap ?? 'Ibu Hamil Tidak Ditemukan',
+            default          => 'Pasien Tidak Ditemukan',
         };
     }
 
-    /** IMT dihitung otomatis jika kolom kosong */
+    /** * Mengambil IMT dari Database. 
+     * Tapi jika di Database terlanjur kosong (0), sistem akan menghitungnya secara instan (Fallback)
+     */
     public function getImtAttribute(): float
     {
         if (!empty($this->attributes['imt'])) {
             return (float) $this->attributes['imt'];
         }
+
+        // Rumus Fallback IMT: Berat (kg) / (Tinggi (m) x Tinggi (m))
         if ($this->berat_badan > 0 && $this->tinggi_badan > 0) {
-            $tb_m = $this->tinggi_badan / 100;
-            return round($this->berat_badan / ($tb_m * $tb_m), 1);
+            $tb_m = $this->tinggi_badan / 100; // Konversi cm ke meter
+            return round($this->berat_badan / ($tb_m * $tb_m), 2);
         }
+        
         return 0;
     }
 
@@ -117,7 +133,7 @@ class Pemeriksaan extends Model
     }
 
     // =========================================================
-    // SCOPES
+    // SCOPES (Pencarian Cepat)
     // =========================================================
 
     public function scopePending($query)

@@ -9,170 +9,185 @@
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 10px 40px -10px rgba(79, 70, 229, 0.05); }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto animate-slide-up">
+<div id="smoothLoader" class="fixed inset-0 bg-white/90 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center transition-all duration-300 opacity-100 pointer-events-auto">
+    <div class="relative w-16 h-16 mb-4">
+        <div class="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
+        <div class="absolute inset-0 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin"></div>
+        <div class="absolute inset-0 flex items-center justify-center text-indigo-500"><i class="fas fa-user-graduate text-lg animate-pulse"></i></div>
+    </div>
+</div>
+
+<div class="max-w-[1200px] mx-auto animate-slide-up">
     
+    {{-- HEADER KEMBALI & EDIT --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div class="flex items-center gap-3">
-            <a href="{{ route('kader.data.remaja.index') }}" class="w-10 h-10 bg-white border border-slate-200 text-slate-500 rounded-xl flex items-center justify-center hover:bg-slate-50 transition-colors">
+            <a href="{{ route('kader.data.remaja.index') }}" class="w-10 h-10 bg-white border border-slate-200 text-slate-500 rounded-xl flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Profil Pasien Remaja</h1>
+            <div>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight">Detail Rekam Medis</h1>
+                <p class="text-sm font-bold text-slate-500">ID Register: <span class="text-indigo-500 font-mono">{{ $remaja->kode_remaja }}</span></p>
+            </div>
         </div>
-        <a href="{{ route('kader.data.remaja.edit', $remaja->id) }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-500 text-white font-extrabold text-sm rounded-xl hover:bg-amber-600 shadow-sm transition-all hover:-translate-y-0.5">
-            <i class="fas fa-edit"></i> Edit Profil
-        </a>
+        <div class="flex gap-2">
+            <a href="{{ route('kader.data.remaja.edit', $remaja->id) }}" class="px-4 py-2 bg-amber-50 text-amber-600 font-bold text-sm rounded-xl border border-amber-200 hover:bg-amber-100 transition-colors shadow-sm">
+                <i class="fas fa-edit mr-1"></i> Edit Profil
+            </a>
+        </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <div class="lg:col-span-4">
-            <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden sticky top-24">
+        {{-- ========================================== --}}
+        {{-- KARTU PROFIL REMAJA (KIRI)                 --}}
+        {{-- ========================================== --}}
+        <div class="lg:col-span-1 space-y-6">
+            <div class="glass-card rounded-[2rem] p-6 text-center relative overflow-hidden border-t-4 border-t-indigo-500">
+                <div class="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl font-black shadow-inner {{ $remaja->jenis_kelamin == 'L' ? 'bg-blue-100 text-blue-500' : 'bg-pink-100 text-pink-500' }}">
+                    {{ substr($remaja->nama_lengkap, 0, 1) }}
+                </div>
+                <h2 class="text-xl font-black text-slate-800">{{ $remaja->nama_lengkap }}</h2>
+                <p class="text-sm font-bold text-slate-500 mb-4"><i class="far fa-id-card"></i> {{ $remaja->nik ?? 'TIDAK ADA NIK' }}</p>
                 
-                <div class="bg-gradient-to-b from-indigo-500 to-indigo-700 px-6 py-10 text-center relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2"></div>
-                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full blur-xl transform -translate-x-1/2 translate-y-1/2"></div>
-
-                    <div class="w-28 h-28 mx-auto bg-white rounded-[24px] shadow-xl flex items-center justify-center text-indigo-500 text-5xl font-black relative z-10 border-4 border-indigo-200/30 transform rotate-3 hover:rotate-0 transition-transform duration-300">
-                        {{ strtoupper(substr($remaja->nama_lengkap, 0, 1)) }}
-                    </div>
-                    
-                    <h2 class="text-2xl font-extrabold text-white mt-5 relative z-10">{{ $remaja->nama_lengkap }}</h2>
-                    <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-900/30 text-indigo-50 text-xs font-bold rounded-lg mt-2 relative z-10 backdrop-blur-sm border border-white/10">
-                        <i class="fas fa-id-card"></i> {{ $remaja->kode_remaja }}
-                    </div>
+                <div class="flex justify-center gap-2 mb-6">
+                    <span class="px-3 py-1 rounded-lg text-xs font-black {{ $remaja->jenis_kelamin == 'L' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-pink-50 text-pink-600 border border-pink-100' }}">
+                        {{ $remaja->jenis_kelamin == 'L' ? 'LAKI-LAKI' : 'PEREMPUAN' }}
+                    </span>
+                    <span class="px-3 py-1 rounded-lg text-xs font-black bg-indigo-50 text-indigo-600 border border-indigo-100">
+                        {{ \Carbon\Carbon::parse($remaja->tanggal_lahir)->age }} TAHUN
+                    </span>
                 </div>
 
-                <div class="p-6">
-                    <div class="grid grid-cols-2 gap-4 text-center mb-6">
-                        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Usia</p>
-                            <p class="text-base font-black text-indigo-600">{{ $usia }} Tahun</p>
-                        </div>
-                        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Gender</p>
-                            <p class="text-base font-black text-slate-800">
-                                @if($remaja->jenis_kelamin == 'L') <i class="fas fa-mars text-sky-500 mr-1"></i> Laki-laki
-                                @else <i class="fas fa-venus text-rose-500 mr-1"></i> Perempuan @endif
-                            </p>
-                        </div>
+                <div class="space-y-3 text-left">
+                    <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                        <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Kelahiran</p>
+                        <p class="text-sm font-bold text-slate-700"><i class="fas fa-map-marker-alt text-rose-400 w-4 text-center mr-1"></i> {{ $remaja->tempat_lahir }}, {{ \Carbon\Carbon::parse($remaja->tanggal_lahir)->translatedFormat('d M Y') }}</p>
                     </div>
-
-                    <div class="space-y-3">
-                        <div class="p-3 bg-slate-50 rounded-xl">
-                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">NIK Integrasi</p>
-                            <p class="text-sm font-bold text-slate-800 font-mono">{{ $remaja->nik }}</p>
-                        </div>
-
-                        <div class="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center"><i class="fas fa-calendar-alt text-sm"></i></div>
-                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Tanggal Lahir</span>
-                            </div>
-                            <span class="text-sm font-bold text-slate-800">{{ $remaja->tanggal_lahir->format('d M Y') }}</span>
-                        </div>
-                        
-                        <hr class="border-slate-100 my-2">
-
-                        <div class="p-3">
-                            <div class="flex items-center gap-3 mb-1">
-                                <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-500 flex items-center justify-center"><i class="fas fa-school text-sm"></i></div>
-                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Pendidikan</span>
-                            </div>
-                            <p class="text-sm font-bold text-slate-800 pl-11">{{ $remaja->sekolah ?? '-' }}</p>
-                            <p class="text-[10px] font-bold text-slate-400 pl-11 mt-0.5">Kelas: {{ $remaja->kelas ?? '-' }}</p>
-                        </div>
-
-                        <div class="p-3">
-                            <div class="flex items-center gap-3 mb-1">
-                                <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center"><i class="fas fa-users text-sm"></i></div>
-                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Orang Tua / Wali</span>
-                            </div>
-                            <p class="text-sm font-bold text-slate-800 pl-11">{{ $remaja->nama_ortu ?? '-' }}</p>
-                            <p class="text-[10px] font-bold text-slate-400 pl-11 mt-0.5"><i class="fas fa-phone-alt"></i> {{ $remaja->telepon_ortu ?? '-' }}</p>
-                        </div>
+                    <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                        <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Pendidikan</p>
+                        <p class="text-sm font-bold text-slate-700"><i class="fas fa-school text-indigo-400 w-4 text-center mr-1"></i> {{ $remaja->sekolah ?? 'Tidak Sekolah' }} {!! $remaja->kelas ? "<span class='text-slate-400 font-medium'>(Kls {$remaja->kelas})</span>" : '' !!}</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                        <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Orang Tua & Kontak</p>
+                        <p class="text-sm font-bold text-slate-700"><i class="fas fa-user-friends text-emerald-400 w-4 text-center mr-1"></i> {{ $remaja->nama_ortu }}</p>
+                        @if($remaja->telepon_ortu)
+                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $remaja->telepon_ortu) }}" target="_blank" class="text-xs font-black text-emerald-600 mt-2 inline-flex items-center gap-1 hover:underline bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100"><i class="fab fa-whatsapp"></i> {{ $remaja->telepon_ortu }}</a>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="lg:col-span-8 space-y-6">
-            <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden h-full flex flex-col">
-                
-                <div class="p-6 sm:p-8 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-[16px] bg-sky-50 text-sky-600 flex items-center justify-center text-xl"><i class="fas fa-notes-medical"></i></div>
-                        <div>
-                            <h3 class="text-lg font-extrabold text-slate-800">Riwayat Kesehatan</h3>
-                            <p class="text-xs font-medium text-slate-400 mt-0.5">Catatan pemeriksaan posyandu remaja</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('kader.pemeriksaan.create') }}?kategori=remaja&pasien_id={{ $remaja->id }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-50 text-indigo-700 font-bold text-sm rounded-xl hover:bg-indigo-100 transition-colors shrink-0 border border-indigo-100">
-                        <i class="fas fa-plus"></i> Periksa Baru
-                    </a>
+        {{-- ========================================== --}}
+        {{-- RIWAYAT PEMERIKSAAN KESEHATAN (KANAN)      --}}
+        {{-- ========================================== --}}
+        <div class="lg:col-span-2">
+            <div class="glass-card rounded-[2rem] p-6 h-full border-t-4 border-t-emerald-500 flex flex-col">
+                <div class="flex items-center justify-between mb-6 border-b border-slate-100 pb-4 shrink-0">
+                    <h3 class="text-lg font-black text-slate-800"><i class="fas fa-heartbeat text-rose-500 mr-2"></i> Riwayat Pemeriksaan</h3>
+                    <span class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-lg border border-emerald-200 uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        Data Real-Time
+                    </span>
                 </div>
 
-                <div class="p-6 sm:p-8 flex-1 overflow-y-auto custom-scrollbar">
-                    @forelse($remaja->kunjungans as $kunjungan)
-                        <div class="relative pl-8 sm:pl-10 mb-8 last:mb-0">
-                            <div class="absolute left-[15px] sm:left-[19px] top-8 bottom-[-32px] w-[2px] bg-slate-100 last:hidden"></div>
+                {{-- Area Scrollable untuk Kartu Kunjungan --}}
+                <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4 max-h-[600px]">
+                    
+                    {{-- LOOPING DATA PEMERIKSAAN DARI MODEL --}}
+                    @forelse($remaja->pemeriksaans as $periksa)
+                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all duration-300 group relative overflow-hidden shadow-sm hover:shadow-md">
                             
-                            <div class="absolute left-0 top-1 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-indigo-50 border-4 border-white flex items-center justify-center text-indigo-500 shadow-sm z-10">
-                                <i class="fas fa-stethoscope text-[10px] sm:text-xs"></i>
-                            </div>
-
-                            <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm hover:border-indigo-100 transition-colors group">
-                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
-                                    <div>
-                                        <h6 class="font-bold text-slate-800 text-sm">{{ ucfirst($kunjungan->jenis_kunjungan) }}</h6>
-                                        <p class="text-xs text-slate-400 mt-0.5">Keluhan: {{ $kunjungan->keluhan ?? 'Tidak ada keluhan' }}</p>
+                            {{-- Aksen Garis Kiri saat Hover --}}
+                            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-white border border-slate-200 text-emerald-500 flex items-center justify-center font-black shadow-sm shrink-0">
+                                        <i class="fas fa-stethoscope"></i>
                                     </div>
-                                    <div class="text-left sm:text-right shrink-0">
-                                        <span class="inline-block px-2.5 py-1 bg-slate-50 text-slate-500 text-[10px] font-extrabold rounded-md uppercase tracking-wider">
-                                            {{ $kunjungan->tanggal_kunjungan->format('d M Y') }}
-                                        </span>
+                                    <div>
+                                        <p class="text-sm font-black text-slate-800">{{ \Carbon\Carbon::parse($periksa->tanggal_kunjungan ?? $periksa->created_at)->translatedFormat('d F Y') }}</p>
+                                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Cek Rutin Bulanan</p>
                                     </div>
                                 </div>
-
-                                @if($kunjungan->pemeriksaan)
-                                    <div class="flex flex-wrap gap-2 mt-4">
-                                        <div class="px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-xs">
-                                            <span class="text-slate-400 font-bold mr-1">BB:</span>
-                                            <span class="text-slate-700 font-black">{{ $kunjungan->pemeriksaan->berat_badan }} kg</span>
-                                        </div>
-                                        <div class="px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-xs">
-                                            <span class="text-slate-400 font-bold mr-1">TB:</span>
-                                            <span class="text-slate-700 font-black">{{ $kunjungan->pemeriksaan->tinggi_badan }} cm</span>
-                                        </div>
-                                        <div class="px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-xs">
-                                            <span class="text-slate-400 font-bold mr-1">Tensi:</span>
-                                            <span class="text-slate-700 font-black">{{ $kunjungan->pemeriksaan->tekanan_darah ?? '-' }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="mt-4 text-right">
-                                        <a href="{{ route('kader.kunjungan.show', $kunjungan->id) }}" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            Lihat Detail Lengkap &rarr;
-                                        </a>
-                                    </div>
-                                @endif
+                                
+                                {{-- Tombol Detail / Edit Pemeriksaan (Aktifkan rute sesuai sistem Anda) --}}
+                                {{-- <a href="{{ route('kader.pemeriksaan.show', $periksa->id) }}" class="px-4 py-2 bg-white text-indigo-600 border border-slate-200 text-xs font-bold rounded-xl hover:bg-indigo-50 hover:border-indigo-200 transition-colors shadow-sm text-center">
+                                    Lihat Detail <i class="fas fa-arrow-right ml-1"></i>
+                                </a> --}}
                             </div>
+
+                            {{-- Grid Hasil Pengukuran --}}
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><i class="fas fa-weight text-indigo-400"></i> Berat Badan</p>
+                                    <p class="text-sm font-black text-slate-700">{{ $periksa->berat_badan ?? $periksa->bb ?? '-' }} <span class="text-xs text-slate-400 font-bold">kg</span></p>
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><i class="fas fa-ruler-vertical text-emerald-400"></i> Tinggi Badan</p>
+                                    <p class="text-sm font-black text-slate-700">{{ $periksa->tinggi_badan ?? $periksa->tb ?? '-' }} <span class="text-xs text-slate-400 font-bold">cm</span></p>
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><i class="fas fa-heart text-rose-400"></i> Tensi Darah</p>
+                                    <p class="text-sm font-black text-rose-600">{{ $periksa->tekanan_darah ?? $periksa->tensi ?? '- / -' }} <span class="text-xs text-slate-400 font-bold">mmHg</span></p>
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-center">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><i class="fas fa-child text-amber-400"></i> Lingkar Lengan</p>
+                                    <p class="text-sm font-black text-slate-700">{{ $periksa->lila ?? $periksa->lingkar_lengan ?? '-' }} <span class="text-xs text-slate-400 font-bold">cm</span></p>
+                                </div>
+                            </div>
+                            
+                            {{-- Catatan Tambahan (Bila ada field catatan/keluhan di tabel pemeriksaan) --}}
+                            @if(!empty($periksa->keluhan) || !empty($periksa->catatan))
+                            <div class="mt-3 bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+                                <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1"><i class="fas fa-notes-medical"></i> Catatan Medis</p>
+                                <p class="text-xs font-bold text-slate-600">{{ $periksa->keluhan ?? $periksa->catatan }}</p>
+                            </div>
+                            @endif
+
                         </div>
                     @empty
-                        <div class="flex flex-col items-center justify-center py-12 text-center h-full">
-                            <div class="w-20 h-20 bg-slate-50 rounded-[20px] flex items-center justify-center text-slate-300 mx-auto mb-4 text-3xl shadow-inner border border-slate-100">
-                                <i class="fas fa-clipboard-list"></i>
+                        {{-- STATE JIKA BELUM ADA DATA PEMERIKSAAN SAMA SEKALI --}}
+                        <div class="flex flex-col items-center justify-center py-16 text-center h-full">
+                            <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto mb-4 text-4xl shadow-inner border border-slate-100">
+                                <i class="fas fa-clipboard-check"></i>
                             </div>
-                            <h4 class="font-black text-slate-800 text-lg">Belum Ada Pemeriksaan</h4>
-                            <p class="text-sm font-medium text-slate-500 mt-1 max-w-sm mx-auto">Remaja ini belum memiliki catatan riwayat kesehatan atau kunjungan.</p>
+                            <h4 class="font-black text-slate-800 text-xl">Rekam Medis Kosong</h4>
+                            <p class="text-sm font-medium text-slate-500 mt-2 max-w-sm mx-auto leading-relaxed">Saat ini remaja atas nama <strong>{{ $remaja->nama_lengkap }}</strong> belum memiliki catatan riwayat kesehatan di Posyandu.</p>
+                            
+                            {{-- Ganti URL ini dengan rute tambah pemeriksaan/absensi Anda --}}
+                            <a href="#" class="mt-6 px-6 py-3 bg-indigo-600 text-white font-black text-sm rounded-xl hover:bg-indigo-700 shadow-sm hover:shadow-md transition-all inline-flex items-center gap-2 hover:-translate-y-0.5">
+                                <i class="fas fa-plus"></i> Input Pemeriksaan Baru
+                            </a>
                         </div>
                     @endforelse
+
                 </div>
             </div>
         </div>
 
     </div>
 </div>
+
+<script>
+    // Mematikan layar loading animasi setelah halaman ter-load sempurna
+    window.onload = () => {
+        const l = document.getElementById('smoothLoader');
+        if(l) { 
+            l.classList.remove('opacity-100','pointer-events-auto'); 
+            l.classList.add('opacity-0','pointer-events-none'); 
+            setTimeout(()=> l.style.display = 'none', 300); 
+        }
+    };
+</script>
 @endsection

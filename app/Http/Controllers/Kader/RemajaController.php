@@ -46,7 +46,8 @@ class RemajaController extends Controller
             'nik'           => 'required|numeric|digits:16|unique:remajas,nik',
             'jenis_kelamin' => 'required|in:L,P',
             'tempat_lahir'  => 'required|string|max:100',
-            'tanggal_lahir' => 'required|date|before_or_equal:today',
+            // VALIDASI KETAT: Usia Remaja harus antara 10 - 19 tahun
+            'tanggal_lahir' => 'required|date|before:-10 years|after:-20 years',
             'sekolah'       => 'nullable|string|max:255',
             'kelas'         => 'nullable|string|max:50',
             'nama_ortu'     => 'nullable|string|max:255',
@@ -96,15 +97,15 @@ class RemajaController extends Controller
         }
     }
 
-    public function show($id) 
+    public function show($id)
     {
-        $remaja = Remaja::with(['kunjungans' => function($q) {
-            $q->latest()->take(10);
+        // Menarik data Remaja SEKALIGUS riwayat pemeriksaannya secara berurutan dari yang terbaru
+        // Kita gunakan ->latest() sebagai fungsi bawaan yang 100% kebal error nama kolom
+        $remaja = Remaja::with(['pemeriksaans' => function($query) {
+            $query->latest(); 
         }])->findOrFail($id);
-        
-        $usia = \Carbon\Carbon::parse($remaja->tanggal_lahir)->age;
 
-        return view('kader.data.remaja.show', compact('remaja', 'usia'));
+        return view('kader.data.remaja.show', compact('remaja'));
     }
 
     public function edit($id)
@@ -122,7 +123,8 @@ class RemajaController extends Controller
             'nik'           => 'required|numeric|digits:16|unique:remajas,nik,' . $id,
             'jenis_kelamin' => 'required|in:L,P',
             'tempat_lahir'  => 'required|string|max:100',
-            'tanggal_lahir' => 'required|date|before_or_equal:today',
+            // VALIDASI KETAT: Usia Remaja harus antara 10 - 19 tahun
+            'tanggal_lahir' => 'required|date|before:-10 years|after:-20 years',
             'alamat'        => 'required|string',
         ]);
 
@@ -207,5 +209,31 @@ class RemajaController extends Controller
         }
 
         return null;
+    }
+    // Fitur Hapus Banyak Data Sekaligus (Bulk Delete)
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->ids;
+        if (!$ids || count($ids) == 0) {
+            return redirect()->back()->with('error', 'Tidak ada data yang dipilih untuk dihapus!');
+        }
+
+        Remaja::whereIn('id', $ids)->delete();
+        return redirect()->back()->with('success', count($ids) . ' Data remaja berhasil dihapus secara permanen!');
+    }
+
+    // Fitur Tarik / Sinkronisasi Akun Otomatis
+    public function syncUser($id)
+    {
+        $remaja = Remaja::findOrFail($id);
+        $user = $this->findLinkedUser($remaja->nik, $remaja->nama_lengkap);
+        
+        if ($user) {
+            $remaja->user_id = $user->id;
+            $remaja->save();
+            return redirect()->back()->with('success', 'Berhasil ditarik! Akun anak remaja ini sudah terhubung dengan Sistem.');
+        }
+
+        return redirect()->back()->with('error', 'Gagal! Tidak ditemukan Akun Warga dengan NIK atau Nama tersebut. Pastikan remaja sudah mendaftar.');
     }
 }

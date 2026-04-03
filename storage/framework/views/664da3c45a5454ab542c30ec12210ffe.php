@@ -1,244 +1,443 @@
 
 
-<?php $__env->startSection('title', 'Data Balita'); ?>
-<?php $__env->startSection('page-name', 'Database Balita'); ?>
+<?php $__env->startSection('title', 'Data Bayi & Balita'); ?>
+<?php $__env->startSection('page-name', 'Database Bayi & Balita'); ?>
 
 <?php $__env->startPush('styles'); ?>
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
-    .animate-slide-up { opacity: 0; animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    
-    .search-glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
-    .fast-spin { animation: spin 0.6s linear infinite; }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 10px 40px -10px rgba(79, 70, 229, 0.05); }
+    
+    /* Custom Checkbox */
+    .checkbox-modern {
+        appearance: none; width: 20px; height: 20px; border: 2px solid #cbd5e1; border-radius: 6px; 
+        background: #f8fafc; cursor: pointer; transition: all 0.2s; position: relative; display: inline-block;
+    }
+    .checkbox-modern:checked { background: #6366f1; border-color: #6366f1; }
+    .checkbox-modern:checked::after {
+        content: '✔'; position: absolute; color: white; font-size: 12px; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    }
+
+    /* Tab Switcher */
+    .tab-pill { padding: 0.75rem 2rem; border-radius: 9999px; font-weight: 800; font-size: 0.875rem; cursor: pointer; transition: all 0.3s ease; text-align: center; }
+    .tab-inactive { color: #64748b; background: transparent; }
+    .tab-inactive:hover { color: #334155; background: #f1f5f9; }
+    .tab-bayi-active { background: #e0e7ff; color: #4338ca; box-shadow: 0 4px 14px 0 rgba(67, 56, 202, 0.2); }
+    .tab-balita-active { background: #fce7f3; color: #be185d; box-shadow: 0 4px 14px 0 rgba(190, 24, 93, 0.2); }
+    
+    .tab-content { display: none; opacity: 0; animation: fadeIn 0.4s ease forwards; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .badge-jk-L { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .badge-jk-P { background: #fdf2f8; color: #db2777; border: 1px solid #fbcfe8; }
 </style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
-<div class="max-w-[1400px] mx-auto animate-slide-up">
-
-    <div class="bg-gradient-to-br from-indigo-500 to-violet-600 rounded-[32px] p-8 md:p-10 mb-8 relative overflow-hidden shadow-[0_12px_30px_rgba(79,70,229,0.2)] flex flex-col md:flex-row items-center justify-between gap-6">
-        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
-        <div class="absolute -right-10 -bottom-10 opacity-10 text-[120px] pointer-events-none"><i class="fas fa-baby"></i></div>
-        
-        <div class="relative z-10 flex items-center gap-6 w-full md:w-auto">
-            <div class="w-20 h-20 rounded-[24px] bg-white/20 backdrop-blur border border-white/30 text-white flex items-center justify-center text-4xl shrink-0 shadow-sm transform -rotate-3 hover:rotate-0 transition-transform">
-                <i class="fas fa-baby"></i>
-            </div>
-            <div>
-                <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight font-poppins">Database Balita</h1>
-                <p class="text-indigo-100 mt-1 font-medium text-[13px] max-w-md">Kelola profil balita, riwayat gizi, dan sinkronisasi NIK untuk integrasi otomatis ke akun Warga Posyandu.</p>
-            </div>
-        </div>
-        <a href="<?php echo e(route('kader.data.balita.create')); ?>" class="smooth-route relative z-10 inline-flex items-center justify-center gap-2 px-7 py-4 bg-white text-indigo-600 font-black text-[13px] rounded-2xl hover:bg-indigo-50 shadow-[0_8px_20px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all uppercase tracking-wide w-full md:w-auto">
-            <i class="fas fa-plus"></i> Daftar Baru
-        </a>
-    </div>
-
-    <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-4 mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between relative z-20">
-        <div class="relative w-full sm:w-[400px] group">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <i class="fas fa-search text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
-            </div>
-            <input type="text" id="liveSearch" value="<?php echo e($search ?? ''); ?>" placeholder="Ketik nama anak, NIK, atau ibu..." autocomplete="off"
-                   class="w-full search-glass border-2 border-slate-100 text-slate-800 text-[13px] rounded-xl pl-11 pr-12 py-3.5 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold placeholder:font-medium placeholder:text-slate-400 shadow-sm">
-            
-            <div id="searchSpinner" class="absolute inset-y-0 right-0 pr-4 flex items-center opacity-0 transition-opacity duration-200">
-                <i class="fas fa-circle-notch fast-spin text-indigo-500 text-lg"></i>
-            </div>
-        </div>
-        
-        <div class="flex items-center gap-2 text-[11px] font-black text-slate-400 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 uppercase tracking-widest">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Search Aktif
-        </div>
-    </div>
-
-    <div id="ajaxTableContainer" class="relative bg-white rounded-[32px] border border-slate-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.03)] overflow-hidden">
-        
-        <div id="tableLoader" class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 hidden flex-col items-center justify-center transition-all duration-200">
-            <div class="px-6 py-4 bg-white border border-slate-200 shadow-2xl rounded-2xl flex items-center gap-3 transform scale-110">
-                <i class="fas fa-circle-notch fast-spin text-indigo-600 text-2xl"></i>
-                <span class="font-black text-slate-800 text-[13px] uppercase tracking-widest">Menyinkronkan...</span>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto custom-scrollbar">
-            <table class="w-full text-left border-collapse min-w-[900px]">
-                <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-100">
-                        <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Profil Balita</th>
-                        <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Usia & Tgl Lahir</th>
-                        <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Orang Tua</th>
-                        <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status Akun</th>
-                        <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    <?php $__empty_1 = true; $__currentLoopData = $balitas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $balita): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                    <tr class="hover:bg-indigo-50/40 transition-colors group">
-                        
-                        <td class="px-6 py-5 align-middle">
-                            <div class="flex items-center gap-4">
-                                <?php $isLaki = $balita->jenis_kelamin == 'L'; ?>
-                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border <?php echo e($isLaki ? 'bg-sky-50 text-sky-500 border-sky-100' : 'bg-rose-50 text-rose-500 border-rose-100'); ?> shadow-sm group-hover:scale-110 transition-transform">
-                                    <?php echo e(strtoupper(substr($balita->nama_lengkap, 0, 1))); ?>
-
-                                </div>
-                                <div>
-                                    <p class="font-extrabold text-slate-800 text-[14px] mb-1 group-hover:text-indigo-600 transition-colors"><?php echo e($balita->nama_lengkap); ?></p>
-                                    <p class="text-[10px] font-bold text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
-                                        <i class="fas fa-barcode"></i> <?php echo e($balita->nik ?? 'NIK KOSONG'); ?>
-
-                                    </p>
-                                </div>
-                            </div>
-                        </td>
-
-                        <td class="px-6 py-5 align-middle">
-                            <?php
-                                $diff = \Carbon\Carbon::parse($balita->tanggal_lahir)->diff(\Carbon\Carbon::now());
-                                $usia = $diff->y > 0 ? $diff->y . ' Thn ' . $diff->m . ' Bln' : $diff->m . ' Bln';
-                            ?>
-                            <div class="inline-flex items-center px-3 py-1 bg-slate-100 text-slate-700 text-[11px] font-black rounded-lg mb-1.5 border border-slate-200 shadow-sm">
-                                <i class="fas fa-birthday-cake text-amber-500 mr-1.5"></i> <?php echo e($usia); ?>
-
-                            </div>
-                            <p class="text-[11px] font-bold text-slate-500 pl-1"><?php echo e(\Carbon\Carbon::parse($balita->tanggal_lahir)->translatedFormat('d M Y')); ?></p>
-                        </td>
-
-                        <td class="px-6 py-5 align-middle">
-                            <p class="font-extrabold text-slate-700 text-[13px] mb-1 flex items-center gap-2">
-                                <i class="fas fa-female text-rose-400"></i> <?php echo e($balita->nama_ibu); ?>
-
-                            </p>
-                            <p class="text-[10px] font-black text-slate-400 pl-5 uppercase tracking-wider">NIK: <?php echo e($balita->nik_ibu); ?></p>
-                        </td>
-
-                        <td class="px-6 py-5 text-center align-middle">
-                            <?php if($balita->user_id): ?>
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 text-[11px] font-black border border-emerald-100 shadow-sm">
-                                    <i class="fas fa-link"></i> Terhubung
-                                </span>
-                            <?php else: ?>
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 text-slate-500 text-[11px] font-black border border-slate-200 shadow-sm" title="Ibu belum membuat akun Web Warga">
-                                    <i class="fas fa-unlink"></i> Putus
-                                </span>
-                            <?php endif; ?>
-                        </td>
-
-                        <td class="px-6 py-5 text-center align-middle">
-                            <div class="flex items-center justify-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                <a href="<?php echo e(route('kader.data.balita.show', $balita->id)); ?>" class="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 shadow-sm transition-all" title="Buku Medis">
-                                    <i class="fas fa-stethoscope"></i>
-                                </a>
-                                <a href="<?php echo e(route('kader.data.balita.edit', $balita->id)); ?>" class="smooth-route flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-amber-500 hover:border-amber-300 hover:bg-amber-50 shadow-sm transition-all" title="Edit Profil">
-                                    <i class="fas fa-pen"></i>
-                                </a>
-                                <form action="<?php echo e(route('kader.data.balita.destroy', $balita->id)); ?>" method="POST" onsubmit="return confirm('Yakin hapus profil balita ini?');" class="inline-block m-0">
-                                    <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
-                                    <button type="submit" class="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 shadow-sm transition-all" title="Hapus Data">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <tr>
-                        <td colspan="5" class="px-6 py-24 text-center">
-                            <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto mb-5 text-4xl shadow-inner border border-slate-100">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <h3 class="font-black text-slate-800 text-lg font-poppins">Data Tidak Ditemukan</h3>
-                            <p class="text-[13px] font-medium text-slate-500 mt-2 max-w-sm mx-auto">Cobalah menggunakan variasi kata kunci atau periksa kembali NIK yang Anda masukkan.</p>
-                        </td>
-                    </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-        
-        <div id="paginationArea" class="px-6 py-5 border-t border-slate-100 bg-slate-50/50">
-            <?php if(isset($balitas) && $balitas->hasPages()): ?>
-                <?php echo e($balitas->links()); ?>
-
-            <?php endif; ?>
-        </div>
+<div id="smoothLoader" class="fixed inset-0 bg-white/90 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center transition-all duration-200 opacity-100 pointer-events-auto">
+    <div class="relative w-16 h-16 mb-4">
+        <div class="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
+        <div class="absolute inset-0 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin"></div>
+        <div class="absolute inset-0 flex items-center justify-center text-indigo-500"><i class="fas fa-baby text-lg animate-pulse"></i></div>
     </div>
 </div>
-<?php $__env->stopSection(); ?>
 
-<?php $__env->startPush('scripts'); ?>
+<div class="max-w-[1400px] mx-auto animate-slide-up">
+    
+    
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
+        <div class="flex items-center gap-5">
+            <div class="w-16 h-16 rounded-[20px] bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-3xl shadow-[0_8px_20px_rgba(79,70,229,0.3)] shrink-0">
+                <i class="fas fa-baby-carriage"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black text-slate-800 font-poppins tracking-tight mb-1">Database Anak Lengkap</h1>
+                <p class="text-sm font-bold text-slate-500">Kelola profil, usia *real-time*, fisik lahir, dan info keluarga.</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="<?php echo e(route('kader.import.index')); ?>" class="px-5 py-2.5 bg-emerald-50 text-emerald-600 font-extrabold text-sm rounded-xl hover:bg-emerald-100 transition-colors border border-emerald-200">
+                <i class="fas fa-file-excel mr-1.5"></i> Import Excel
+            </a>
+            <a href="<?php echo e(route('kader.data.balita.create')); ?>" class="px-5 py-2.5 bg-indigo-600 text-white font-extrabold text-sm rounded-xl hover:bg-indigo-700 shadow-[0_4px_12px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 transition-all">
+                <i class="fas fa-plus mr-1.5"></i> Tambah Data
+            </a>
+        </div>
+    </div>
+
+    
+    <div class="glass-card rounded-3xl p-4 mb-6 flex flex-col xl:flex-row items-center gap-4 justify-between">
+        
+        <div class="flex items-center gap-3 w-full xl:w-auto">
+            <div class="bg-slate-100 p-1.5 rounded-full flex w-full sm:w-max border border-slate-200 shadow-inner">
+                <button id="tab-btn-bayi" onclick="switchTab('bayi')" class="tab-pill tab-bayi-active flex-1 sm:flex-none">
+                    Bayi (<?php echo e($bayis->count()); ?>)
+                </button>
+                <button id="tab-btn-balita" onclick="switchTab('balita')" class="tab-pill tab-inactive flex-1 sm:flex-none">
+                    Balita (<?php echo e($balitas->count()); ?>)
+                </button>
+            </div>
+            
+            
+            <form action="<?php echo e(route('kader.data.balita.bulk-delete')); ?>" method="POST" id="bulkDeleteForm" class="hidden">
+                <?php echo csrf_field(); ?>
+                <div id="bulkDeleteInputs"></div>
+                <button type="button" onclick="confirmBulkDelete()" class="px-5 py-2.5 bg-rose-500 text-white font-black text-sm rounded-full hover:bg-rose-600 shadow-[0_4px_12px_rgba(225,29,72,0.3)] transition-all flex items-center gap-2 animate-pulse">
+                    <i class="fas fa-trash-alt"></i> Hapus <span id="bulkCount">0</span> Terpilih
+                </button>
+            </form>
+        </div>
+        
+        <form action="<?php echo e(route('kader.data.balita.index')); ?>" method="GET" class="w-full xl:w-1/3 relative group">
+            <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Ketik Nama atau NIK untuk mencari..." 
+                   class="w-full bg-slate-50 border border-slate-200 rounded-full py-2.5 pl-12 pr-4 text-sm font-bold text-slate-700 outline-none transition-all focus:bg-white focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 shadow-sm placeholder:text-slate-400">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
+        </form>
+    </div>
+
+    
+    
+    
+    <div id="panel-bayi" class="tab-content active">
+        <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden mb-6">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-[10px] uppercase tracking-widest text-slate-500 font-black">
+                            <th class="px-4 py-4 text-center w-10"><input type="checkbox" class="checkbox-modern select-all-bayi" onclick="toggleSelectAll(this, 'bayi')"></th>
+                            <th class="px-4 py-4">Identitas Bayi</th>
+                            <th class="px-4 py-4">Lahir & Fisik Awal</th>
+                            <th class="px-4 py-4">Data Orang Tua</th>
+                            <th class="px-4 py-4 text-center">Usia & Akun</th>
+                            <th class="px-4 py-4 text-right pr-6">Aksi Manajemen</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <?php $__empty_1 = true; $__currentLoopData = $bayis; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <?php 
+                            // LOGIKA UMUR SUPER CERDAS UNTUK BAYI
+                            $diff = \Carbon\Carbon::parse($item->tanggal_lahir)->diff(now());
+                            $totalBln = ($diff->y * 12) + $diff->m;
+                            $strUmurBayi = $totalBln == 0 ? $diff->d . ' Hari' : $totalBln . ' Bulan';
+                            $fullUmurTitle = $diff->y . ' Tahun, ' . $diff->m . ' Bulan, ' . $diff->d . ' Hari';
+                        ?>
+                        <tr class="hover:bg-indigo-50/30 transition-colors">
+                            <td class="px-4 py-4 text-center"><input type="checkbox" name="ids[]" value="<?php echo e($item->id); ?>" class="checkbox-modern row-checkbox bayi-checkbox" onchange="checkBulkStatus()"></td>
+                            
+                            
+                            <td class="px-4 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-full flex items-center justify-center font-black text-lg shrink-0 <?php echo e($item->jenis_kelamin == 'L' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'); ?>">
+                                        <?php echo e(substr($item->nama_lengkap, 0, 1)); ?>
+
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-extrabold text-slate-800"><?php echo e($item->nama_lengkap); ?></p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-[10px] font-black tracking-wider px-2 py-0.5 rounded-md <?php echo e($item->jenis_kelamin == 'L' ? 'badge-jk-L' : 'badge-jk-P'); ?>">
+                                                <?php echo e($item->jenis_kelamin == 'L' ? 'LAKI-LAKI' : 'PEREMPUAN'); ?>
+
+                                            </span>
+                                            <span class="text-[11px] font-bold text-slate-500"><i class="far fa-id-card"></i> <?php echo e($item->nik ?? 'Belum Ada NIK'); ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            
+                            <td class="px-4 py-4">
+                                <p class="text-xs font-bold text-slate-700 mb-1"><i class="fas fa-map-marker-alt text-slate-400 mr-1"></i> <?php echo e($item->tempat_lahir); ?>, <?php echo e(\Carbon\Carbon::parse($item->tanggal_lahir)->translatedFormat('d M Y')); ?></p>
+                                <div class="flex items-center gap-3 text-[11px] font-bold text-slate-500">
+                                    <span class="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">BB: <span class="text-indigo-600"><?php echo e($item->berat_lahir); ?> kg</span></span>
+                                    <span class="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">PB: <span class="text-emerald-600"><?php echo e($item->panjang_lahir); ?> cm</span></span>
+                                </div>
+                            </td>
+
+                            
+                            <td class="px-4 py-4">
+                                <p class="text-xs font-bold text-slate-800 mb-0.5"><i class="fas fa-female text-rose-400 w-4"></i> <?php echo e($item->nama_ibu ?? '-'); ?></p>
+                                <p class="text-[11px] font-semibold text-slate-500"><i class="fas fa-male text-blue-400 w-4"></i> <?php echo e($item->nama_ayah ?? '-'); ?></p>
+                            </td>
+
+                            
+                            <td class="px-4 py-4 text-center">
+                                <span title="<?php echo e($fullUmurTitle); ?>" class="block cursor-help mb-2 w-max mx-auto px-3 py-1 rounded-lg text-[11px] font-black bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-sm transition-transform hover:scale-105">
+                                    <i class="fas fa-clock mr-1 opacity-70"></i> <?php echo e(strtoupper($strUmurBayi)); ?>
+
+                                </span>
+                                <?php if($item->user_id): ?>
+                                    <span class="text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100"><i class="fas fa-check-circle"></i> Akun Tertaut</span>
+                                <?php else: ?>
+                                    <a href="<?php echo e(route('kader.data.balita.sync', $item->id)); ?>" class="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-200 hover:bg-amber-100 transition-colors"><i class="fas fa-sync"></i> Tarik Akun</a>
+                                <?php endif; ?>
+                            </td>
+
+                            
+                            <td class="px-4 py-4 pr-6">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="<?php echo e(route('kader.data.balita.show', $item->id)); ?>" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-indigo-500 hover:bg-indigo-50 hover:border-indigo-300 flex items-center justify-center transition-all shadow-sm" title="Lihat Rekam Medis"><i class="fas fa-file-medical"></i></a>
+                                    <a href="<?php echo e(route('kader.data.balita.edit', $item->id)); ?>" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-amber-500 hover:bg-amber-50 hover:border-amber-300 flex items-center justify-center transition-all shadow-sm" title="Edit Data"><i class="fas fa-pen"></i></a>
+                                    
+                                    <form action="<?php echo e(route('kader.data.balita.destroy', $item->id)); ?>" method="POST" id="delete-form-<?php echo e($item->id); ?>">
+                                        <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
+                                        <button type="button" onclick="confirmSingleDelete('<?php echo e($item->id); ?>', '<?php echo e($item->nama_lengkap); ?>')" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 flex items-center justify-center transition-all shadow-sm" title="Hapus Data"><i class="fas fa-trash-alt"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr>
+                            <td colspan="6" class="px-6 py-20 text-center">
+                                <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto mb-4 text-4xl shadow-inner border border-slate-100"><i class="fas fa-box-open"></i></div>
+                                <h3 class="font-black text-slate-800 text-xl">Database Bayi Kosong</h3>
+                                <p class="text-sm text-slate-500 mt-2">Belum ada bayi usia 0-11 bulan yang didaftarkan.</p>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    
+    
+    
+    <div id="panel-balita" class="tab-content">
+        <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden mb-6">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-[10px] uppercase tracking-widest text-slate-500 font-black">
+                            <th class="px-4 py-4 text-center w-10"><input type="checkbox" class="checkbox-modern select-all-balita" onclick="toggleSelectAll(this, 'balita')"></th>
+                            <th class="px-4 py-4">Identitas Balita</th>
+                            <th class="px-4 py-4">Lahir & Fisik Awal</th>
+                            <th class="px-4 py-4">Data Orang Tua</th>
+                            <th class="px-4 py-4 text-center">Usia & Akun</th>
+                            <th class="px-4 py-4 text-right pr-6">Aksi Manajemen</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <?php $__empty_1 = true; $__currentLoopData = $balitas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <?php
+                            // LOGIKA UMUR SUPER CERDAS UNTUK BALITA
+                            $diff = \Carbon\Carbon::parse($item->tanggal_lahir)->diff(now());
+                            if ($diff->y > 0 && $diff->m > 0) {
+                                $strUmurBalita = $diff->y . ' Thn ' . $diff->m . ' Bln';
+                            } elseif ($diff->y > 0 && $diff->m == 0) {
+                                $strUmurBalita = $diff->y . ' Tahun'; // Hilangkan 0 Bulan
+                            } elseif ($diff->y == 0 && $diff->m > 0) {
+                                $strUmurBalita = $diff->m . ' Bulan';
+                            } else {
+                                $strUmurBalita = $diff->d . ' Hari';
+                            }
+                            $fullUmurTitle = $diff->y . ' Tahun, ' . $diff->m . ' Bulan, ' . $diff->d . ' Hari';
+                        ?>
+                        <tr class="hover:bg-rose-50/30 transition-colors">
+                            <td class="px-4 py-4 text-center"><input type="checkbox" name="ids[]" value="<?php echo e($item->id); ?>" class="checkbox-modern row-checkbox balita-checkbox" onchange="checkBulkStatus()"></td>
+                            
+                            
+                            <td class="px-4 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-full flex items-center justify-center font-black text-lg shrink-0 <?php echo e($item->jenis_kelamin == 'L' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'); ?>">
+                                        <?php echo e(substr($item->nama_lengkap, 0, 1)); ?>
+
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-extrabold text-slate-800"><?php echo e($item->nama_lengkap); ?></p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-[10px] font-black tracking-wider px-2 py-0.5 rounded-md <?php echo e($item->jenis_kelamin == 'L' ? 'badge-jk-L' : 'badge-jk-P'); ?>">
+                                                <?php echo e($item->jenis_kelamin == 'L' ? 'LAKI-LAKI' : 'PEREMPUAN'); ?>
+
+                                            </span>
+                                            <span class="text-[11px] font-bold text-slate-500"><i class="far fa-id-card"></i> <?php echo e($item->nik ?? 'Belum Ada NIK'); ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            
+                            <td class="px-4 py-4">
+                                <p class="text-xs font-bold text-slate-700 mb-1"><i class="fas fa-map-marker-alt text-slate-400 mr-1"></i> <?php echo e($item->tempat_lahir); ?>, <?php echo e(\Carbon\Carbon::parse($item->tanggal_lahir)->translatedFormat('d M Y')); ?></p>
+                                <div class="flex items-center gap-3 text-[11px] font-bold text-slate-500">
+                                    <span class="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">BB: <span class="text-indigo-600"><?php echo e($item->berat_lahir); ?> kg</span></span>
+                                    <span class="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">PB: <span class="text-emerald-600"><?php echo e($item->panjang_lahir); ?> cm</span></span>
+                                </div>
+                            </td>
+
+                            
+                            <td class="px-4 py-4">
+                                <p class="text-xs font-bold text-slate-800 mb-0.5"><i class="fas fa-female text-rose-400 w-4"></i> <?php echo e($item->nama_ibu ?? '-'); ?></p>
+                                <p class="text-[11px] font-semibold text-slate-500"><i class="fas fa-male text-blue-400 w-4"></i> <?php echo e($item->nama_ayah ?? '-'); ?></p>
+                            </td>
+
+                            
+                            <td class="px-4 py-4 text-center">
+                                <span title="<?php echo e($fullUmurTitle); ?>" class="block cursor-help mb-2 w-max mx-auto px-3 py-1 rounded-lg text-[11px] font-black bg-rose-100 text-rose-700 border border-rose-200 shadow-sm transition-transform hover:scale-105">
+                                    <i class="fas fa-clock mr-1 opacity-70"></i> <?php echo e(strtoupper($strUmurBalita)); ?>
+
+                                </span>
+                                <?php if($item->user_id): ?>
+                                    <span class="text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100"><i class="fas fa-check-circle"></i> Akun Tertaut</span>
+                                <?php else: ?>
+                                    <a href="<?php echo e(route('kader.data.balita.sync', $item->id)); ?>" class="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-200 hover:bg-amber-100 transition-colors"><i class="fas fa-sync"></i> Tarik Akun</a>
+                                <?php endif; ?>
+                            </td>
+
+                            
+                            <td class="px-4 py-4 pr-6">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="<?php echo e(route('kader.data.balita.show', $item->id)); ?>" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-indigo-500 hover:bg-indigo-50 hover:border-indigo-300 flex items-center justify-center transition-all shadow-sm" title="Lihat Rekam Medis"><i class="fas fa-file-medical"></i></a>
+                                    <a href="<?php echo e(route('kader.data.balita.edit', $item->id)); ?>" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-amber-500 hover:bg-amber-50 hover:border-amber-300 flex items-center justify-center transition-all shadow-sm" title="Edit Data"><i class="fas fa-pen"></i></a>
+                                    
+                                    <form action="<?php echo e(route('kader.data.balita.destroy', $item->id)); ?>" method="POST" id="delete-form-<?php echo e($item->id); ?>">
+                                        <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
+                                        <button type="button" onclick="confirmSingleDelete('<?php echo e($item->id); ?>', '<?php echo e($item->nama_lengkap); ?>')" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 flex items-center justify-center transition-all shadow-sm" title="Hapus Data"><i class="fas fa-trash-alt"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        <tr>
+                            <td colspan="6" class="px-6 py-20 text-center">
+                                <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto mb-4 text-4xl shadow-inner border border-slate-100"><i class="fas fa-box-open"></i></div>
+                                <h3 class="font-black text-slate-800 text-xl">Database Balita Kosong</h3>
+                                <p class="text-sm text-slate-500 mt-2">Belum ada anak usia 12-59 bulan yang didaftarkan.</p>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('liveSearch');
-        const container = document.getElementById('ajaxTableContainer');
-        const spinner = document.getElementById('searchSpinner');
-        const overlayLoader = document.getElementById('tableLoader');
-        let debounceTimer;
+    // Matikan Loader Cepat
+    window.onload = () => {
+        const l = document.getElementById('smoothLoader');
+        if(l) { l.classList.remove('opacity-100','pointer-events-auto'); l.classList.add('opacity-0','pointer-events-none'); setTimeout(()=> l.style.display = 'none', 200); }
+    };
 
-        function fetchResults(url, isSearch = false) {
-            // Tampilkan loader (Spinner kecil untuk ngetik, Overlay untuk pindah halaman)
-            if (isSearch) spinner.classList.remove('opacity-0');
-            else { overlayLoader.classList.remove('hidden'); overlayLoader.classList.add('flex'); }
+    // TAB SWITCHER
+    function switchTab(tab) {
+        const panels = ['bayi', 'balita'];
+        panels.forEach(p => document.getElementById('panel-' + p)?.classList.remove('active'));
+        
+        document.getElementById('tab-btn-bayi').className = 'tab-pill tab-inactive flex-1 sm:flex-none';
+        document.getElementById('tab-btn-balita').className = 'tab-pill tab-inactive flex-1 sm:flex-none';
 
-            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(res => res.text())
-            .then(html => {
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                const newTable = doc.querySelector('.custom-scrollbar');
-                const newPagination = doc.getElementById('paginationArea');
+        document.getElementById('panel-' + tab).classList.add('active');
+        document.getElementById('tab-btn-' + tab).className = `tab-pill tab-${tab}-active flex-1 sm:flex-none`;
+        
+        sessionStorage.setItem('activeTabBalita', tab);
+        
+        // Reset checkbox when switching tabs
+        document.querySelectorAll('.checkbox-modern').forEach(cb => cb.checked = false);
+        checkBulkStatus();
+    }
 
-                // Update isi tabel dan pagination secara instan
-                if(newTable) document.querySelector('.custom-scrollbar').innerHTML = newTable.innerHTML;
-                if(newPagination) document.getElementById('paginationArea').innerHTML = newPagination.innerHTML;
-                
-                window.history.pushState({path: url}, '', url);
-                bindPagination();
-            })
-            .catch(error => console.error('Gagal mengambil data:', error))
-            .finally(() => {
-                spinner.classList.add('opacity-0');
-                overlayLoader.classList.add('hidden');
-                overlayLoader.classList.remove('flex');
-            });
-        }
-
-        if(searchInput) {
-            searchInput.addEventListener('input', function() {
-                clearTimeout(debounceTimer);
-                // Cukup 300ms agar terasa secepat kilat
-                debounceTimer = setTimeout(() => {
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('search', this.value);
-                    url.searchParams.delete('page');
-                    fetchResults(url.toString(), true);
-                }, 300); 
-            });
-        }
-
-        function bindPagination() {
-            document.querySelectorAll('#paginationArea a').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault(); e.stopPropagation();
-                    fetchResults(this.href, false);
-                });
-            });
-        }
-
-        window.addEventListener('popstate', function() {
-            fetchResults(window.location.href, false);
-            const urlParams = new URLSearchParams(window.location.search);
-            if(searchInput) searchInput.value = urlParams.get('search') || '';
-        });
-
-        bindPagination();
+    document.addEventListener('DOMContentLoaded', () => {
+        const saved = sessionStorage.getItem('activeTabBalita');
+        if (saved && (saved === 'bayi' || saved === 'balita')) switchTab(saved);
     });
+
+    // ==========================================
+    // SISTEM NOTIFIKASI MODERN & HAPUS DATA
+    // ==========================================
+
+    const Toast = Swal.mixin({
+        toast: true, position: 'top-end', showConfirmButton: false, timer: 4000,
+        timerProgressBar: true, didOpen: (toast) => { toast.addEventListener('mouseenter', Swal.stopTimer); toast.addEventListener('mouseleave', Swal.resumeTimer); }
+    });
+
+    <?php if(session('success')): ?>
+        Toast.fire({ icon: 'success', title: 'Berhasil!', text: "<?php echo e(session('success')); ?>" });
+    <?php endif; ?>
+    <?php if(session('error')): ?>
+        Toast.fire({ icon: 'error', title: 'Oops...', text: "<?php echo e(session('error')); ?>" });
+    <?php endif; ?>
+
+    function confirmSingleDelete(id, name) {
+        Swal.fire({
+            title: 'Hapus ' + name + '?',
+            html: "Data rekam medis dan absensi anak ini akan <b>hilang permanen!</b>",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: '<i class="fas fa-trash"></i> Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            customClass: { popup: 'rounded-2xl' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-form-' + id).submit();
+            }
+        });
+    }
+
+    // ==========================================
+    // SISTEM CHECKBOX & HAPUS BANYAK (BULK DELETE)
+    // ==========================================
+    function toggleSelectAll(source, type) {
+        const checkboxes = document.querySelectorAll(`.${type}-checkbox`);
+        checkboxes.forEach(cb => cb.checked = source.checked);
+        checkBulkStatus();
+    }
+
+    function checkBulkStatus() {
+        const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+        const bulkForm = document.getElementById('bulkDeleteForm');
+        const bulkCountSpan = document.getElementById('bulkCount');
+        
+        if (checkedBoxes.length > 0) {
+            bulkForm.classList.remove('hidden');
+            bulkCountSpan.innerText = checkedBoxes.length;
+        } else {
+            bulkForm.classList.add('hidden');
+        }
+    }
+
+    function confirmBulkDelete() {
+        const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+        if(checkedBoxes.length === 0) return;
+
+        Swal.fire({
+            title: 'Hapus ' + checkedBoxes.length + ' Data Terpilih?',
+            html: "Anda akan menghapus data dalam jumlah banyak sekaligus. Ini tidak bisa dibatalkan!",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: '<i class="fas fa-skull-crossbones"></i> Eksekusi Hapus!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            customClass: { popup: 'rounded-2xl border-4 border-rose-100' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const inputContainer = document.getElementById('bulkDeleteInputs');
+                inputContainer.innerHTML = ''; 
+                
+                checkedBoxes.forEach(cb => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'ids[]';
+                    input.value = cb.value;
+                    inputContainer.appendChild(input);
+                });
+                
+                document.getElementById('bulkDeleteForm').submit();
+            }
+        });
+    }
 </script>
-<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.kader', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/kader/data/balita/index.blade.php ENDPATH**/ ?>

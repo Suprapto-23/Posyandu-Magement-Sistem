@@ -15,16 +15,19 @@ class Kunjungan extends Model
         'pasien_type',
         'tanggal_kunjungan',
         'jenis_kunjungan',
+        'pertemuan_ke', // Tambahan: Mencatat absensi (Pertemuan 1, 2, 3 dst)
         'keluhan',
         'petugas_id',
     ];
 
     protected $casts = [
         'tanggal_kunjungan' => 'date',
+        'pertemuan_ke'      => 'integer', // Memastikan nilainya selalu angka
     ];
 
     public function pasien()
     {
+        // Fitur Polimorfik: Bisa menyambung ke Balita, Remaja, Lansia, ATAU IbuHamil
         return $this->morphTo();
     }
 
@@ -53,6 +56,7 @@ class Kunjungan extends Model
         return $this->hasOne(Konsultasi::class);
     }
 
+    // Accessor: Mengambil Nama Lengkap dari model mana pun yang terhubung
     public function getNamaPasienAttribute()
     {
         return $this->pasien->nama_lengkap ?? 'Tidak diketahui';
@@ -66,11 +70,11 @@ class Kunjungan extends Model
     public function getJenisKunjunganLabelAttribute()
     {
         $jenis = [
-            'umum' => 'Kunjungan Umum',
-            'imunisasi' => 'Imunisasi',
+            'umum'        => 'Kunjungan Umum',
+            'imunisasi'   => 'Imunisasi',
             'pemeriksaan' => 'Pemeriksaan',
-            'konsultasi' => 'Konsultasi',
-            'darurat' => 'Darurat'
+            'konsultasi'  => 'Konsultasi',
+            'darurat'     => 'Darurat'
         ];
         
         return $jenis[$this->jenis_kunjungan] ?? 'Tidak Diketahui';

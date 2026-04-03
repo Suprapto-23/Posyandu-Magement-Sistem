@@ -18,13 +18,14 @@ use App\Http\Controllers\Bidan\PemeriksaanController as BidanPemeriksaan;
 use App\Http\Controllers\Bidan\JadwalController      as BidanJadwal;
 use App\Http\Controllers\Bidan\PasienController      as BidanPasien;
 use App\Http\Controllers\Bidan\RekamMedisController as BidanRekamMedisController;
-use App\Http\Controllers\Bidan\KonselingController   as BidanKonseling; // 👈 Pastikan BidanKonseling dipanggil
+use App\Http\Controllers\Bidan\KonselingController   as BidanKonseling;
 
 // Kader
 use App\Http\Controllers\Kader\DashboardController   as KaderDashboard;
 use App\Http\Controllers\Kader\BalitaController;
 use App\Http\Controllers\Kader\RemajaController;
 use App\Http\Controllers\Kader\LansiaController;
+use App\Http\Controllers\Kader\IbuHamilController;
 use App\Http\Controllers\Kader\PemeriksaanController;
 use App\Http\Controllers\Kader\ImunisasiController;
 use App\Http\Controllers\Kader\KunjunganController;
@@ -33,6 +34,7 @@ use App\Http\Controllers\Kader\JadwalController;
 use App\Http\Controllers\Kader\ImportController;
 use App\Http\Controllers\Kader\ProfileController    as KaderProfile;
 use App\Http\Controllers\Kader\NotifikasiController as KaderNotifikasi;
+use App\Http\Controllers\Kader\AbsensiController; // 👈 Controller Absensi ditambahkan di sini
 
 // User (Warga)
 use App\Http\Controllers\User\DashboardController   as UserDashboard;
@@ -43,7 +45,7 @@ use App\Http\Controllers\User\JadwalController      as UserJadwal;
 use App\Http\Controllers\User\ProfileController     as UserProfile;
 use App\Http\Controllers\User\NotifikasiController  as UserNotifikasi;
 use App\Http\Controllers\User\RiwayatController;
-use App\Http\Controllers\User\KonselingController   as UserKonseling; // 👈 Pastikan UserKonseling dipanggil
+use App\Http\Controllers\User\KonselingController   as UserKonseling;
 
 // ==================== ROOT ====================
 Route::get('/', function () {
@@ -117,7 +119,6 @@ Route::prefix('bidan')->name('bidan.')->middleware(['auth','checkstatus','role:b
     Route::get('/laporan/cetak', [\App\Http\Controllers\Bidan\LaporanController::class, 'cetak'])->name('laporan.cetak');
     Route::post('/laporan/upload-ttd', [\App\Http\Controllers\Bidan\LaporanController::class, 'uploadTtd'])->name('laporan.upload-ttd');
 
-    // 👇 RUTE KOTAK MASUK BIDAN (SUDAH DIPERBAIKI) 👇
     Route::prefix('konseling')->name('konseling.')->group(function () {
         Route::get('/', [BidanKonseling::class, 'index'])->name('index');
         Route::get('/fetch-list', [BidanKonseling::class, 'fetchList'])->name('fetch-list');
@@ -131,11 +132,26 @@ Route::prefix('kader')->name('kader.')->middleware(['auth','checkstatus','role:k
     Route::get('/', fn() => redirect()->route('kader.dashboard'));
     Route::get('/dashboard', [KaderDashboard::class, 'index'])->name('dashboard');
 
+    // 👇 RUTE ABSENSI DITAMBAHKAN DI SINI 👇
+    Route::prefix('absensi')->name('absensi.')->group(function () {
+        Route::get('/', [AbsensiController::class, 'index'])->name('index'); 
+        Route::get('/riwayat', [AbsensiController::class, 'riwayat'])->name('riwayat'); 
+        Route::get('/{id}', [AbsensiController::class, 'show'])->name('show'); 
+        Route::post('/', [AbsensiController::class, 'store'])->name('store');
+        Route::put('/{id}', [AbsensiController::class, 'update'])->name('update');
+        Route::delete('/{id}', [AbsensiController::class, 'destroy'])->name('destroy');
+    });
+
     Route::prefix('data')->name('data.')->group(function () {
         Route::resource('balita', BalitaController::class);
         Route::get('balita/{id}/sync', [\App\Http\Controllers\Kader\BalitaController::class, 'syncUser'])->name('balita.sync');
+        Route::post('balita/bulk-delete', [\App\Http\Controllers\Kader\BalitaController::class, 'bulkDelete'])->name('balita.bulk-delete');
         Route::resource('remaja', RemajaController::class);
+        Route::post('remaja/bulk-delete', [\App\Http\Controllers\Kader\RemajaController::class, 'bulkDelete'])->name('remaja.bulk-delete');
+        Route::get('remaja/{id}/sync', [\App\Http\Controllers\Kader\RemajaController::class, 'syncUser'])->name('remaja.sync');
         Route::resource('lansia', LansiaController::class);
+        Route::resource('ibu-hamil', IbuHamilController::class);
+        
     });
 
     Route::prefix('pemeriksaan')->name('pemeriksaan.')->group(function () {
@@ -168,13 +184,13 @@ Route::prefix('kader')->name('kader.')->middleware(['auth','checkstatus','role:k
     Route::post('/jadwal/broadcast/{id}', [JadwalController::class, 'broadcast'])->name('jadwal.broadcast');
 
     Route::prefix('import')->name('import.')->group(function () {
-        Route::get('/',                        [ImportController::class, 'index'])->name('index');
-        Route::get('/create',                  [ImportController::class, 'create'])->name('create');
-        Route::post('/',                       [ImportController::class, 'store'])->name('store');
-        Route::get('/history',                 [ImportController::class, 'history'])->name('history');
+        Route::get('/',                [ImportController::class, 'index'])->name('index');
+        Route::get('/create',          [ImportController::class, 'create'])->name('create');
+        Route::post('/',               [ImportController::class, 'store'])->name('store');
+        Route::get('/history',         [ImportController::class, 'history'])->name('history');
         Route::get('/download-template/{type}',[ImportController::class, 'downloadTemplate'])->name('download-template');
-        Route::get('/{id}',                    [ImportController::class, 'show'])->name('show');
-        Route::delete('/{id}',                 [ImportController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}',            [ImportController::class, 'show'])->name('show');
+        Route::delete('/{id}',         [ImportController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('notifikasi')->name('notifikasi.')->group(function () {
@@ -217,7 +233,6 @@ Route::prefix('user')->name('user.')->middleware(['auth','checkstatus','role:use
     
     Route::get('riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 
-    // 👇 RUTE RUANG CHAT WARGA (SUDAH DIPERBAIKI) 👇
     Route::prefix('konseling')->name('konseling.')->group(function () {
         Route::get('/', [UserKonseling::class, 'index'])->name('index');
         Route::get('/fetch-chat', [UserKonseling::class, 'fetchChat'])->name('fetch-chat');

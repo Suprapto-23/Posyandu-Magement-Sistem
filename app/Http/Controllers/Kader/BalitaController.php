@@ -15,27 +15,28 @@ use Carbon\Carbon;
 
 class BalitaController extends Controller
 {
-    public function index(Request $request)
+   public function index(Request $request)
     {
         $search = $request->get('search');
-        
-        $balitas = Balita::query()
-            ->with(['user'])
-            ->when($search, function($query) use ($search) {
-                return $query->where('nama_lengkap', 'like', "%{$search}%")
-                    ->orWhere('nik', 'like', "%{$search}%")
-                    ->orWhere('nama_ibu', 'like', "%{$search}%")
-                    ->orWhere('nik_ibu', 'like', "%{$search}%");
-            })
-            ->latest()
-            ->paginate(15);
-            
-        // Deteksi jika request dari Live Search (AJAX)
-        if ($request->ajax()) {
-            return view('kader.data.balita.index', compact('balitas', 'search'))->render();
+
+        $query = \App\Models\Balita::with('pemeriksaan_terakhir')->latest('created_at');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama_lengkap', 'like', "%{$search}%")
+                  ->orWhere('nik', 'like', "%{$search}%")
+                  ->orWhere('nama_ibu', 'like', "%{$search}%");
+            });
         }
-            
-        return view('kader.data.balita.index', compact('balitas', 'search'));
+
+        // PISAHKAN BERDASARKAN UMUR BULAN MENGGUNAKAN RAW SQL KE DATABASE
+        // Bayi: 0 - 11 Bulan
+        $bayis = (clone $query)->whereRaw('TIMESTAMPDIFF(MONTH, tanggal_lahir, CURDATE()) < 12')->get();
+        
+        // Balita: 12 - 59 Bulan (atau lebih)
+        $balitas = (clone $query)->whereRaw('TIMESTAMPDIFF(MONTH, tanggal_lahir, CURDATE()) >= 12')->get();
+
+        return view('kader.data.balita.index', compact('bayis', 'balitas', 'search'));
     }
 
     public function create()
@@ -223,5 +224,34 @@ class BalitaController extends Controller
         }
 
         return null;
+    }
+    // Fungsi untuk Tarik Akun Warga
+    public function syncUser($id)
+    {
+        $balita = Balita::findOrFail($id);
+        
+        // Coba cari akun berdasarkan NIK atau Nama Ibu
+        $user = $this->findLinkedUser($balita->nik_ibu, $balita->nama_ibu);
+        
+        if ($user) {
+            $balita->user_id = $user->id;
+            $balita->save();
+            return redirect()->back()->with('success', 'Berhasil ditarik! Akun anak ini sudah terhubung dengan HP Ibunya (' . $user->name . ').');
+        }
+
+        return redirect()->back()->with('error', 'Gagal! Tidak ditemukan akun Warga dengan NIK Ibu tersebut. Pastikan Ibu sudah mendaftar aplikasi.');
+    }
+    // Fitur Hapus Banyak Data Sekaligus
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->ids;
+        if (!$ids || count($ids) == 0) {
+            return redirect()->back()->with('error', 'Tidak ada data yang dipilih untuk dihapus!');
+        }
+
+        // Hapus semua data yang ID-nya dikirim dari checkbox
+        Balita::whereIn('id', $ids)->delete();
+
+        return redirect()->back()->with('success', count($ids) . ' Data berhasil dihapus secara permanen!');
     }
 }

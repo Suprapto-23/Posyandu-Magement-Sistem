@@ -26,7 +26,6 @@ class LansiaController extends Controller
             ->latest()
             ->paginate(15);
             
-        // Deteksi jika request dari Live Search (AJAX)
         if ($request->ajax()) {
             return view('kader.data.lansia.index', compact('lansias', 'search'))->render();
         }
@@ -49,42 +48,49 @@ class LansiaController extends Controller
             'tanggal_lahir'   => 'required|date|before_or_equal:today',
             'alamat'          => 'required|string',
             'penyakit_bawaan' => 'nullable|string',
+            'berat_badan'     => 'nullable|numeric|min:1|max:300',
+            'tinggi_badan'    => 'nullable|numeric|min:50|max:250',
+            'kemandirian'     => 'nullable|in:A,B,C',
         ]);
 
-        DB::beginTransaction();
         try {
-            // 1. Radar Sapu Jagat
-            $linkedUser = $this->findLinkedUser($request->nik, $request->nama_lengkap);
+            DB::transaction(function () use ($request, &$linkedUser) {
+                $linkedUser = $this->findLinkedUser($request->nik, $request->nama_lengkap);
+                $kode = 'LNS-' . date('ym') . rand(1000, 9999);
 
-            // 2. Generate Kode Unik
-            $kode = 'LNS-' . date('ym') . rand(1000, 9999);
+                // Hitung IMT otomatis jika berat & tinggi diisi
+                $imt = null;
+                if ($request->berat_badan && $request->tinggi_badan) {
+                    $tinggiM = $request->tinggi_badan / 100;
+                    $imt = round($request->berat_badan / ($tinggiM * $tinggiM), 2);
+                }
 
-            // 3. Simpan Data
-            Lansia::create([
-                'user_id'         => $linkedUser ? $linkedUser->id : null,
-                'kode_lansia'     => $kode,
-                'nik'             => $request->nik,
-                'nama_lengkap'    => $request->nama_lengkap,
-                'tempat_lahir'    => $request->tempat_lahir,
-                'tanggal_lahir'   => $request->tanggal_lahir,
-                'jenis_kelamin'   => $request->jenis_kelamin,
-                'alamat'          => $request->alamat,
-                'penyakit_bawaan' => $request->penyakit_bawaan,
-                'created_by'      => Auth::id(),
-            ]);
+                Lansia::create([
+                    'user_id'         => $linkedUser ? $linkedUser->id : null,
+                    'kode_lansia'     => $kode,
+                    'nik'             => $request->nik,
+                    'nama_lengkap'    => $request->nama_lengkap,
+                    'tempat_lahir'    => $request->tempat_lahir,
+                    'tanggal_lahir'   => $request->tanggal_lahir,
+                    'jenis_kelamin'   => $request->jenis_kelamin,
+                    'alamat'          => $request->alamat,
+                    'penyakit_bawaan' => $request->penyakit_bawaan,
+                    'berat_badan'     => $request->berat_badan,
+                    'tinggi_badan'    => $request->tinggi_badan,
+                    'imt'             => $imt, // IMT Tersimpan
+                    'kemandirian'     => $request->kemandirian, // Kemandirian Tersimpan
+                    'created_by'      => Auth::id(),
+                ]);
+            });
 
-            DB::commit();
+            $msg = $linkedUser
+                ? 'Data Lansia berhasil disimpan dan tersinkronisasi otomatis dengan akun Warga.'
+                : "Data berhasil disimpan. Sistem tidak dapat menemukan profil Warga dengan NIK {$request->nik}.";
 
-            if ($linkedUser) {
-                return redirect()->route('kader.data.lansia.index')
-                    ->with('success', 'Data Lansia berhasil disimpan dan tersinkronisasi otomatis dengan akun Warga.');
-            } else {
-                return redirect()->route('kader.data.lansia.index')
-                    ->with('warning', "Data berhasil disimpan. Sistem tidak dapat menemukan profil Warga dengan NIK {$request->nik}. Silakan hubungi Administrator untuk mendaftarkan akun warga tersebut.");
-            }
+            return redirect()->route('kader.data.lansia.index')
+                ->with($linkedUser ? 'success' : 'warning', $msg);
 
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Gagal menyimpan lansia: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Gagal memproses data: ' . $e->getMessage());
         }
@@ -119,11 +125,20 @@ class LansiaController extends Controller
             'tanggal_lahir'   => 'required|date|before_or_equal:today',
             'alamat'          => 'required|string',
             'penyakit_bawaan' => 'nullable|string',
+            'berat_badan'     => 'nullable|numeric|min:1|max:300',
+            'tinggi_badan'    => 'nullable|numeric|min:50|max:250',
+            'kemandirian'     => 'nullable|in:A,B,C',
         ]);
 
         try {
-            // Radar Sapu Jagat (Cek Ulang)
             $linkedUser = $this->findLinkedUser($request->nik, $request->nama_lengkap);
+
+            // Hitung ulang IMT
+            $imt = null;
+            if ($request->berat_badan && $request->tinggi_badan) {
+                $tinggiM = $request->tinggi_badan / 100;
+                $imt = round($request->berat_badan / ($tinggiM * $tinggiM), 2);
+            }
 
             $lansia->update([
                 'user_id'         => $linkedUser ? $linkedUser->id : null,
@@ -134,15 +149,18 @@ class LansiaController extends Controller
                 'jenis_kelamin'   => $request->jenis_kelamin,
                 'alamat'          => $request->alamat,
                 'penyakit_bawaan' => $request->penyakit_bawaan,
+                'berat_badan'     => $request->berat_badan,
+                'tinggi_badan'    => $request->tinggi_badan,
+                'imt'             => $imt, // Update IMT
+                'kemandirian'     => $request->kemandirian, // Update Kemandirian
             ]);
 
-            if ($linkedUser) {
-                return redirect()->route('kader.data.lansia.index')
-                    ->with('success', 'Data Lansia berhasil diperbarui dan tersinkronisasi.');
-            } else {
-                return redirect()->route('kader.data.lansia.index')
-                    ->with('warning', "Data diperbarui. Sistem tidak dapat menemukan profil Warga dengan NIK {$request->nik}. Silakan hubungi Administrator untuk membuatkan akun.");
-            }
+            $msg = $linkedUser
+                ? 'Data Lansia berhasil diperbarui dan tersinkronisasi.'
+                : "Data diperbarui. Sistem tidak dapat menemukan profil Warga dengan NIK {$request->nik}.";
+
+            return redirect()->route('kader.data.lansia.index')
+                ->with($linkedUser ? 'success' : 'warning', $msg);
 
         } catch (\Exception $e) {
             Log::error('Gagal update lansia: ' . $e->getMessage());
@@ -162,17 +180,13 @@ class LansiaController extends Controller
         return redirect()->route('kader.data.lansia.index')->with('success', 'Data lansia berhasil dihapus secara permanen.');
     }
 
-    /**
-     * 🚀 RADAR SAPU JAGAT
-     */
     private function findLinkedUser($nik, $nama_lengkap)
     {
-        $cleanNik = preg_replace('/[^0-9]/', '', (string)$nik);
+        $cleanNik  = preg_replace('/[^0-9]/', '', (string)$nik);
         $cleanName = trim((string)$nama_lengkap);
 
-        // 1. Geledah Users
         $users = User::all();
-        foreach($users as $user) {
+        foreach ($users as $user) {
             if (!empty($cleanNik)) {
                 if (($user->nik ?? '') === $cleanNik) return $user;
                 if (($user->username ?? '') === $cleanNik) return $user;
@@ -184,10 +198,9 @@ class LansiaController extends Controller
             }
         }
 
-        // 2. Geledah Profiles
         if (Schema::hasTable('profiles')) {
             $profiles = DB::table('profiles')->get();
-            foreach($profiles as $p) {
+            foreach ($profiles as $p) {
                 if (!empty($cleanNik)) {
                     if (($p->nik ?? '') === $cleanNik) return User::find($p->user_id);
                     if (($p->no_ktp ?? '') === $cleanNik) return User::find($p->user_id);
@@ -197,6 +210,7 @@ class LansiaController extends Controller
                 }
             }
         }
+
         return null;
     }
 }
