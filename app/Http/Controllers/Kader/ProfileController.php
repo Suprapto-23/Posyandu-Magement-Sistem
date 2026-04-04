@@ -22,22 +22,36 @@ class ProfileController extends Controller
         $request->validate([
             'email' => 'required|email|unique:users,email,'.$user->id,
             'name' => 'required|string|max:255',
-            'no_hp' => 'nullable|string|max:15',
+            'telepon' => 'nullable|string|max:20',
+            'nik' => 'nullable|string|max:16',
+            'tempat_lahir' => 'nullable|string|max:100',
+            'tanggal_lahir' => 'nullable|date',
+            'jenis_kelamin' => 'nullable|in:L,P',
+            'alamat' => 'nullable|string',
         ]);
 
-        // Update User
-        $user->update(['email' => $request->email]);
+        // 1. Update Tabel Users (Akun Utama)
+        $user->update([
+            'email' => $request->email,
+            'name' => $request->name, // Asumsi nama login juga diupdate
+        ]);
 
-        // Update Profile
+        // 2. Update Tabel Profiles (Detail Personal)
+        // BUG FIXED: Menggunakan 'telepon' sesuai model, bukan 'phone_number'
         $user->profile()->updateOrCreate(
             ['user_id' => $user->id],
             [
                 'full_name' => $request->name,
-                'phone_number' => $request->no_hp,
+                'telepon' => $request->telepon,
+                'nik' => $request->nik,
+                'tempat_lahir' => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'alamat' => $request->alamat,
             ]
         );
 
-        return back()->with('success', 'Profil berhasil diperbarui.');
+        return back()->with('success', 'Identitas personal berhasil diperbarui secara menyeluruh.');
     }
 
     public function password()
@@ -53,11 +67,11 @@ class ProfileController extends Controller
         ]);
 
         if (!Hash::check($request->current_password, Auth::user()->password)) {
-            return back()->withErrors(['current_password' => 'Password lama salah']);
+            return back()->with('error', 'Sandi saat ini tidak cocok dengan database kami.');
         }
 
         Auth::user()->update(['password' => Hash::make($request->password)]);
 
-        return back()->with('success', 'Password berhasil diubah.');
+        return back()->with('success', 'Sandi keamanan berhasil diperbarui. Akses Anda kini lebih aman.');
     }
 }

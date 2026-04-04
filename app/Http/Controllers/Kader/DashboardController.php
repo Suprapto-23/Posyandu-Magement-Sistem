@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Balita;
 use App\Models\Remaja;
 use App\Models\Lansia;
+use App\Models\IbuHamil;
 use App\Models\Kunjungan;
 use App\Models\Imunisasi;
 use App\Models\JadwalPosyandu;
@@ -24,6 +25,7 @@ class DashboardController extends Controller
             'total_balita' => Balita::count(),
             'total_remaja' => Remaja::count(),
             'total_lansia' => Lansia::count(),
+            'total_ibu_hamil' => IbuHamil::count(),
             'kunjungan_hari_ini' => Kunjungan::whereDate('created_at', today())->count(),
             'kunjungan_saya_hari_ini' => Kunjungan::where('petugas_id', $user->id)
                 ->whereDate('created_at', today())
@@ -34,20 +36,21 @@ class DashboardController extends Controller
                 ->count(),
         ];
         
-        // 2. Data Grafik Kunjungan 7 Hari Terakhir (Dinamis, termasuk yang 0)
+        // 2. Data Grafik Kunjungan 7 Hari Terakhir
         $trendKunjungan = $this->getKunjungan7Hari();
         $chartLabels = $trendKunjungan['labels'];
         $chartData = $trendKunjungan['data'];
 
         $pendaftaran_bulan_ini = $this->getPendaftaranBulanIni();
         
+        // 3. Data Aktivitas Terkini (Untuk Timeline & Kartu Bawah)
         $balita_baru = Balita::latest()->take(5)->get();
-        $kunjungan_baru = Kunjungan::with('pasien')->latest()->take(5)->get();
+        $kunjungan_baru = Kunjungan::with(['pasien', 'petugas'])->latest()->take(5)->get();
         
         $jadwal_mendatang = JadwalPosyandu::where('tanggal', '>=', today())
             ->where('status', 'aktif')
-            ->orderBy('tanggal')
-            ->take(5)
+            ->orderBy('tanggal', 'asc')
+            ->take(4)
             ->get();
         
         return view('kader.dashboard', compact(
@@ -61,30 +64,19 @@ class DashboardController extends Controller
         ));
     }
     
-    /**
-     * FUNGSI DIPERBAIKI: Mengambil array 7 hari terakhir secara pasti (meski data kosong)
-     */
     private function getKunjungan7Hari()
     {
         $labels = [];
         $data = [];
 
-        // Looping 7 hari ke belakang (Dari H-6 sampai Hari Ini)
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::today()->subDays($i);
-            
-            // Format label X-Axis, contoh: "19 Mar"
             $labels[] = $date->translatedFormat('d M'); 
-            
-            // Hitung kunjungan di hari tersebut
             $count = Kunjungan::whereDate('created_at', $date->format('Y-m-d'))->count();
             $data[] = $count;
         }
 
-        return [
-            'labels' => $labels,
-            'data' => $data
-        ];
+        return ['labels' => $labels, 'data' => $data];
     }
     
     private function getPendaftaranBulanIni()
@@ -95,7 +87,8 @@ class DashboardController extends Controller
         return [
             'balita' => Balita::whereMonth('created_at', $bulan_ini)->whereYear('created_at', $tahun_ini)->count(),
             'remaja' => Remaja::whereMonth('created_at', $bulan_ini)->whereYear('created_at', $tahun_ini)->count(),
-            'lansia' => Lansia::whereMonth('created_at', $bulan_ini)->whereYear('created_at', $tahun_ini)->count()
+            'lansia' => Lansia::whereMonth('created_at', $bulan_ini)->whereYear('created_at', $tahun_ini)->count(),
+            'ibu_hamil' => IbuHamil::whereMonth('created_at', $bulan_ini)->whereYear('created_at', $tahun_ini)->count()
         ];
     }
 }

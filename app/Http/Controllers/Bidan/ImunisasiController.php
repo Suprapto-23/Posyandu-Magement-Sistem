@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Kunjungan;
 use App\Models\Imunisasi;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ImunisasiController extends Controller
 {
     public function index(Request $request)
     {
         $search = $request->get('search');
-        $query = Imunisasi::with(['kunjungan.pasien'])->latest('tanggal_imunisasi');
+        $query = Imunisasi::with(['kunjungan.pasien', 'kunjungan.petugas'])->latest('tanggal_imunisasi');
         
         if ($search) {
             $query->where('vaksin', 'like', "%{$search}%")
@@ -27,11 +28,11 @@ class ImunisasiController extends Controller
 
     public function create()
     {
-        // Hanya ambil kunjungan dari Balita dan Remaja (Karena Lansia tidak ada imunisasi rutin)
+        // BUG FIXED: Menambahkan IbuHamil (Vaksin TT) & mengambil data kunjungan terbaru (H-7) agar antrian valid.
         $kunjungans = Kunjungan::with('pasien')
-            ->whereIn('pasien_type', ['App\Models\Balita', 'App\Models\Remaja'])
-            ->latest()
-            ->take(100)
+            ->whereIn('pasien_type', ['App\Models\Balita', 'App\Models\Remaja', 'App\Models\IbuHamil'])
+            ->whereDate('tanggal_kunjungan', '>=', Carbon::today()->subDays(7))
+            ->latest('tanggal_kunjungan')
             ->get();
             
         return view('bidan.imunisasi.create', compact('kunjungans'));
@@ -50,12 +51,12 @@ class ImunisasiController extends Controller
         Imunisasi::create($request->all());
 
         return redirect()->route('bidan.imunisasi.index')
-            ->with('success', 'Data Imunisasi berhasil disimpan dan langsung terintegrasi dengan Kader!');
+            ->with('success', 'Data Vaksinasi berhasil dicatat dan disinkronkan ke rekam medis pasien!');
     }
 
     public function show($id)
     {
-        $imunisasi = Imunisasi::with(['kunjungan.pasien'])->findOrFail($id);
+        $imunisasi = Imunisasi::with(['kunjungan.pasien', 'kunjungan.petugas'])->findOrFail($id);
         return view('bidan.imunisasi.show', compact('imunisasi'));
     }
 
@@ -63,9 +64,9 @@ class ImunisasiController extends Controller
     {
         $imunisasi = Imunisasi::findOrFail($id);
         $kunjungans = Kunjungan::with('pasien')
-            ->whereIn('pasien_type', ['App\Models\Balita', 'App\Models\Remaja'])
-            ->latest()
-            ->take(100)
+            ->whereIn('pasien_type', ['App\Models\Balita', 'App\Models\Remaja', 'App\Models\IbuHamil'])
+            ->whereDate('tanggal_kunjungan', '>=', Carbon::today()->subDays(7))
+            ->latest('tanggal_kunjungan')
             ->get();
             
         return view('bidan.imunisasi.edit', compact('imunisasi', 'kunjungans'));
@@ -86,12 +87,12 @@ class ImunisasiController extends Controller
         $imunisasi->update($request->all());
 
         return redirect()->route('bidan.imunisasi.index')
-            ->with('success', 'Data Imunisasi berhasil diperbarui!');
+            ->with('success', 'Koreksi data vaksinasi berhasil disimpan!');
     }
 
     public function destroy($id)
     {
         Imunisasi::findOrFail($id)->delete();
-        return redirect()->route('bidan.imunisasi.index')->with('success', 'Data imunisasi berhasil dihapus.');
+        return redirect()->route('bidan.imunisasi.index')->with('success', 'Riwayat vaksinasi telah dihapus permanen dari sistem.');
     }
 }

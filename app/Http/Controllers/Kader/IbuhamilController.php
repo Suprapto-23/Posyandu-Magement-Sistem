@@ -9,201 +9,183 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 
 class IbuHamilController extends Controller
 {
+    // ================================================================
+    // INDEX: Daftar ibu hamil + statistik trimester
+    // ================================================================
     public function index(Request $request)
     {
         $search = $request->get('search');
-        $filter = $request->get('filter', 'semua'); // semua / aktif / hampir_lahir
+        $filter = $request->get('filter', 'semua');
 
-        $query = IbuHamil::query()
-            ->when($search, fn($q) => $q
-                ->where('nama_lengkap', 'like', "%{$search}%")
-                ->orWhere('nik', 'like', "%{$search}%")
-                ->orWhere('nama_suami', 'like', "%{$search}%")
-            )
-            ->latest();
+        $query = IbuHamil::query()->latest();
 
-        // Filter HPL
-        if ($filter === 'hampir_lahir') {
-            // HPL dalam 30 hari ke depan
-            $query->whereBetween('hpl', [now(), now()->addDays(30)]);
-        } elseif ($filter === 'aktif') {
-            $query->where(fn($q) => $q->whereNull('hpl')->orWhere('hpl', '>=', now()));
+        if ($search) {
+            $query->where(fn($q) =>
+                $q->where('nama_lengkap', 'like', "%$search%")
+                  ->orWhere('nik', 'like', "%$search%")
+                  ->orWhere('nama_suami', 'like', "%$search%")
+            );
+        }
+
+        if ($filter === 'aktif') {
+            $query->where('status', 'aktif');
+        } elseif ($filter === 'hampir_lahir') {
+            $query->hampirLahir(30);
         }
 
         $ibuHamils = $query->paginate(15);
 
-        // Stats
+        // Statistik
+        $all  = IbuHamil::aktif()->get();
         $stats = [
-            'total'        => IbuHamil::count(),
-            'trimester1'   => IbuHamil::whereRaw('TIMESTAMPDIFF(WEEK, hpht, CURDATE()) <= 12')->count(),
-            'trimester2'   => IbuHamil::whereRaw('TIMESTAMPDIFF(WEEK, hpht, CURDATE()) BETWEEN 13 AND 27')->count(),
-            'trimester3'   => IbuHamil::whereRaw('TIMESTAMPDIFF(WEEK, hpht, CURDATE()) >= 28')->count(),
-            'hampir_lahir' => IbuHamil::whereBetween('hpl', [now(), now()->addDays(30)])->count(),
+            'total'       => IbuHamil::count(),
+            'trimester1'  => $all->filter(fn($i) => $i->trimester_angka === 1)->count(),
+            'trimester2'  => $all->filter(fn($i) => $i->trimester_angka === 2)->count(),
+            'trimester3'  => $all->filter(fn($i) => $i->trimester_angka === 3)->count(),
+            'hampir_lahir'=> IbuHamil::aktif()->hampirLahir(30)->count(),
         ];
 
-        return view('kader.data.ibu-hamil.index', compact('ibuHamils', 'search', 'filter', 'stats'));
+        return view('kader.data.ibu-hamil.index', compact(
+            'ibuHamils', 'stats', 'search', 'filter'
+        ));
     }
 
+    // ================================================================
+    // CREATE
+    // ================================================================
     public function create()
     {
         return view('kader.data.ibu-hamil.create');
     }
 
+    // ================================================================
+    // STORE: Kader simpan data identitas + fisik dasar
+    // ================================================================
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nama_lengkap'    => 'required|string|max:255',
             'nik'             => 'nullable|digits:16|unique:ibu_hamils,nik',
             'tempat_lahir'    => 'nullable|string|max:255',
-            'tanggal_lahir'   => 'nullable|date|before_or_equal:today',
+            'tanggal_lahir'   => 'nullable|date|before:today',
             'nama_suami'      => 'nullable|string|max:255',
             'alamat'          => 'required|string',
             'telepon_ortu'    => 'nullable|string|max:15',
+            'golongan_darah'  => 'nullable|string|max:3',
             'hpht'            => 'nullable|date|before_or_equal:today',
-            'hpl'             => 'nullable|date|after:today',
-            'golongan_darah'  => 'nullable|in:A,B,AB,O,A+,A-,B+,B-,AB+,AB-,O+,O-',
+            'hpl'             => 'nullable|date',
             'riwayat_penyakit'=> 'nullable|string|max:255',
-            'berat_badan'     => 'nullable|numeric|min:30|max:200',
+            'berat_badan'     => 'nullable|numeric|min:20|max:200',
             'tinggi_badan'    => 'nullable|numeric|min:100|max:250',
         ]);
 
-        DB::beginTransaction();
         try {
-            $kode = 'IBH-' . date('ym') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-
-            // Auto HPL jika HPHT diisi tapi HPL kosong (HPL = HPHT + 280 hari)
-            $hpl = $request->hpl;
-            if ($request->hpht && !$hpl) {
-                $hpl = \Carbon\Carbon::parse($request->hpht)->addDays(280)->format('Y-m-d');
+            // Hitung IMT jika BB & TB tersedia
+            $imt = null;
+            if (!empty($validated['berat_badan']) && !empty($validated['tinggi_badan'])) {
+                $tinggiM = $validated['tinggi_badan'] / 100;
+                $imt = round($validated['berat_badan'] / ($tinggiM * $tinggiM), 2);
             }
 
-            $linkedUser = $this->findLinkedUser($request->nik, $request->nama_lengkap);
+            $kode = 'IBH-' . date('ym') . rand(1000, 9999);
 
             IbuHamil::create([
-                'user_id'          => $linkedUser?->id,
-                'kode_hamil'       => $kode,
-                'nama_lengkap'     => $request->nama_lengkap,
-                'nik'              => $request->nik,
-                'tempat_lahir'     => $request->tempat_lahir,
-                'tanggal_lahir'    => $request->tanggal_lahir,
-                'nama_suami'       => $request->nama_suami,
-                'alamat'           => $request->alamat,
-                'telepon_ortu'     => $request->telepon_ortu,
-                'hpht'             => $request->hpht,
-                'hpl'              => $hpl,
-                'golongan_darah'   => $request->golongan_darah,
-                'riwayat_penyakit' => $request->riwayat_penyakit,
-                'berat_badan'      => $request->berat_badan,
-                'tinggi_badan'     => $request->tinggi_badan,
-                'created_by'       => Auth::id(),
+                ...$validated,
+                'kode_hamil' => $kode,
+                'imt'        => $imt,
+                'status'     => 'aktif',
+                'created_by' => Auth::id(),
             ]);
 
-            DB::commit();
             return redirect()->route('kader.data.ibu-hamil.index')
-                ->with('success', 'Data Ibu Hamil berhasil disimpan.');
+                ->with('success', 'Data ibu hamil berhasil disimpan. Bidan akan melakukan pemeriksaan mendalam.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Gagal simpan ibu hamil: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
         }
     }
 
+    // ================================================================
+    // SHOW: Detail ibu hamil + riwayat pemeriksaan bidan
+    // ================================================================
     public function show($id)
     {
-        $ibuHamil = IbuHamil::findOrFail($id);
+        $ibuHamil = IbuHamil::with(['pemeriksaans.bidan', 'pemeriksaan_terakhir'])
+            ->findOrFail($id);
+
         return view('kader.data.ibu-hamil.show', compact('ibuHamil'));
     }
 
+    // ================================================================
+    // EDIT: Kader hanya bisa edit data identitas & fisik dasar
+    // TIDAK BISA edit hasil pemeriksaan bidan
+    // ================================================================
     public function edit($id)
     {
         $ibuHamil = IbuHamil::findOrFail($id);
         return view('kader.data.ibu-hamil.edit', compact('ibuHamil'));
     }
 
+    // ================================================================
+    // UPDATE: Kader update data identitas + fisik dasar saja
+    // ================================================================
     public function update(Request $request, $id)
     {
         $ibuHamil = IbuHamil::findOrFail($id);
 
-        $request->validate([
+        $validated = $request->validate([
             'nama_lengkap'    => 'required|string|max:255',
             'nik'             => 'nullable|digits:16|unique:ibu_hamils,nik,' . $id,
             'tempat_lahir'    => 'nullable|string|max:255',
-            'tanggal_lahir'   => 'nullable|date|before_or_equal:today',
+            'tanggal_lahir'   => 'nullable|date|before:today',
             'nama_suami'      => 'nullable|string|max:255',
             'alamat'          => 'required|string',
             'telepon_ortu'    => 'nullable|string|max:15',
+            'golongan_darah'  => 'nullable|string|max:3',
             'hpht'            => 'nullable|date|before_or_equal:today',
             'hpl'             => 'nullable|date',
-            'golongan_darah'  => 'nullable|in:A,B,AB,O,A+,A-,B+,B-,AB+,AB-,O+,O-',
             'riwayat_penyakit'=> 'nullable|string|max:255',
-            'berat_badan'     => 'nullable|numeric|min:30|max:200',
+            'berat_badan'     => 'nullable|numeric|min:20|max:200',
             'tinggi_badan'    => 'nullable|numeric|min:100|max:250',
         ]);
 
         try {
-            $hpl = $request->hpl;
-            if ($request->hpht && !$hpl) {
-                $hpl = \Carbon\Carbon::parse($request->hpht)->addDays(280)->format('Y-m-d');
+            $imt = null;
+            if (!empty($validated['berat_badan']) && !empty($validated['tinggi_badan'])) {
+                $tinggiM = $validated['tinggi_badan'] / 100;
+                $imt = round($validated['berat_badan'] / ($tinggiM * $tinggiM), 2);
             }
 
-            $linkedUser = $this->findLinkedUser($request->nik, $request->nama_lengkap);
-
-            $ibuHamil->update([
-                'user_id'          => $linkedUser?->id,
-                'nama_lengkap'     => $request->nama_lengkap,
-                'nik'              => $request->nik,
-                'tempat_lahir'     => $request->tempat_lahir,
-                'tanggal_lahir'    => $request->tanggal_lahir,
-                'nama_suami'       => $request->nama_suami,
-                'alamat'           => $request->alamat,
-                'telepon_ortu'     => $request->telepon_ortu,
-                'hpht'             => $request->hpht,
-                'hpl'              => $hpl,
-                'golongan_darah'   => $request->golongan_darah,
-                'riwayat_penyakit' => $request->riwayat_penyakit,
-                'berat_badan'      => $request->berat_badan,
-                'tinggi_badan'     => $request->tinggi_badan,
-            ]);
+            $ibuHamil->update([...$validated, 'imt' => $imt]);
 
             return redirect()->route('kader.data.ibu-hamil.index')
-                ->with('success', 'Data Ibu Hamil berhasil diperbarui.');
+                ->with('success', 'Data berhasil diperbarui.');
 
         } catch (\Exception $e) {
-            Log::error('Gagal update ibu hamil: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Gagal memperbarui: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
         }
     }
 
+    // ================================================================
+    // DESTROY: Hanya bisa hapus jika belum ada pemeriksaan bidan
+    // ================================================================
     public function destroy($id)
     {
-        IbuHamil::findOrFail($id)->delete();
+        $ibuHamil = IbuHamil::withCount('pemeriksaans')->findOrFail($id);
+
+        if ($ibuHamil->pemeriksaans_count > 0) {
+            return back()->with('error',
+                'Tidak dapat menghapus: ibu hamil ini sudah memiliki ' .
+                $ibuHamil->pemeriksaans_count . ' riwayat pemeriksaan dari bidan.'
+            );
+        }
+
+        $ibuHamil->delete();
         return redirect()->route('kader.data.ibu-hamil.index')
             ->with('success', 'Data ibu hamil berhasil dihapus.');
-    }
-
-    // Radar Sapu Jagat
-    private function findLinkedUser($nik, $nama)
-    {
-        if (!$nik && !$nama) return null;
-        $cleanNik  = preg_replace('/[^0-9]/', '', (string)$nik);
-        $cleanName = trim((string)$nama);
-
-        foreach (User::all() as $user) {
-            if ($cleanNik && ($user->nik ?? '') === $cleanNik) return $user;
-            if ($cleanName && stripos($user->name, $cleanName) !== false) return $user;
-        }
-
-        if (Schema::hasTable('profiles')) {
-            foreach (DB::table('profiles')->get() as $p) {
-                if ($cleanNik && ($p->nik ?? '') === $cleanNik) return User::find($p->user_id);
-                if ($cleanName && stripos($p->full_name ?? '', $cleanName) !== false) return User::find($p->user_id);
-            }
-        }
-        return null;
     }
 }

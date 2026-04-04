@@ -2,59 +2,82 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class IbuHamil extends Model
 {
+    use HasFactory;
+
     protected $table = 'ibu_hamils';
 
     protected $fillable = [
-        'user_id', 'kode_hamil', 'nama_lengkap', 'nik',
-        'tempat_lahir', 'tanggal_lahir', 'nama_suami',
-        'alamat', 'telepon_ortu', 'hpht', 'hpl',
-        'golongan_darah', 'riwayat_penyakit',
-        'berat_badan', 'tinggi_badan', 'created_by',
+        'user_id',
+        'kode_hamil',
+        'nama_lengkap',
+        'nik',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'nama_suami',
+        'alamat',
+        'telepon_ortu',
+        'hpht',
+        'hpl',
+        'golongan_darah',
+        'riwayat_penyakit',
+        'berat_badan',
+        'tinggi_badan',
+        'imt',
+        'status',     // aktif | selesai
+        'created_by',
     ];
 
     protected $casts = [
         'tanggal_lahir' => 'date',
         'hpht'          => 'date',
         'hpl'           => 'date',
+        'berat_badan'   => 'float',
+        'tinggi_badan'  => 'float',
+        'imt'           => 'float',
     ];
 
-    // Relasi ke user (warga)
+    // ── Relasi ──────────────────────────────────────────────────
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Kader yang mencatat
     public function pencatat()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    // ===== ACCESSORS =====
+    /** Semua riwayat pemeriksaan oleh bidan */
+    public function pemeriksaans()
+    {
+        return $this->hasMany(PemeriksaanIbuHamil::class, 'ibu_hamil_id')
+                    ->orderBy('tanggal_periksa', 'desc');
+    }
 
-    // Hitung usia kehamilan (minggu) dari HPHT
+    /** Pemeriksaan terakhir */
+    public function pemeriksaan_terakhir()
+    {
+        return $this->hasOne(PemeriksaanIbuHamil::class, 'ibu_hamil_id')
+                    ->latest('tanggal_periksa');
+    }
+
+    // ── Accessor: Usia kehamilan dalam minggu ────────────────────
+
     public function getUsiaKehamilanAttribute(): ?int
     {
         if (!$this->hpht) return null;
-        return (int) $this->hpht->diffInWeeks(now());
+        return (int) now()->diffInWeeks($this->hpht);
     }
 
-    // Label trimester
-    public function getTrimesterAttribute(): ?string
-    {
-        $minggu = $this->usia_kehamilan;
-        if ($minggu === null) return null;
-        if ($minggu <= 12) return 'Trimester I (1–12 minggu)';
-        if ($minggu <= 27) return 'Trimester II (13–27 minggu)';
-        return 'Trimester III (28+ minggu)';
-    }
+    // ── Accessor: Nomor trimester (1/2/3) ────────────────────────
 
-    // Angka trimester saja (1/2/3)
     public function getTrimesterAngkaAttribute(): ?int
     {
         $minggu = $this->usia_kehamilan;
@@ -64,26 +87,48 @@ class IbuHamil extends Model
         return 3;
     }
 
-    // Sisa hari menuju HPL
+    // ── Accessor: Label trimester ─────────────────────────────────
+
+    public function getTrimesterAttribute(): string
+    {
+        return match($this->trimester_angka) {
+            1       => 'Trimester I',
+            2       => 'Trimester II',
+            3       => 'Trimester III',
+            default => 'Belum Diisi',
+        };
+    }
+
+    // ── Accessor: Sisa hari menuju HPL ───────────────────────────
+
     public function getSisaHariAttribute(): ?int
     {
         if (!$this->hpl) return null;
-        $sisa = now()->diffInDays($this->hpl, false);
-        return (int) $sisa;
+        return (int) now()->diffInDays($this->hpl, false);
     }
 
-    // IMT
-    public function getImtAttribute(): ?float
+    // ── Accessor: IMT dihitung otomatis ──────────────────────────
+
+    public function getImtHitungAttribute(): ?float
     {
-        if (!$this->berat_badan || !$this->tinggi_badan) return null;
-        $tm = $this->tinggi_badan / 100;
-        return round($this->berat_badan / ($tm * $tm), 2);
+        if (!$this->berat_badan || !$this->tinggi_badan || $this->tinggi_badan < 50) return null;
+        $tinggiM = $this->tinggi_badan / 100;
+        return round($this->berat_badan / ($tinggiM * $tinggiM), 2);
     }
 
-    // Label status (aktif / sudah lahir)
-    public function getStatusKehamilanAttribute(): string
+    // ── Scope: Hanya yang masih aktif (hamil) ────────────────────
+
+    public function scopeAktif($query)
     {
-        if (!$this->hpl) return 'Aktif';
-        return now()->gt($this->hpl) ? 'Perkiraan Sudah Lahir' : 'Aktif';
+        return $query->where('status', 'aktif');
+    }
+
+    // ── Scope: Hampir melahirkan (HPL dalam 30 hari) ─────────────
+
+    public function scopeHampirLahir($query, int $hari = 30)
+    {
+        return $query->whereNotNull('hpl')
+                     ->whereDate('hpl', '>=', now())
+                     ->whereDate('hpl', '<=', now()->addDays($hari));
     }
 }

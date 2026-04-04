@@ -1,297 +1,247 @@
 @extends('layouts.bidan')
-@section('title', 'Dashboard Bidan')
-@section('page-name', 'Dashboard Monitoring')
+@section('title', 'Command Center Klinis')
+@section('page-name', 'Dashboard Klinis')
 
 @section('content')
 <style>
-/* ── DASHBOARD BIDAN PREMIUM STYLES ── */
-@keyframes pulseRing { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4) } 50% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0) } }
-.animate-slide-up { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-slide-up { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes slideUpFade { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .klinik-card { 
+        background: #ffffff; 
+        border: 1px solid #e2e8f0; 
+        border-radius: 24px; 
+        box-shadow: 0 4px 20px -10px rgba(0,0,0,0.03); 
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .klinik-card:hover { 
+        box-shadow: 0 25px 50px -12px rgba(6, 182, 212, 0.15); 
+        border-color: rgba(6, 182, 212, 0.3); 
+        transform: translateY(-4px); 
+    }
 
-/* HERO - Medical Cyan/Blue Premium */
-.hero { background: linear-gradient(135deg, #0891b2 0%, #0369a1 100%); border-radius: 32px; padding: 48px; margin-bottom: 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; position: relative; overflow: hidden; box-shadow: 0 20px 40px -10px rgba(8, 145, 178, 0.3); }
-.hero::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.5; pointer-events: none; }
-.hero-glow-1 { position: absolute; top: -100px; right: 50px; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%); pointer-events: none; }
-.hero-glow-2 { position: absolute; bottom: -80px; left: -50px; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(14, 165, 233, 0.2) 0%, transparent 70%); pointer-events: none; }
-
-.hero-txt { position: relative; z-index: 1; }
-.hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; font-size: 11px; font-weight: 800; padding: 6px 16px; border-radius: 50px; margin-bottom: 20px; letter-spacing: 1px; text-transform: uppercase; shadow-sm}
-.hero-badge .pulse { width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: pulseRing 2s infinite; }
-.hero-title { font-size: 36px; font-weight: 900; color: #fff; line-height: 1.2; margin-bottom: 12px; letter-spacing: -0.5px; }
-.hero-desc { font-size: 15px; color: rgba(255, 255, 255, 0.9); margin-bottom: 0; max-width: 500px; font-weight: 500; line-height: 1.6; }
-
-/* STATS CARDS */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 32px; }
-.stat-card { background: #fff; border: 1px solid rgba(226, 232, 240, 0.6); border-radius: 28px; padding: 26px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03); transition: all 0.3s ease; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;}
-.stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06); border-color: #cbd5e1; }
-
-.stat-card.alert-card { background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: white; border: none; box-shadow: 0 12px 30px rgba(225, 29, 72, 0.25); }
-.stat-card.alert-card .stat-label { color: rgba(255,255,255,0.85); }
-.stat-card.alert-card .stat-value { color: white; }
-
-.stat-icon { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 16px; }
-.stat-label { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; font-family: 'Poppins', sans-serif;}
-.stat-value { font-size: 36px; font-weight: 900; color: #0f172a; line-height: 1; letter-spacing: -1px; }
-
-@media(max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-@media(max-width: 900px) { .hero { padding: 36px 28px; border-radius: 28px; } .hero-title { font-size: 28px; } }
-@media(max-width: 580px) { .stats-grid { grid-template-columns: 1fr; gap: 16px; } .hero { border-radius: 24px; padding: 28px 20px; } .hero-title { font-size: 24px; } .stat-value { font-size: 32px; } }
+    .pulse-alert { animation: pulseRed 2s infinite; }
+    @keyframes pulseRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4) } 50% { box-shadow: 0 0 0 6px rgba(244, 63, 94, 0) } }
 </style>
 
-<div class="animate-slide-up">
+<div class="max-w-[1500px] mx-auto relative pb-8">
     
-    <div class="hero">
-        <div class="hero-glow-1"></div><div class="hero-glow-2"></div>
-        <div class="hero-txt">
-            <div class="hero-badge"><span class="pulse"></span> Monitor Medis Aktif</div>
-            <h1 class="hero-title">Halo Bidan <span class="text-cyan-200">{{ Str::words(Auth::user()->name, 1, '') }}</span> 👋</h1>
-            <p class="hero-desc">Pantau status kesehatan warga, validasi hasil pemeriksaan dari kader, dan pastikan tidak ada indikasi gizi buruk yang terlewat.</p>
+    {{-- 1. HEADER BANNER (Medical Clean) --}}
+    <div class="bg-white rounded-[32px] p-8 md:p-10 mb-8 border border-slate-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.04)] flex flex-col lg:flex-row items-center justify-between gap-8 animate-slide-up relative overflow-hidden">
+        
+        <div class="absolute -right-20 -top-20 w-80 h-80 bg-cyan-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+        <div class="relative z-10 w-full lg:w-auto flex-1 text-center lg:text-left">
+            <h1 class="text-3xl md:text-[38px] font-black text-slate-900 tracking-tight font-poppins mb-2">
+                Halo Bidan <span class="text-cyan-600">{{ Str::words(Auth::user()->name ?? 'Hebat', 1, '') }}</span> 👋
+            </h1>
+            <p class="text-slate-500 font-medium text-[14px] md:text-[15px] max-w-2xl leading-relaxed mb-6 mx-auto lg:mx-0">
+                Pusat validasi data klinis Posyandu. Pantau antrian meja 5 dan analisis grafik kesehatan warga secara akurat.
+            </p>
+
+            <div class="flex flex-wrap justify-center lg:justify-start items-center gap-3">
+                <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-[14px] bg-slate-50 border border-slate-100 text-slate-700 text-[13px] font-bold">
+                    <i class="far fa-calendar-alt text-cyan-500"></i> {{ now()->translatedFormat('l, d F Y') }}
+                </div>
+                <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-[14px] bg-slate-50 border border-slate-100 text-slate-700 text-[13px] font-bold">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div> DB Tersinkronisasi
+                </div>
+            </div>
         </div>
-        <div class="hidden md:flex items-center justify-center w-44 h-44 bg-white/10 backdrop-blur-2xl border border-white/30 rounded-[2.5rem] shadow-2xl relative z-10 rotate-6 hover:rotate-0 transition-transform duration-500">
-            <i class="fas fa-stethoscope text-7xl text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.2)]"></i>
+
+        <div class="hidden lg:flex w-40 h-40 rounded-[24px] bg-cyan-50 border border-cyan-100 flex-col items-center justify-center shrink-0 shadow-inner relative z-10">
+            <i class="fas fa-user-md text-6xl text-cyan-500 mb-2"></i>
+            <span class="text-[10px] font-black uppercase tracking-widest text-cyan-700">Verifikator</span>
         </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card border-b-[6px] border-b-rose-500">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <div class="stat-label">Risiko Stunting</div>
-                    <div class="stat-value">{{ $balitaStunting ?? 0 }}</div>
+    {{-- 2. METRIC CARDS (Triase & Beban Kerja) --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 animate-slide-up" style="animation-delay: 0.1s;">
+        
+        {{-- Antrian Pending (Penting!) --}}
+        <div class="klinik-card p-6 relative overflow-hidden group flex flex-col justify-between border-rose-200/60 bg-rose-50/30">
+            <div class="flex justify-between items-start mb-5">
+                <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl border border-rose-200 shrink-0 {{ $stats['menunggu_validasi'] > 0 ? 'pulse-alert' : '' }}">
+                    <i class="fas fa-procedures"></i>
                 </div>
-                <div class="stat-icon bg-rose-100 text-rose-600 mb-0"><i class="fas fa-baby"></i></div>
+                @if($stats['menunggu_validasi'] > 0)
+                <span class="bg-rose-500 text-white px-2 py-1 rounded text-[9px] font-black uppercase tracking-widest animate-pulse">Perlu Aksi</span>
+                @endif
             </div>
-            <div class="w-full bg-slate-100 rounded-full h-2 mt-2">
-                <div class="bg-rose-500 h-2 rounded-full" style="width: {{ $totalBalita > 0 ? ($balitaStunting/$totalBalita)*100 : 0 }}%"></div>
-            </div>
-            <p class="text-[11px] text-slate-500 mt-2.5 font-bold">Dari total {{ $totalBalita ?? 0 }} balita terdaftar</p>
-        </div>
-
-        <div class="stat-card border-b-[6px] border-b-amber-500">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <div class="stat-label">Lansia Hipertensi</div>
-                    <div class="stat-value">{{ $lansiaHipertensi ?? 0 }}</div>
-                </div>
-                <div class="stat-icon bg-amber-100 text-amber-600 mb-0"><i class="fas fa-heartbeat"></i></div>
-            </div>
-            <div class="w-full bg-slate-100 rounded-full h-2 mt-2">
-                <div class="bg-amber-500 h-2 rounded-full" style="width: {{ $totalLansia > 0 ? ($lansiaHipertensi/$totalLansia)*100 : 0 }}%"></div>
-            </div>
-            <p class="text-[11px] text-slate-500 mt-2.5 font-bold">Dari total {{ $totalLansia ?? 0 }} lansia terdaftar</p>
-        </div>
-
-        <div class="stat-card {{ ($jumlahBelumValidasi ?? 0) > 0 ? 'alert-card' : 'border-b-[6px] border-b-cyan-500' }}">
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <div class="stat-label">Antrian Validasi</div>
-                    <div class="stat-value">{{ $jumlahBelumValidasi ?? 0 }}</div>
-                </div>
-                <div class="stat-icon {{ ($jumlahBelumValidasi ?? 0) > 0 ? 'bg-white/20 text-white' : 'bg-cyan-100 text-cyan-600' }} mb-0">
-                    <i class="fas fa-file-signature"></i>
-                </div>
-            </div>
-            <a href="#antrian-section" class="mt-4 w-full py-2.5 flex items-center justify-center gap-2 text-[13px] font-bold rounded-xl transition-colors {{ ($jumlahBelumValidasi ?? 0) > 0 ? 'bg-white/20 hover:bg-white/30 text-white shadow-sm' : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-700' }}">
-                Periksa Sekarang <i class="fas fa-arrow-down"></i>
-            </a>
-        </div>
-
-        <div class="stat-card border-b-[6px] border-b-indigo-500">
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <div class="stat-label">Agenda Berikutnya</div>
-                    @if($jadwalBerikutnya)
-                        <div class="text-2xl font-black text-slate-800 tracking-tight">{{ \Carbon\Carbon::parse($jadwalBerikutnya->tanggal)->format('d M Y') }}</div>
-                    @else
-                        <div class="text-xl font-black text-slate-400">Belum Ada</div>
-                    @endif
-                </div>
-                <div class="stat-icon bg-indigo-100 text-indigo-600 mb-0"><i class="fas fa-calendar-day"></i></div>
-            </div>
-            <p class="text-[13px] text-slate-600 font-bold mt-2 truncate"><i class="fas fa-map-marker-alt text-slate-400 mr-1"></i> {{ $jadwalBerikutnya->judul ?? 'Buat jadwal baru' }}</p>
-        </div>
-    </div>
-
-    <div id="antrian-section" class="bg-white rounded-[32px] border border-slate-200/80 shadow-[0_10px_40px_rgb(0,0,0,0.03)] mb-8 overflow-hidden">
-        <div class="px-8 py-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
             <div>
-                <h3 class="text-lg font-black text-slate-800 flex items-center gap-3 font-poppins">
-                    <div class="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-600 flex items-center justify-center"><i class="fas fa-user-md"></i></div>
-                    Antrian Validasi Medis
-                </h3>
-                <p class="text-[13px] font-semibold text-slate-500 mt-1">Data pengukuran dari kader yang membutuhkan verifikasi dan diagnosa klinis dari Anda.</p>
+                <h3 class="text-4xl font-black text-rose-600 font-poppins leading-none mb-1.5">{{ $stats['menunggu_validasi'] }}</h3>
+                <p class="text-[12px] font-bold text-slate-500 uppercase tracking-widest">Menunggu Validasi</p>
             </div>
-            @if(count($antrianPemeriksaan ?? []) > 0)
-                <a href="{{ route('bidan.pemeriksaan.index') }}?status=pending" class="px-5 py-2.5 bg-white border border-slate-200 text-cyan-700 text-sm font-bold rounded-xl hover:bg-cyan-50 transition-colors shadow-sm">
-                    Lihat Semua Antrian
-                </a>
-            @else
-                <span class="px-4 py-2 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-xl border border-emerald-200 flex items-center gap-2">
-                    <i class="fas fa-check-circle"></i> Antrian Bersih
-                </span>
-            @endif
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-white border-b border-slate-100">
-                        <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-widest">Waktu Input</th>
-                        <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-widest">Pasien & Kategori</th>
-                        <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-widest">Hasil Ukur Kader</th>
-                        <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
-                        <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-widest text-right">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    @forelse($antrianPemeriksaan ?? [] as $item)
-                    <tr class="hover:bg-slate-50/80 transition-colors group">
-                        <td class="px-8 py-5">
-                            <p class="font-bold text-slate-800 text-[15px]">{{ $item->created_at->format('H:i') }} <span class="text-xs text-slate-500">WIB</span></p>
-                            <p class="text-[11px] font-bold text-cyan-600 mt-0.5">{{ $item->created_at->diffForHumans() }}</p>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="font-black text-slate-800 text-[15px]">{{ $item->nama_pasien }}</p>
-                            <span class="inline-block mt-1 px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-black rounded-lg uppercase tracking-widest border border-slate-200">{{ $item->kategori_pasien }}</span>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex flex-wrap gap-2 text-[12px] font-bold text-slate-600">
-                                <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">BB: <span class="font-black text-slate-800">{{ $item->berat_badan }} kg</span></span>
-                                <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">TB: <span class="font-black text-slate-800">{{ $item->tinggi_badan }} cm</span></span>
-                                @if($item->tekanan_darah)
-                                    <span class="bg-rose-50 border border-rose-100 text-rose-700 px-3 py-1.5 rounded-lg shadow-sm">TD: <span class="font-black">{{ $item->tekanan_darah }}</span></span>
-                                @endif
-                            </div>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 text-[11px] font-black border border-amber-200 tracking-wide uppercase"><i class="fas fa-hourglass-half animate-pulse"></i> Menunggu</span>
-                        </td>
-                        <td class="px-8 py-5 text-right">
-                            <a href="{{ route('bidan.pemeriksaan.show', $item->id) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-[13px] font-black rounded-xl hover:from-cyan-600 hover:to-blue-700 shadow-[0_8px_16px_rgba(8,145,178,0.25)] transition-all transform hover:-translate-y-1">
-                                <i class="fas fa-stethoscope"></i> Diagnosa
-                            </a>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="5" class="px-8 py-16 text-center">
-                            <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 mx-auto mb-4 text-4xl border-2 border-emerald-100 shadow-sm"><i class="fas fa-shield-check"></i></div>
-                            <h4 class="font-black text-slate-800 text-lg font-poppins">Tidak ada antrian data</h4>
-                            <p class="text-[13px] font-medium text-slate-500 mt-1">Kerja bagus! Semua data pemeriksaan telah Anda validasi hari ini.</p>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+        {{-- Selesai Hari Ini --}}
+        <div class="klinik-card p-6 relative flex flex-col justify-between">
+            <div class="flex justify-between items-start mb-5">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl border border-emerald-100 shrink-0">
+                    <i class="fas fa-check-double"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-4xl font-black text-slate-800 font-poppins leading-none mb-1.5">{{ $stats['selesai_divalidasi'] }}</h3>
+                <p class="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Selesai Hari Ini</p>
+            </div>
         </div>
+
+        {{-- Total Database --}}
+        <div class="klinik-card p-6 relative flex flex-col justify-between">
+            <div class="flex justify-between items-start mb-5">
+                <div class="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-xl border border-cyan-100 shrink-0">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-4xl font-black text-slate-800 font-poppins leading-none mb-1.5">{{ $stats['total_pasien'] }}</h3>
+                <p class="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Total Pasien Terdaftar</p>
+            </div>
+        </div>
+
+        {{-- Jadwal Aktif --}}
+        <div class="klinik-card p-6 relative flex flex-col justify-between">
+            <div class="flex justify-between items-start mb-5">
+                <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-500 flex items-center justify-center text-xl border border-violet-100 shrink-0">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-4xl font-black text-slate-800 font-poppins leading-none mb-1.5">{{ $stats['jadwal_hari_ini'] }}</h3>
+                <p class="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Jadwal Aktif Hari Ini</p>
+            </div>
+        </div>
+
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    {{-- 3. MAIN SECTION: Antrian & Chart --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-8 animate-slide-up" style="animation-delay: 0.2s;">
         
-        <div class="bg-white rounded-[32px] border border-slate-200/80 shadow-[0_10px_40px_rgb(0,0,0,0.03)] p-8">
-            <h3 class="text-base font-black text-slate-800 flex items-center gap-3 mb-8 font-poppins">
-                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fas fa-chart-pie text-sm"></i></div>
-                Status Gizi Balita
-            </h3>
-            <div class="relative h-56 mb-4 flex justify-center">
-                <canvas id="chartGizi"></canvas>
+        {{-- DAFTAR ANTRIAN LIVE (Sangat Penting untuk Bidan) --}}
+        <div class="lg:col-span-2 klinik-card p-6 sm:p-8 flex flex-col">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-[18px] font-black text-slate-800 font-poppins leading-none">Antrian Validasi Medis (Meja 5)</h3>
+                    <p class="text-[12px] font-medium text-slate-400 mt-1.5">Data terinput oleh Kader, menunggu verifikasi Anda.</p>
+                </div>
+                <a href="{{ route('bidan.pemeriksaan.index') }}" class="px-4 py-2 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-[11px] font-black uppercase tracking-widest rounded-xl transition-colors">Lihat Semua</a>
+            </div>
+
+            <div class="flex-1 overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse min-w-[500px]">
+                    <thead class="bg-slate-50/80 border-y border-slate-100">
+                        <tr>
+                            <th class="py-3 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Warga / Kategori</th>
+                            <th class="py-3 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fisik Dasar (Kader)</th>
+                            <th class="py-3 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Waktu Input</th>
+                            <th class="py-3 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($antrianLive as $antri)
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="py-3 px-4">
+                                @php
+                                    $nama = $antri->balita->nama_lengkap ?? $antri->remaja->nama_lengkap ?? $antri->lansia->nama_lengkap ?? 'Ibu Hamil';
+                                @endphp
+                                <p class="text-[13px] font-bold text-slate-800 truncate max-w-[150px]">{{ $nama }}</p>
+                                <span class="text-[10px] font-black text-cyan-600 uppercase tracking-wider">{{ $antri->kategori_pasien }}</span>
+                            </td>
+                            <td class="py-3 px-4">
+                                <span class="inline-block px-2 py-1 bg-white border border-slate-200 text-slate-600 text-[11px] font-bold rounded-md shadow-sm">
+                                    BB: {{ $antri->berat_badan ?? '-' }}kg | TB: {{ $antri->tinggi_badan ?? '-' }}cm
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 text-[12px] font-medium text-slate-500">
+                                {{ $antri->created_at->diffForHumans() }}
+                            </td>
+                            <td class="py-3 px-4 text-right">
+                                {{-- Tombol Verifikasi yang akan memicu halaman Validasi (Nanti kita buat) --}}
+                                <a href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-500 text-[11px] font-bold rounded-lg transition-all">
+                                    <i class="fas fa-stethoscope"></i> Periksa
+                                </a>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="4" class="py-12 text-center">
+                                <div class="inline-flex w-12 h-12 bg-slate-50 border border-slate-100 rounded-full items-center justify-center text-slate-300 mb-3"><i class="fas fa-check-double text-xl"></i></div>
+                                <p class="text-[13px] font-bold text-slate-500">Tidak ada antrian validasi saat ini.</p>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="lg:col-span-2 bg-white rounded-[32px] border border-slate-200/80 shadow-[0_10px_40px_rgb(0,0,0,0.03)] p-8">
-            <div class="flex justify-between items-center mb-8">
-                <h3 class="text-base font-black text-slate-800 flex items-center gap-3 font-poppins">
-                    <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center"><i class="fas fa-chart-line text-sm"></i></div>
-                    Tren Kunjungan Posyandu
-                </h3>
+        {{-- ALERT RISIKO & GRAFIK KECIL --}}
+        <div class="flex flex-col gap-6">
+            
+            {{-- Alert Risiko --}}
+            <div class="klinik-card p-6 border-l-4 border-l-amber-400 bg-amber-50/30">
+                <h3 class="text-[15px] font-black text-slate-800 font-poppins mb-4 flex items-center gap-2"><i class="fas fa-exclamation-triangle text-amber-500"></i> Pantauan Risiko Tinggi</h3>
+                
+                <div class="space-y-3">
+                    <div class="bg-white p-3 rounded-xl border border-slate-100 flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center"><i class="fas fa-baby"></i></div>
+                            <span class="text-[12px] font-bold text-slate-700">Balita Stunting</span>
+                        </div>
+                        <span class="text-[16px] font-black text-rose-600">{{ $alertRisiko['balita_stunting'] }}</span>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-slate-100 flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-500 flex items-center justify-center"><i class="fas fa-wheelchair"></i></div>
+                            <span class="text-[12px] font-bold text-slate-700">Lansia Hipertensi</span>
+                        </div>
+                        <span class="text-[16px] font-black text-sky-600">{{ $alertRisiko['lansia_hipertensi'] }}</span>
+                    </div>
+                </div>
             </div>
-            <div class="relative h-56">
-                <canvas id="chartKunjungan"></canvas>
+
+            {{-- Line Chart Validasi --}}
+            <div class="klinik-card p-6 flex-1 flex flex-col">
+                <h3 class="text-[15px] font-black text-slate-800 font-poppins mb-1">Tren Layanan Klinis</h3>
+                <p class="text-[11px] font-medium text-slate-400 mb-4">Grafik 7 hari pelayanan</p>
+                <div class="relative w-full flex-1" style="min-h: 150px;">
+                    <canvas id="lineChart"></canvas>
+                </div>
             </div>
+
         </div>
-        
     </div>
-
 </div>
 @endsection
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
+    
+    const formattedDates = {!! json_encode($chartLabels ?? []) !!};
+    const rawData = {!! json_encode($chartData ?? []) !!};
 
-    // Konfigurasi Font Default Chart.js
-    Chart.defaults.font.family = "'Inter', sans-serif";
-    Chart.defaults.color = '#64748b';
+    const lc = document.getElementById('lineChart');
+    if(lc && formattedDates.length > 0) {
+        const ctx = lc.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+        gradient.addColorStop(0, 'rgba(6, 182, 212, 0.3)'); 
+        gradient.addColorStop(1, 'rgba(6, 182, 212, 0.0)'); 
 
-    // CHART 1: GIZI BALITA (Doughnut)
-    const ctxGizi = document.getElementById('chartGizi');
-    if (ctxGizi) {
-        new Chart(ctxGizi, {
-            type: 'doughnut',
-            data: {
-                labels: ['Normal', 'Kurang', 'Stunting', 'Obesitas'],
-                datasets: [{
-                    data: [
-                        {{ $chartGizi['normal'] ?? 0 }},
-                        {{ $chartGizi['kurang'] ?? 0 }},
-                        {{ $chartGizi['stunting'] ?? 0 }},
-                        {{ $chartGizi['lebih'] ?? 0 }}
-                    ],
-                    backgroundColor: ['#10b981','#f59e0b','#f43f5e','#0ea5e9'],
-                    borderWidth: 4,
-                    borderColor: '#ffffff',
-                    hoverOffset: 8,
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false, cutout: '75%',
-                plugins: { 
-                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: {size: 12, weight: 'bold'} } },
-                    tooltip: { backgroundColor: '#0f172a', padding: 14, borderRadius: 12, titleFont: {size: 13}, bodyFont: {size: 14, weight: 'bold'} }
-                }
-            }
-        });
-    }
-
-    // CHART 2: TREN KUNJUNGAN (Line Area)
-    const ctxKunjungan = document.getElementById('chartKunjungan');
-    if (ctxKunjungan) {
-        const kCtx = ctxKunjungan.getContext('2d');
-        const gradient = kCtx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(8, 145, 178, 0.3)'); 
-        gradient.addColorStop(1, 'rgba(8, 145, 178, 0)');
-
-        new Chart(ctxKunjungan, {
+        new Chart(ctx, {
             type: 'line',
             data: {
-                labels: {!! json_encode($labelBulan ?? []) !!},
+                labels: formattedDates,
                 datasets: [{
-                    label: 'Jumlah Kunjungan',
-                    data: {!! json_encode($dataKunjungan ?? []) !!},
-                    borderColor: '#0891b2',
-                    backgroundColor: gradient,
-                    borderWidth: 3,
-                    tension: 0.4, // Membuat garis melengkung mulus (smooth curve)
-                    fill: true,
-                    pointRadius: 5,
-                    pointHoverRadius: 8,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#0891b2',
-                    pointBorderWidth: 3
+                    label: 'Pasien Divalidasi', data: rawData, borderColor: '#06b6d4', backgroundColor: gradient,
+                    borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: '#ffffff', pointBorderColor: '#06b6d4', pointBorderWidth: 2, pointRadius: 0, pointHoverRadius: 5
                 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false },
-                    tooltip: { backgroundColor: '#0f172a', padding: 14, borderRadius: 12, displayColors: false, titleFont: {size: 13}, bodyFont: {size: 15, weight: 'bold'} }
-                },
-                scales: {
-                    y: { beginAtZero: true, border: {display: false}, grid: { color: '#f1f5f9', drawBorder: false }, ticks: { precision: 0, font: {weight: 'bold'} } },
-                    x: { border: {display: false}, grid: { display: false }, ticks: { font: {weight: 'bold'} } }
-                },
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', padding: 10, cornerRadius: 8, titleFont: {family: "'Inter', sans-serif", size: 10}, bodyFont: {family: "'Inter', sans-serif", size: 12, weight: 'bold'}, displayColors: false } },
+                scales: { y: { beginAtZero: true, border: { display: false }, grid: { color: '#f1f5f9', drawTicks: false }, ticks: { stepSize: 1, color: '#94a3b8', font: {size: 9} } }, x: { border: { display: false }, grid: { display: false }, ticks: { color: '#94a3b8', font: {size: 9} } } },
                 interaction: { mode: 'index', intersect: false }
             }
         });

@@ -1,313 +1,396 @@
 @extends('layouts.kader')
-@section('title','Dashboard Kader')
-@section('page-name','Dashboard Overview')
+@section('title','Dashboard')
+@section('page-name','Dashboard')
+
+@push('styles')
+<style>
+    /* Staggered fade-in-up */
+    .fade-in-up { 
+        opacity: 0; 
+        animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+    }
+    @keyframes fadeInUp { 
+        from { opacity: 0; transform: translateY(16px); } 
+        to   { opacity: 1; transform: translateY(0); } 
+    }
+    .delay-1 { animation-delay: 80ms; }
+    .delay-2 { animation-delay: 180ms; }
+    .delay-3 { animation-delay: 280ms; }
+
+    /* Clean Card */
+    .clean-card { 
+        background: #ffffff; 
+        border: 1px solid #e2e8f0; 
+        border-radius: 20px; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 8px -4px rgba(0,0,0,0.03);
+        transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease; 
+    }
+    .clean-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 6px 24px -6px rgba(0,0,0,0.07);
+        transform: translateY(-2px);
+    }
+
+    /* Stat card icon circle */
+    .stat-icon {
+        width: 44px; height: 44px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px;
+        margin-bottom: 14px;
+        flex-shrink: 0;
+        transition: transform 0.25s ease;
+    }
+    .clean-card:hover .stat-icon { transform: scale(1.1); }
+
+    /* Timeline */
+    .tl-item { position: relative; padding-left: 22px; padding-bottom: 18px; }
+    .tl-item:last-child { padding-bottom: 0; }
+    .tl-dot { position: absolute; left: 0; top: 5px; width: 9px; height: 9px; border-radius: 50%; background: #818cf8; box-shadow: 0 0 0 3px rgba(129,140,248,0.15); }
+    .tl-line { position: absolute; left: 3.5px; top: 18px; bottom: -4px; width: 2px; background: linear-gradient(to bottom, #e2e8f0, transparent); }
+    .tl-item:last-child .tl-line { display: none; }
+
+    /* Jadwal hover item */
+    .jadwal-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid #f1f5f9;
+        background: #fafafa;
+        transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    }
+    .jadwal-item:hover {
+        background: #ffffff;
+        border-color: #c7d2fe;
+        transform: translateX(2px);
+        box-shadow: 0 2px 12px -4px rgba(99,102,241,0.12);
+    }
+    .jadwal-date {
+        width: 48px; height: 54px;
+        border-radius: 12px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.2s, border-color 0.2s;
+    }
+    .jadwal-item:hover .jadwal-date {
+        background: #eef2ff;
+        border-color: #c7d2fe;
+    }
+
+    /* Legend row */
+    .legend-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 9px 12px;
+        border-radius: 10px;
+        background: #fafafa;
+        border: 1px solid #f1f5f9;
+    }
+
+    /* Hero accent line */
+    .hero-accent {
+        position: absolute;
+        top: 0; left: 50%; transform: translateX(-50%);
+        width: 60%; height: 2px;
+        background: linear-gradient(90deg, transparent, #6366f1 40%, #818cf8 60%, transparent);
+        border-radius: 0 0 4px 4px;
+        opacity: 0.5;
+    }
+
+    /* Live badge */
+    .live-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 12px; border-radius: 99px;
+        background: #eef2ff; border: 1px solid #e0e7ff;
+        color: #6366f1; font-size: 10px; font-weight: 700;
+        letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.3)} }
+    .pulse { animation: pulseDot 2s ease-in-out infinite; }
+</style>
+@endpush
 
 @section('content')
-<style>
-    /* ── DASHBOARD ULTRA PREMIUM STYLES ── */
-    .animate-slide-up { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes slideUpFade { 
-        from { opacity: 0; transform: translateY(30px); } 
-        to { opacity: 1; transform: translateY(0); } 
-    }
-    
-    .glass-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        box-shadow: 0 10px 40px -10px rgba(79, 70, 229, 0.06);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .glass-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.12);
-        border-color: rgba(99, 102, 241, 0.3);
-    }
+<div class="max-w-[1400px] mx-auto pb-8 space-y-6">
 
-    .blob-bg {
-        position: absolute; filter: blur(80px); z-index: 0; opacity: 0.3;
-        animation: floatBlob 12s infinite alternate ease-in-out;
-        pointer-events: none;
-    }
-    @keyframes floatBlob {
-        0% { transform: translate(0, 0) scale(1); }
-        50% { transform: translate(30px, -30px) scale(1.1); }
-        100% { transform: translate(-10px, 20px) scale(0.9); }
-    }
+    {{-- ============================================================ --}}
+    {{-- 1. HERO — Minimalist, Centered --}}
+    {{-- ============================================================ --}}
+    <div class="clean-card p-8 md:p-12 flex flex-col items-center text-center fade-in-up relative overflow-hidden">
+        <div class="hero-accent"></div>
 
-    @keyframes pulseRing { 
-        0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4) } 
-        50% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0) } 
-    }
-    .pulse-dot { animation: pulseRing 2s infinite; }
-</style>
+        <div class="live-badge mb-5">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 pulse"></span>
+            Workspace Aktif
+        </div>
 
-<div class="max-w-[1400px] mx-auto relative pb-10">
-    
-    <div class="blob-bg bg-indigo-400 w-96 h-96 rounded-full top-0 left-0 hidden md:block"></div>
-    <div class="blob-bg bg-fuchsia-300 w-80 h-80 rounded-full bottom-40 right-10 hidden md:block" style="animation-delay: -4s;"></div>
+        <h1 class="text-3xl md:text-[42px] font-extrabold text-slate-900 tracking-tight leading-tight mb-3" style="font-family:'Syne',sans-serif;">
+            Halo, <span class="text-indigo-600">{{ Str::words(Auth::user()->profile->full_name ?? 'Kader', 2, '') }}!</span> 👋
+        </h1>
 
-    <div class="relative z-10">
-        
-        <div class="bg-gradient-to-br from-indigo-500 via-violet-600 to-indigo-800 rounded-[28px] sm:rounded-[32px] p-6 sm:p-8 md:p-12 mb-6 sm:mb-8 relative overflow-hidden shadow-[0_15px_40px_-10px_rgba(79,70,229,0.5)] flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8 animate-slide-up text-center md:text-left">
-            
-            <div class="absolute inset-0 opacity-[0.15] pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
-            <div class="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-indigo-400/20 rounded-full blur-2xl pointer-events-none"></div>
+        <p class="text-slate-500 text-[14px] md:text-[15px] leading-relaxed max-w-xl mb-7 font-medium">
+            Pantau metrik kesehatan warga, kelola jadwal pelayanan, dan lihat demografi Posyandu Anda secara real-time.
+        </p>
 
-            <div class="relative z-10 w-full md:w-auto">
-                <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] sm:text-[11px] font-black px-4 py-2 rounded-full mb-5 sm:mb-6 uppercase tracking-widest shadow-sm">
-                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 pulse-dot"></span> Sistem Aktif
-                </div>
-                
-                <h1 class="text-2xl sm:text-3xl md:text-5xl font-black text-white tracking-tight font-poppins mb-2 sm:mb-3 leading-tight">
-                    Halo, <span class="text-indigo-200">{{ Str::words(Auth::user()->profile->full_name ?? 'Kader Hebat', 2, '') }}!</span> 👋
-                </h1>
-                
-                <p class="text-indigo-100 font-medium text-[12px] sm:text-[14px] md:text-[15px] max-w-xl leading-relaxed mb-6 sm:mb-8 mx-auto md:mx-0">
-                    Pantau metrik kesehatan warga, jadwal pelayanan, dan demografi Posyandu Anda secara *real-time* di Command Center ini.
-                </p>
-
-                <div class="flex flex-wrap justify-center md:justify-start items-center gap-2 sm:gap-3">
-                    <div class="flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-black/20 backdrop-blur-sm border border-white/10 text-white text-[11px] sm:text-[13px] font-bold shadow-inner">
-                        <i class="fas fa-calendar-day text-indigo-300 text-sm sm:text-lg"></i> <span class="hidden sm:inline">{{ now()->translatedFormat('l, d F Y') }}</span><span class="sm:hidden">{{ now()->translatedFormat('d M Y') }}</span>
-                    </div>
-                    <div class="flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-black/20 backdrop-blur-sm border border-white/10 text-white text-[11px] sm:text-[13px] font-bold shadow-inner">
-                        <i class="fas fa-users text-emerald-400 text-sm sm:text-lg"></i> {{ ($stats['total_balita']??0)+($stats['total_remaja']??0)+($stats['total_lansia']??0) }} Warga
-                    </div>
-                </div>
+        <div class="flex flex-wrap justify-center items-center gap-3">
+            <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[13px] font-semibold">
+                <i class="far fa-calendar text-slate-400 text-sm"></i>
+                {{ now()->translatedFormat('d F Y') }}
             </div>
+            <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[13px] font-semibold">
+                <i class="fas fa-users text-slate-400 text-sm"></i>
+                {{ ($stats['total_balita']??0)+($stats['total_remaja']??0)+($stats['total_lansia']??0)+($stats['total_ibu_hamil']??0) }} Warga Terdaftar
+            </div>
+            <a href="{{ route('kader.kunjungan.index') }}" class="smooth-route flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-semibold transition-colors shadow-sm shadow-indigo-200">
+                <i class="fas fa-book-open text-sm"></i>
+                Buku Tamu
+            </a>
+        </div>
+    </div>
 
-            <div class="hidden lg:flex w-48 h-48 rounded-[32px] bg-white/10 backdrop-blur-md border border-white/20 text-white items-center justify-center text-[80px] shrink-0 shadow-2xl relative z-10 transform rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500">
-                <i class="fas fa-laptop-medical drop-shadow-lg"></i>
+    {{-- ============================================================ --}}
+    {{-- 2. STAT CARDS --}}
+    {{-- ============================================================ --}}
+    @php
+        $cards = [
+            ['label'=>'Balita', 'val'=>$stats['total_balita']??0, 'icon'=>'fa-baby', 'iconBg'=>'#fff1f2', 'iconColor'=>'#f43f5e'],
+            ['label'=>'Ibu Hamil', 'val'=>$stats['total_ibu_hamil']??0, 'icon'=>'fa-person-pregnant', 'iconBg'=>'#fdf2f8', 'iconColor'=>'#ec4899'],
+            ['label'=>'Remaja', 'val'=>$stats['total_remaja']??0, 'icon'=>'fa-user-graduate', 'iconBg'=>'#f0f9ff', 'iconColor'=>'#0ea5e9'],
+            ['label'=>'Lansia', 'val'=>$stats['total_lansia']??0, 'icon'=>'fa-person-cane', 'iconBg'=>'#f0fdf4', 'iconColor'=>'#10b981'],
+            ['label'=>'Jadwal Aktif', 'val'=>$stats['jadwal_hari_ini']??0, 'icon'=>'fa-calendar-check', 'iconBg'=>'#eef2ff', 'iconColor'=>'#6366f1'],
+        ];
+    @endphp
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 fade-in-up delay-1">
+        @foreach($cards as $c)
+        <div class="clean-card p-6 flex flex-col items-center text-center">
+            <div class="stat-icon" style="background:{{ $c['iconBg'] }};color:{{ $c['iconColor'] }};">
+                <i class="fas {{ $c['icon'] }}"></i>
+            </div>
+            <p class="text-[36px] font-extrabold text-slate-900 leading-none mb-1.5" style="font-family:'Syne',sans-serif;">{{ $c['val'] }}</p>
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">{{ $c['label'] }}</p>
+        </div>
+        @endforeach
+    </div>
+
+    {{-- ============================================================ --}}
+    {{-- 3. CHARTS ROW --}}
+    {{-- ============================================================ --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 fade-in-up delay-2">
+
+        {{-- Line Chart --}}
+        <div class="lg:col-span-2 clean-card p-7 flex flex-col">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-[17px] font-bold text-slate-800 leading-tight" style="font-family:'Syne',sans-serif;">Trafik Kehadiran</h3>
+                    <p class="text-[12px] text-slate-400 font-medium mt-0.5">Tren kunjungan 7 hari terakhir</p>
+                </div>
+                <a href="{{ route('kader.kunjungan.index') }}" class="smooth-route hidden sm:flex items-center gap-1.5 px-4 py-2 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 text-[12px] font-semibold rounded-xl transition-colors border border-slate-200">
+                    Buku Tamu <i class="fas fa-arrow-right text-[10px]"></i>
+                </a>
+            </div>
+            <div class="relative flex-1" style="min-height:260px;">
+                <canvas id="lineChart"></canvas>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8 animate-slide-up" style="animation-delay: 0.1s;">
-            
-            <div class="glass-card rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 relative overflow-hidden group flex flex-col h-full">
-                <div class="absolute -right-4 -top-4 sm:-right-6 sm:-top-6 w-16 h-16 sm:w-24 sm:h-24 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition-all"></div>
-                <div class="flex justify-between items-start mb-3 sm:mb-4 relative z-10 gap-2 sm:gap-0">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider sm:tracking-widest mb-0.5 sm:mb-1 truncate">Balita</p>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-800 font-poppins">{{ $stats['total_balita'] ?? 0 }}</h3>
-                    </div>
-                    <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-sm sm:text-xl shadow-inner border border-rose-200 shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                        <i class="fas fa-baby"></i>
-                    </div>
+        {{-- Aktivitas Terkini --}}
+        <div class="clean-card p-7 flex flex-col">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h3 class="text-[17px] font-bold text-slate-800 leading-tight" style="font-family:'Syne',sans-serif;">Aktivitas Terkini</h3>
+                    <p class="text-[12px] text-slate-400 font-medium mt-0.5">Log pendaftaran warga</p>
                 </div>
-                <div class="mt-auto pt-3 sm:pt-0 border-t border-slate-100/50 sm:border-0 flex items-center gap-1.5 text-[9px] sm:text-[11px] font-bold text-slate-500 relative z-10">
-                    <span class="flex items-center justify-center w-4 h-4 sm:w-auto sm:h-auto sm:px-1.5 sm:py-0.5 rounded-full sm:rounded bg-emerald-50 text-emerald-500 border border-emerald-100 shrink-0"><i class="fas fa-check sm:hidden text-[8px]"></i><i class="fas fa-arrow-up hidden sm:inline mr-1"></i><span class="hidden sm:inline">Terupdate</span></span> 
-                    <span class="truncate">di sistem</span>
+                <div class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse"></span> Live
                 </div>
             </div>
 
-            <div class="glass-card rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 relative overflow-hidden group flex flex-col h-full">
-                <div class="absolute -right-4 -top-4 sm:-right-6 sm:-top-6 w-16 h-16 sm:w-24 sm:h-24 bg-sky-500/10 rounded-full blur-xl group-hover:bg-sky-500/20 transition-all"></div>
-                <div class="flex justify-between items-start mb-3 sm:mb-4 relative z-10 gap-2 sm:gap-0">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider sm:tracking-widest mb-0.5 sm:mb-1 truncate">Remaja</p>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-800 font-poppins">{{ $stats['total_remaja'] ?? 0 }}</h3>
-                    </div>
-                    <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center text-sm sm:text-xl shadow-inner border border-sky-200 shrink-0 group-hover:scale-110 group-hover:-rotate-6 transition-transform">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                </div>
-                <div class="mt-auto pt-3 sm:pt-0 border-t border-slate-100/50 sm:border-0 flex items-center gap-1.5 text-[9px] sm:text-[11px] font-bold text-slate-500 relative z-10">
-                    <span class="flex items-center justify-center w-4 h-4 sm:w-auto sm:h-auto sm:px-1.5 sm:py-0.5 rounded-full sm:rounded bg-emerald-50 text-emerald-500 border border-emerald-100 shrink-0"><i class="fas fa-check sm:hidden text-[8px]"></i><i class="fas fa-arrow-up hidden sm:inline mr-1"></i><span class="hidden sm:inline">Terupdate</span></span> 
-                    <span class="truncate">di sistem</span>
-                </div>
-            </div>
-
-            <div class="glass-card rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 relative overflow-hidden group flex flex-col h-full">
-                <div class="absolute -right-4 -top-4 sm:-right-6 sm:-top-6 w-16 h-16 sm:w-24 sm:h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
-                <div class="flex justify-between items-start mb-3 sm:mb-4 relative z-10 gap-2 sm:gap-0">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider sm:tracking-widest mb-0.5 sm:mb-1 truncate">Lansia</p>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-800 font-poppins">{{ $stats['total_lansia'] ?? 0 }}</h3>
-                    </div>
-                    <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm sm:text-xl shadow-inner border border-emerald-200 shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                        <i class="fas fa-wheelchair"></i>
-                    </div>
-                </div>
-                <div class="mt-auto pt-3 sm:pt-0 border-t border-slate-100/50 sm:border-0 flex items-center gap-1.5 text-[9px] sm:text-[11px] font-bold text-slate-500 relative z-10">
-                    <span class="flex items-center justify-center w-4 h-4 sm:w-auto sm:h-auto sm:px-1.5 sm:py-0.5 rounded-full sm:rounded bg-emerald-50 text-emerald-500 border border-emerald-100 shrink-0"><i class="fas fa-check sm:hidden text-[8px]"></i><i class="fas fa-arrow-up hidden sm:inline mr-1"></i><span class="hidden sm:inline">Terupdate</span></span> 
-                    <span class="truncate">di sistem</span>
-                </div>
-            </div>
-
-            <div class="glass-card rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 relative overflow-hidden group flex flex-col h-full">
-                <div class="absolute -right-4 -top-4 sm:-right-6 sm:-top-6 w-16 h-16 sm:w-24 sm:h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all"></div>
-                <div class="flex justify-between items-start mb-3 sm:mb-4 relative z-10 gap-2 sm:gap-0">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider sm:tracking-widest mb-0.5 sm:mb-1 truncate">Jadwal</p>
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-800 font-poppins">{{ $stats['jadwal_hari_ini'] ?? 0 }}</h3>
-                    </div>
-                    <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm sm:text-xl shadow-inner border border-indigo-200 shrink-0 group-hover:scale-110 group-hover:-rotate-6 transition-transform">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                </div>
-                <div class="mt-auto pt-3 sm:pt-0 border-t border-slate-100/50 sm:border-0 flex items-center gap-1.5 text-[9px] sm:text-[11px] font-bold text-slate-500 relative z-10">
-                    <span class="truncate">Bulan ini</span>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 animate-slide-up" style="animation-delay: 0.2s;">
-            
-            <div class="lg:col-span-2 glass-card rounded-[24px] sm:rounded-[32px] p-5 sm:p-6 md:p-8 flex flex-col relative overflow-hidden">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 relative z-10">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-[10px] sm:rounded-[14px] bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shadow-sm shrink-0"><i class="fas fa-chart-area text-sm sm:text-lg"></i></div>
-                        <div>
-                            <h3 class="text-base sm:text-lg font-black text-slate-800 font-poppins leading-none">Statistik Kunjungan</h3>
-                            <p class="text-[9px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">Tren Layanan 7 Hari Terakhir</p>
+            <div class="flex-1 overflow-y-auto pr-1" style="max-height:280px;scrollbar-width:thin;scrollbar-color:#e2e8f0 transparent;">
+                @forelse($kunjungan_baru as $kunj)
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <div class="tl-line"></div>
+                    <div class="hover:bg-slate-50 rounded-xl p-3 -ml-1 transition-colors">
+                        <div class="flex items-start justify-between gap-2 mb-0.5">
+                            <p class="text-[13px] font-semibold text-slate-800 leading-tight">{{ $kunj->pasien->nama_lengkap ?? 'Warga' }}</p>
+                            <span class="text-[10px] text-slate-400 shrink-0 font-medium">{{ $kunj->created_at->diffForHumans(null, true, true) }}</span>
                         </div>
-                    </div>
-                    <div class="flex items-center gap-2 self-start sm:self-auto">
-                        <a href="{{ route('kader.kunjungan.index') }}" class="px-3 sm:px-5 py-2 sm:py-2.5 bg-white hover:bg-slate-50 text-slate-600 text-[10px] sm:text-[12px] font-black uppercase tracking-wider rounded-lg sm:rounded-xl transition-all border border-slate-200 shadow-sm hover:shadow flex items-center gap-1.5 sm:gap-2 smooth-route">
-                            <i class="fas fa-list-ul"></i> <span class="hidden sm:inline">Detail</span>
-                        </a>
-                        <a href="{{ route('kader.laporan.index') }}" class="px-3 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] sm:text-[12px] font-black uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-[0_4px_12px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 flex items-center gap-1.5 sm:gap-2 smooth-route">
-                            <i class="fas fa-file-pdf"></i> <span class="hidden sm:inline">Laporan</span>
-                        </a>
+                        <p class="text-[12px] text-slate-500 mb-1.5">Mendaftar kedatangan.</p>
+                        <span class="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md border border-slate-200 uppercase tracking-wide">
+                            <i class="fas fa-tag text-[8px]"></i> {{ class_basename($kunj->pasien_type) }}
+                        </span>
                     </div>
                 </div>
-                
-                <div class="relative w-full flex-1 z-10" style="min-h: 250px; sm:min-h: 300px;">
-                    <canvas id="lineChart"></canvas>
+                @empty
+                <div class="flex flex-col items-center justify-center h-36 text-slate-400 text-center">
+                    <i class="far fa-clock text-2xl mb-2 opacity-40"></i>
+                    <p class="text-[12px] font-semibold uppercase tracking-wider">Belum ada aktivitas</p>
                 </div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
+    {{-- ============================================================ --}}
+    {{-- 4. AGENDA & DEMOGRAFI --}}
+    {{-- ============================================================ --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 fade-in-up delay-3">
+
+        {{-- Agenda Mendatang --}}
+        <div class="lg:col-span-2 clean-card p-7">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h3 class="text-[17px] font-bold text-slate-800 leading-tight" style="font-family:'Syne',sans-serif;">Agenda Mendatang</h3>
+                    <p class="text-[12px] text-slate-400 font-medium mt-0.5">Jadwal operasional Posyandu</p>
+                </div>
+                <a href="{{ route('kader.jadwal.index') }}" class="smooth-route text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-xl transition-colors">
+                    Lihat Semua
+                </a>
             </div>
 
-            <div class="glass-card rounded-[24px] sm:rounded-[32px] p-5 sm:p-6 md:p-8 flex flex-col relative overflow-hidden">
-                <div class="flex items-center gap-3 mb-6 sm:mb-8 relative z-10">
-                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-[10px] sm:rounded-[14px] bg-amber-50 text-amber-500 flex items-center justify-center border border-amber-100 shadow-sm shrink-0"><i class="fas fa-chart-pie text-sm sm:text-lg"></i></div>
-                    <div>
-                        <h3 class="text-base sm:text-lg font-black text-slate-800 font-poppins leading-none">Demografi Warga</h3>
-                        <p class="text-[9px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">Distribusi Pasien Aktif</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                @forelse($jadwal_mendatang as $jdw)
+                <a href="{{ route('kader.jadwal.show', $jdw->id) }}" class="jadwal-item smooth-route group">
+                    <div class="jadwal-date">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide group-hover:text-indigo-400 transition-colors">{{ \Carbon\Carbon::parse($jdw->tanggal)->translatedFormat('M') }}</span>
+                        <span class="text-[19px] font-extrabold text-slate-800 leading-none mt-0.5" style="font-family:'Syne',sans-serif;">{{ \Carbon\Carbon::parse($jdw->tanggal)->format('d') }}</span>
                     </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-[13px] font-semibold text-slate-800 truncate mb-1 group-hover:text-indigo-600 transition-colors">{{ $jdw->judul }}</h4>
+                        <p class="text-[12px] text-slate-400 flex items-center gap-1.5">
+                            <i class="far fa-clock text-[11px]"></i>
+                            {{ \Carbon\Carbon::parse($jdw->waktu_mulai)->format('H:i') }} WIB
+                        </p>
+                    </div>
+                    <i class="fas fa-chevron-right text-[10px] text-slate-300 group-hover:text-indigo-400 transition-colors shrink-0"></i>
+                </a>
+                @empty
+                <div class="sm:col-span-2 py-10 text-center text-slate-400 border border-dashed border-slate-200 rounded-2xl bg-slate-50/80">
+                    <i class="far fa-calendar-times text-2xl mb-2 block opacity-40"></i>
+                    <p class="text-[12px] font-medium">Tidak ada jadwal dalam waktu dekat</p>
                 </div>
-                
-                @php $totalW = ($stats['total_balita']??0)+($stats['total_remaja']??0)+($stats['total_lansia']??0); @endphp
-                
-                @if($totalW == 0)
-                    <div class="h-40 sm:h-48 flex flex-col items-center justify-center text-slate-400 mb-4 sm:mb-6 relative z-10">
-                        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-2xl shadow-inner mb-3"><i class="fas fa-users-slash"></i></div>
-                        <p class="font-black text-[11px] sm:text-[13px] uppercase tracking-widest text-slate-400">Database Kosong</p>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Distribusi Warga --}}
+        <div class="clean-card p-7 flex flex-col">
+            <div class="mb-5 text-center">
+                <h3 class="text-[17px] font-bold text-slate-800 leading-tight" style="font-family:'Syne',sans-serif;">Distribusi Warga</h3>
+                <p class="text-[12px] text-slate-400 font-medium mt-0.5">Demografi database saat ini</p>
+            </div>
+
+            @php $totalW = ($stats['total_balita']??0)+($stats['total_remaja']??0)+($stats['total_lansia']??0)+($stats['total_ibu_hamil']??0); @endphp
+
+            <div class="relative mx-auto mb-6" style="width:170px;height:170px;">
+                @if($totalW > 0)
+                    <canvas id="donutChart"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Total</span>
+                        <span class="text-[30px] font-extrabold text-slate-900 leading-tight mt-0.5" style="font-family:'Syne',sans-serif;">{{ $totalW }}</span>
                     </div>
                 @else
-                    <div class="relative w-full aspect-square max-h-[180px] sm:max-h-[220px] mx-auto mb-6 sm:mb-8 z-10">
-                        <canvas id="donutChart"></canvas>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span class="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Total</span>
-                            <span class="text-xl sm:text-2xl font-black text-slate-800 font-poppins leading-none">{{ $totalW }}</span>
-                        </div>
+                    <div class="flex items-center justify-center h-full text-slate-300 text-4xl">
+                        <i class="fas fa-chart-pie opacity-30"></i>
                     </div>
                 @endif
-
-                <div class="flex flex-col gap-2.5 sm:gap-3 mt-auto relative z-10">
-                    <div class="flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-rose-200 transition-colors group">
-                        <div class="flex items-center gap-2.5 sm:gap-3"><span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></span><span class="text-[11px] sm:text-[13px] font-black text-slate-600 uppercase tracking-wider">Balita</span></div>
-                        <span class="text-[14px] sm:text-[16px] font-black text-slate-900 font-poppins group-hover:text-rose-600 transition-colors">{{ $stats['total_balita'] ?? 0 }}</span>
-                    </div>
-                    <div class="flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-sky-200 transition-colors group">
-                        <div class="flex items-center gap-2.5 sm:gap-3"><span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]"></span><span class="text-[11px] sm:text-[13px] font-black text-slate-600 uppercase tracking-wider">Remaja</span></div>
-                        <span class="text-[14px] sm:text-[16px] font-black text-slate-900 font-poppins group-hover:text-sky-600 transition-colors">{{ $stats['total_remaja'] ?? 0 }}</span>
-                    </div>
-                    <div class="flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-emerald-200 transition-colors group">
-                        <div class="flex items-center gap-2.5 sm:gap-3"><span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span><span class="text-[11px] sm:text-[13px] font-black text-slate-600 uppercase tracking-wider">Lansia</span></div>
-                        <span class="text-[14px] sm:text-[16px] font-black text-slate-900 font-poppins group-hover:text-emerald-600 transition-colors">{{ $stats['total_lansia'] ?? 0 }}</span>
-                    </div>
-                </div>
             </div>
 
+            <div class="space-y-2 mt-auto">
+                @foreach([
+                    ['label'=>'Balita',    'val'=>$stats['total_balita']??0,    'hex'=>'#f43f5e'],
+                    ['label'=>'Ibu Hamil', 'val'=>$stats['total_ibu_hamil']??0, 'hex'=>'#ec4899'],
+                    ['label'=>'Remaja',    'val'=>$stats['total_remaja']??0,    'hex'=>'#0ea5e9'],
+                    ['label'=>'Lansia',    'val'=>$stats['total_lansia']??0,    'hex'=>'#10b981'],
+                ] as $d)
+                <div class="legend-row">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:{{ $d['hex'] }};"></span>
+                        <span class="text-[12px] font-semibold text-slate-600">{{ $d['label'] }}</span>
+                    </div>
+                    <span class="text-[14px] font-bold text-slate-800" style="font-family:'Syne',sans-serif;">{{ $d['val'] }}</span>
+                </div>
+                @endforeach
+            </div>
         </div>
 
     </div>
+
 </div>
 @endsection
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // Data dari Controller
-    const formattedDates = {!! json_encode($chartLabels ?? []) !!};
-    const rawData = {!! json_encode($chartData ?? []) !!};
 
-    // 1. CHART KUNJUNGAN (LINE)
+    // Global chart defaults — sesuai DM Sans
+    Chart.defaults.font.family = "'DM Sans', sans-serif";
+    Chart.defaults.color = '#94a3b8';
+
+    const formattedDates = {!! json_encode($chartLabels ?? []) !!};
+    const rawData        = {!! json_encode($chartData ?? []) !!};
+
+    // Line Chart
     const lc = document.getElementById('lineChart');
     if(lc && formattedDates.length > 0) {
-        const ctx = lc.getContext('2d');
-        
-        const gradient = ctx.createLinearGradient(0, 0, 0, 350);
-        gradient.addColorStop(0, 'rgba(79, 70, 229, 0.4)'); 
-        gradient.addColorStop(1, 'rgba(79, 70, 229, 0.0)'); 
+        const ctx  = lc.getContext('2d');
+        const grad = ctx.createLinearGradient(0, 0, 0, 300);
+        grad.addColorStop(0, 'rgba(99,102,241,0.18)');
+        grad.addColorStop(1, 'rgba(99,102,241,0.0)');
 
         new Chart(ctx, {
             type: 'line',
             data: {
                 labels: formattedDates,
                 datasets: [{
-                    label: 'Kehadiran Warga',
+                    label: 'Kedatangan',
                     data: rawData,
-                    borderColor: '#4f46e5',
-                    backgroundColor: gradient,
-                    borderWidth: 4,
+                    borderColor: '#6366f1',
+                    backgroundColor: grad,
+                    borderWidth: 2.5,
                     fill: true,
-                    tension: 0.4, 
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#4f46e5',
-                    pointBorderWidth: 3,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                    pointHoverBackgroundColor: '#4f46e5',
-                    pointHoverBorderColor: '#ffffff'
+                    tension: 0.35,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#6366f1',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
                 }]
             },
             options: {
-                responsive: true, 
+                responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                        titleColor: '#94a3b8',
-                        bodyColor: '#ffffff',
-                        padding: 12,
-                        cornerRadius: 12,
-                        titleFont: { size: 10, family: "'Inter', sans-serif", weight: 'bold' },
-                        bodyFont: { size: 13, weight: '900', family: "'Poppins', sans-serif" },
-                        displayColors: false,
-                        borderColor: 'rgba(255,255,255,0.1)',
+                        backgroundColor: '#ffffff',
+                        titleColor: '#0f172a',
+                        bodyColor: '#0f172a',
+                        borderColor: '#e2e8f0',
                         borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 10,
+                        displayColors: false,
                         callbacks: {
-                            title: function(context) { return context[0].label.toUpperCase(); },
-                            label: function(context) { return context.parsed.y + ' Warga Hadir'; }
+                            label: ctx => ctx.parsed.y + ' Warga'
                         }
                     }
                 },
                 scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        border: { display: false }, 
-                        grid: { color: 'rgba(226, 232, 240, 0.6)', drawBorder: false, borderDash: [5, 5] }, 
-                        ticks: { 
-                            stepSize: 1, 
-                            color: '#94a3b8', 
-                            font: { weight: 'bold', family: "'Inter', sans-serif", size: 10 },
-                            padding: 8
-                        } 
+                    y: {
+                        beginAtZero: true,
+                        border: { display: false },
+                        grid: { color: '#f1f5f9', drawTicks: false },
+                        ticks: { stepSize: 1, padding: 10, font: { size: 11, weight: '500' } }
                     },
-                    x: { 
-                        border: { display: false }, 
-                        grid: { display: false }, 
-                        ticks: { 
-                            color: '#64748b', 
-                            font: { weight: 'bold', family: "'Inter', sans-serif", size: 10 },
-                            padding: 8
-                        } 
+                    x: {
+                        grid: { display: false },
+                        ticks: { padding: 10, font: { size: 11, weight: '500' } }
                     }
                 },
                 interaction: { mode: 'index', intersect: false }
@@ -315,49 +398,41 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 2. CHART DEMOGRAFI (DONUT)
-    const dc = document.getElementById('donutChart');
-    const balitaCount = {{ $stats['total_balita'] ?? 0 }};
-    const remajaCount = {{ $stats['total_remaja'] ?? 0 }};
-    const lansiaCount = {{ $stats['total_lansia'] ?? 0 }};
-    const totalWarga = balitaCount + remajaCount + lansiaCount;
+    // Donut Chart
+    const dc  = document.getElementById('donutChart');
+    const bC  = {{ $stats['total_balita']    ?? 0 }};
+    const ihC = {{ $stats['total_ibu_hamil'] ?? 0 }};
+    const rC  = {{ $stats['total_remaja']    ?? 0 }};
+    const lC  = {{ $stats['total_lansia']    ?? 0 }};
+    const tot = bC + ihC + rC + lC;
 
-    if(dc && totalWarga > 0) {
+    if(dc && tot > 0) {
         new Chart(dc, {
             type: 'doughnut',
             data: {
-                labels: ['Balita', 'Remaja', 'Lansia'],
+                labels: ['Balita', 'Ibu Hamil', 'Remaja', 'Lansia'],
                 datasets: [{
-                    data: [balitaCount, remajaCount, lansiaCount],
-                    backgroundColor: ['#f43f5e', '#0ea5e9', '#10b981'],
+                    data: [bC, ihC, rC, lC],
+                    backgroundColor: ['#f43f5e', '#ec4899', '#0ea5e9', '#10b981'],
                     borderWidth: 3,
                     borderColor: '#ffffff',
-                    hoverOffset: 6,
-                    borderRadius: 6
+                    hoverOffset: 5,
                 }]
             },
             options: {
-                responsive: true, 
-                maintainAspectRatio: false, 
-                cutout: '75%',
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '72%',
                 plugins: {
                     legend: { display: false },
-                    tooltip: { 
-                        backgroundColor: 'rgba(15, 23, 42, 0.9)', 
-                        padding: 12, 
-                        cornerRadius: 12,
-                        titleFont: { size: 10, family: "'Inter', sans-serif", weight: 'bold' },
-                        bodyFont: { size: 13, weight: '900', family: "'Poppins', sans-serif" },
-                        borderColor: 'rgba(255,255,255,0.1)',
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#0f172a',
+                        bodyColor: '#0f172a',
+                        borderColor: '#e2e8f0',
                         borderWidth: 1,
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label || '';
-                                let value = context.parsed || 0;
-                                let percentage = Math.round((value / totalWarga) * 100) + '%';
-                                return ` ${value} Warga (${percentage})`;
-                            }
-                        }
+                        padding: 10,
+                        cornerRadius: 10,
                     }
                 }
             }

@@ -47,37 +47,30 @@ class PemeriksaanController extends Controller
             $p->nama_pasien = $this->getNamaPasien($p->pasien_id, $p->kategori_pasien);
         }
 
+        if ($request->ajax()) {
+            return view('kader.pemeriksaan.index', compact('pemeriksaans', 'kategori', 'search', 'status'))->render();
+        }
+
         return view('kader.pemeriksaan.index', compact('pemeriksaans', 'kategori', 'search', 'status'));
     }
 
     public function create(Request $request)
     {
-        // 1. Ambil & Filter Otomatis: Bayi (0-11 Bln) vs Balita (12-59 Bln)
         $balitas = Balita::select('id', 'nama_lengkap', 'nik', 'kode_balita', 'tanggal_lahir')->get()
             ->map(function($item) {
                 $umurBulan = Carbon::parse($item->tanggal_lahir)->diffInMonths(now());
-                $kat = $umurBulan < 12 ? 'bayi' : 'balita';
-                return [
-                    'id' => $item->id, 
-                    'nama' => $item->nama_lengkap, 
-                    'nik' => $item->nik ?? $item->kode_balita,
-                    'kategori' => $kat
-                ];
+                return ['id' => $item->id, 'nama' => $item->nama_lengkap, 'nik' => $item->nik ?? $item->kode_balita, 'kategori' => $umurBulan < 12 ? 'bayi' : 'balita'];
             });
 
-        // 2. Data Remaja
         $remajas = Remaja::select('id', 'nama_lengkap', 'nik')->get()
             ->map(fn($item) => ['id' => $item->id, 'nama' => $item->nama_lengkap, 'nik' => $item->nik, 'kategori' => 'remaja']);
 
-        // 3. Data Lansia
         $lansias = Lansia::select('id', 'nama_lengkap', 'nik')->get()
             ->map(fn($item) => ['id' => $item->id, 'nama' => $item->nama_lengkap, 'nik' => $item->nik, 'kategori' => 'lansia']);
             
-        // 4. Data Ibu Hamil
         $bumils = IbuHamil::select('id', 'nama_lengkap', 'nik')->get()
             ->map(fn($item) => ['id' => $item->id, 'nama' => $item->nama_lengkap, 'nik' => $item->nik, 'kategori' => 'ibu_hamil']);
 
-        // Gabungkan SEMUA data untuk Frontend JS
         $semuaPasien = collect()->concat($balitas)->concat($remajas)->concat($lansias)->concat($bumils)->toArray();
 
         return view('kader.pemeriksaan.create', compact('semuaPasien'));
@@ -91,86 +84,83 @@ class PemeriksaanController extends Controller
             'tanggal_periksa' => 'required|date',
             'berat_badan'     => 'required|numeric|min:0.1|max:300',
             'tinggi_badan'    => 'required|numeric|min:1|max:250',
-            'kemandirian'     => 'nullable|in:A,B,C', // Khusus Lansia
             'tekanan_darah'   => 'nullable|string|max:20',
-            'suhu_tubuh'      => 'nullable|numeric',
-            'lingkar_kepala'  => 'nullable|numeric',
             'lingkar_lengan'  => 'nullable|numeric',
-            'lingkar_perut'   => 'nullable|numeric',
-            'hemoglobin'      => 'nullable|numeric',
-            'gula_darah'      => 'nullable|string|max:50',
-            'kolesterol'      => 'nullable|numeric',
-            'asam_urat'       => 'nullable|numeric',
-            'keluhan'         => 'nullable|string|max:500',
         ]);
 
         try {
-            DB::transaction(function() use($request){
-                // Tentukan Model berdasarkan Kategori
-                $pasienType = match($request->kategori_pasien){
-                    'remaja'    => 'App\\Models\\Remaja',
-                    'lansia'    => 'App\\Models\\Lansia',
-                    'ibu_hamil' => 'App\\Models\\IbuHamil',
-                    default     => 'App\\Models\\Balita', // Bayi & Balita masuk sini
-                };
+            DB::beginTransaction();
+            
+            $pasienType = match($request->kategori_pasien){
+                'remaja'    => 'App\\Models\\Remaja',
+                'lansia'    => 'App\\Models\\Lansia',
+                'ibu_hamil' => 'App\\Models\\IbuHamil',
+                default     => 'App\\Models\\Balita',
+            };
 
-                // PENGHITUNG IMT OTOMATIS (Berat / Tinggi(m)^2)
-                $imt = null;
-                if ($request->berat_badan && $request->tinggi_badan) {
-                    $tinggi_m = $request->tinggi_badan / 100;
-                    $imt = round($request->berat_badan / ($tinggi_m * $tinggi_m), 2);
-                }
+            $imt = ($request->berat_badan && $request->tinggi_badan) 
+                ? round($request->berat_badan / pow($request->tinggi_badan / 100, 2), 2) 
+                : null;
 
-                // SISTEM ABSENSI (Hitung Pertemuan Ke Berapa)
-                $pertemuanSblm = Kunjungan::where('pasien_id', $request->pasien_id)
-                    ->where('pasien_type', $pasienType)
-                    ->whereYear('tanggal_kunjungan', date('Y', strtotime($request->tanggal_periksa)))
-                    ->count();
-                $pertemuanKe = $pertemuanSblm + 1;
+            // Deteksi KEK Ibu Hamil Otomatis
+            $is_kek = 0;
+            if ($request->kategori_pasien == 'ibu_hamil' && $request->lingkar_lengan && $request->lingkar_lengan < 23.5) {
+                $is_kek = 1;
+            }
 
-                // 1. Simpan Riwayat Kunjungan / Buku Tamu Absensi
-                $kunjungan = Kunjungan::create([
-                    'kode_kunjungan'    => $this->generateKode(),
-                    'pasien_id'         => $request->pasien_id,
-                    'pasien_type'       => $pasienType,
-                    'tanggal_kunjungan' => $request->tanggal_periksa,
-                    'jenis_kunjungan'   => 'pemeriksaan',
-                    'pertemuan_ke'      => $pertemuanKe, // Menyimpan Absensi Pertemuan
-                    'keluhan'           => $request->keluhan,
-                    'petugas_id'        => auth()->id(),
-                ]);
+            $pertemuanSblm = Kunjungan::where('pasien_id', $request->pasien_id)
+                ->where('pasien_type', $pasienType)
+                ->whereYear('tanggal_kunjungan', date('Y', strtotime($request->tanggal_periksa)))
+                ->count();
 
-                // 2. Simpan Detail Pemeriksaan
-                Pemeriksaan::create([
-                    'kunjungan_id'      => $kunjungan->id,
-                    'pasien_id'         => $request->pasien_id,
-                    'kategori_pasien'   => $request->kategori_pasien,
-                    'pemeriksa_id'      => auth()->id(),
-                    'user_id'           => auth()->id(),
-                    'tanggal_periksa'   => $request->tanggal_periksa,
-                    'berat_badan'       => $request->berat_badan,
-                    'tinggi_badan'      => $request->tinggi_badan,
-                    'imt'               => $imt, // IMT Disimpan
-                    'kemandirian'       => $request->kategori_pasien == 'lansia' ? $request->kemandirian : null,
-                    'lingkar_kepala'    => $request->lingkar_kepala,
-                    'lingkar_lengan'    => $request->lingkar_lengan,
-                    'lingkar_perut'     => $request->lingkar_perut,
-                    'suhu_tubuh'        => $request->suhu_tubuh,
-                    'tekanan_darah'     => $request->tekanan_darah,
-                    'hemoglobin'        => $request->hemoglobin,
-                    'gula_darah'        => $request->gula_darah,
-                    'kolesterol'        => $request->kolesterol,
-                    'asam_urat'         => $request->asam_urat,
-                    'keluhan'           => $request->keluhan,
-                    'status_verifikasi' => 'pending',
-                ]);
-            });
+            $kunjungan = Kunjungan::create([
+                'kode_kunjungan'    => $this->generateKode(),
+                'pasien_id'         => $request->pasien_id,
+                'pasien_type'       => $pasienType,
+                'tanggal_kunjungan' => $request->tanggal_periksa,
+                'jenis_kunjungan'   => 'pemeriksaan',
+                'pertemuan_ke'      => $pertemuanSblm + 1,
+                'keluhan'           => $request->keluhan,
+                'petugas_id'        => auth()->id(),
+            ]);
 
-            return redirect()->route('kader.pemeriksaan.index')
-                ->with('success','✅ Pemeriksaan berhasil disimpan. Menunggu verifikasi bidan.');
+            $pemeriksaan = Pemeriksaan::create([
+                'kunjungan_id'      => $kunjungan->id,
+                'pasien_id'         => $request->pasien_id,
+                'kategori_pasien'   => $request->kategori_pasien,
+                'pemeriksa_id'      => auth()->id(),
+                'user_id'           => auth()->id(),
+                'tanggal_periksa'   => $request->tanggal_periksa,
+                'berat_badan'       => $request->berat_badan,
+                'tinggi_badan'      => $request->tinggi_badan,
+                'imt'               => $imt,
+                'kemandirian'       => $request->kategori_pasien == 'lansia' ? $request->kemandirian : null,
+                'lingkar_kepala'    => $request->lingkar_kepala,
+                'lingkar_lengan'    => $request->lingkar_lengan,
+                'lingkar_perut'     => $request->lingkar_perut,
+                'suhu_tubuh'        => $request->suhu_tubuh,
+                'tekanan_darah'     => $request->tekanan_darah,
+                'hemoglobin'        => $request->hemoglobin,
+                'gula_darah'        => $request->gula_darah,
+                'kolesterol'        => $request->kolesterol,
+                'asam_urat'         => $request->asam_urat,
+                'keluhan'           => $request->keluhan,
+                'is_kek'            => $is_kek,
+                'status_verifikasi' => 'pending',
+            ]);
 
-        } catch(\Throwable $e){
-            Log::error('KaderPemeriksaan::store — '.$e->getMessage());
+            DB::commit();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'success', 'message' => 'Data fisik berhasil dikirim ke Bidan!', 'redirect' => route('kader.pemeriksaan.index')]);
+            }
+            return redirect()->route('kader.pemeriksaan.index')->with('success','Pemeriksaan berhasil disimpan.');
+
+        } catch(\Exception $e){
+            DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Gagal: ' . $e->getMessage()], 500);
+            }
             return back()->withInput()->with('error','Gagal menyimpan: '.$e->getMessage());
         }
     }
@@ -199,48 +189,57 @@ class PemeriksaanController extends Controller
             'tanggal_periksa' => 'required|date',
             'berat_badan'     => 'required|numeric|min:0.1|max:300',
             'tinggi_badan'    => 'required|numeric|min:1|max:250',
-            'kemandirian'     => 'nullable|in:A,B,C',
         ]);
 
         try {
-            DB::transaction(function() use ($request, $pemeriksaan) {
-                // Hitung Ulang IMT
-                $imt = null;
-                if ($request->berat_badan && $request->tinggi_badan) {
-                    $tinggi_m = $request->tinggi_badan / 100;
-                    $imt = round($request->berat_badan / ($tinggi_m * $tinggi_m), 2);
-                }
+            DB::beginTransaction();
 
-                $pemeriksaan->update([
-                    'tanggal_periksa' => $request->tanggal_periksa,
-                    'berat_badan'     => $request->berat_badan,
-                    'tinggi_badan'    => $request->tinggi_badan,
-                    'imt'             => $imt,
-                    'kemandirian'     => $pemeriksaan->kategori_pasien == 'lansia' ? $request->kemandirian : null,
-                    'lingkar_kepala'  => $request->lingkar_kepala,
-                    'lingkar_lengan'  => $request->lingkar_lengan,
-                    'lingkar_perut'   => $request->lingkar_perut,
-                    'suhu_tubuh'      => $request->suhu_tubuh,
-                    'tekanan_darah'   => $request->tekanan_darah,
-                    'hemoglobin'      => $request->hemoglobin,
-                    'gula_darah'      => $request->gula_darah,
-                    'kolesterol'      => $request->kolesterol,
-                    'asam_urat'       => $request->asam_urat,
-                    'keluhan'         => $request->keluhan,
+            $imt = ($request->berat_badan && $request->tinggi_badan) 
+                ? round($request->berat_badan / pow($request->tinggi_badan / 100, 2), 2) 
+                : null;
+
+            $is_kek = $pemeriksaan->is_kek;
+            if ($pemeriksaan->kategori_pasien == 'ibu_hamil' && $request->lingkar_lengan) {
+                $is_kek = $request->lingkar_lengan < 23.5 ? 1 : 0;
+            }
+
+            $pemeriksaan->update([
+                'tanggal_periksa' => $request->tanggal_periksa,
+                'berat_badan'     => $request->berat_badan,
+                'tinggi_badan'    => $request->tinggi_badan,
+                'imt'             => $imt,
+                'kemandirian'     => $pemeriksaan->kategori_pasien == 'lansia' ? $request->kemandirian : null,
+                'lingkar_kepala'  => $request->lingkar_kepala,
+                'lingkar_lengan'  => $request->lingkar_lengan,
+                'lingkar_perut'   => $request->lingkar_perut,
+                'suhu_tubuh'      => $request->suhu_tubuh,
+                'tekanan_darah'   => $request->tekanan_darah,
+                'hemoglobin'      => $request->hemoglobin,
+                'gula_darah'      => $request->gula_darah,
+                'kolesterol'      => $request->kolesterol,
+                'asam_urat'       => $request->asam_urat,
+                'keluhan'         => $request->keluhan,
+                'is_kek'          => $is_kek,
+            ]);
+
+            if ($pemeriksaan->kunjungan_id) {
+                Kunjungan::find($pemeriksaan->kunjungan_id)?->update([
+                    'tanggal_kunjungan' => $request->tanggal_periksa,
+                    'keluhan' => $request->keluhan
                 ]);
+            }
+            DB::commit();
 
-                if ($pemeriksaan->kunjungan_id) {
-                    Kunjungan::find($pemeriksaan->kunjungan_id)?->update([
-                        'tanggal_kunjungan' => $request->tanggal_periksa,
-                        'keluhan' => $request->keluhan
-                    ]);
-                }
-            });
-
-            return redirect()->route('kader.pemeriksaan.index')
-                ->with('success','✅ Data pemeriksaan berhasil diperbarui.');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'success', 'message' => 'Koreksi data berhasil disimpan!', 'redirect' => route('kader.pemeriksaan.index')]);
+            }
+            return redirect()->route('kader.pemeriksaan.index')->with('success','Data diperbarui.');
                 
-        } catch(\Throwable $e){
+        } catch(\Exception $e){
+            DB::rollBack();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Gagal: ' . $e->getMessage()], 500);
+            }
             return back()->withInput()->with('error','Gagal: '.$e->getMessage());
         }
     }
@@ -248,23 +247,17 @@ class PemeriksaanController extends Controller
     public function destroy($id)
     {
         $pemeriksaan = Pemeriksaan::findOrFail($id);
-        
         try {
             DB::transaction(function() use($pemeriksaan){
-                if ($pemeriksaan->kunjungan_id) {
-                    Kunjungan::find($pemeriksaan->kunjungan_id)?->delete();
-                }
+                if ($pemeriksaan->kunjungan_id) Kunjungan::find($pemeriksaan->kunjungan_id)?->delete();
                 $pemeriksaan->delete();
             });
-            return redirect()->route('kader.pemeriksaan.index')
-                ->with('success','Data pemeriksaan berhasil dihapus permanen.');
-                
+            return redirect()->route('kader.pemeriksaan.index')->with('success','Data dihapus permanen.');
         } catch(\Throwable $e){
             return back()->with('error','Gagal menghapus: '.$e->getMessage());
         }
     }
 
-    // ================= HELPERS =================
     private function getNamaPasien($pasienId, $kategori): string
     {
         try {
@@ -272,7 +265,7 @@ class PemeriksaanController extends Controller
                 'remaja'    => Remaja::find($pasienId)?->nama_lengkap ?? '-',
                 'lansia'    => Lansia::find($pasienId)?->nama_lengkap ?? '-',
                 'ibu_hamil' => IbuHamil::find($pasienId)?->nama_lengkap ?? '-',
-                default     => Balita::find($pasienId)?->nama_lengkap ?? '-', // Bayi & Balita
+                default     => Balita::find($pasienId)?->nama_lengkap ?? '-',
             };
         } catch(\Throwable $e){ return '-'; }
     }
@@ -292,8 +285,7 @@ class PemeriksaanController extends Controller
     private function generateKode(): string
     {
         $prefix = 'KNJ-'.date('Ymd');
-        $last   = Kunjungan::where('kode_kunjungan','like',"$prefix%")
-            ->orderByDesc('id')->value('kode_kunjungan');
+        $last   = Kunjungan::where('kode_kunjungan','like',"$prefix%")->orderByDesc('id')->value('kode_kunjungan');
         $seq    = $last ? (intval(substr($last,-4))+1) : 1;
         return $prefix.str_pad($seq, 4, '0', STR_PAD_LEFT);
     }

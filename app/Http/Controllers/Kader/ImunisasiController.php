@@ -8,6 +8,7 @@ use App\Models\Imunisasi;
 use App\Models\Balita;
 use App\Models\Remaja;
 use App\Models\Lansia;
+use App\Models\IbuHamil;
 use Illuminate\Http\Request;
 
 class ImunisasiController extends Controller
@@ -17,47 +18,48 @@ class ImunisasiController extends Controller
      */
     public function index(Request $request)
     {
-        // Menangkap parameter untuk Tab dan Pencarian
         $kategori = $request->get('kategori', 'semua');
         $search   = $request->get('search', '');
 
-        // 1. Tarik semua data imunisasi (Tanpa membatasi ID Kader, agar inputan Bidan masuk)
-        $query = Imunisasi::with(['kunjungan.pasien', 'kunjungan.petugas'])
-                    ->latest('tanggal_imunisasi');
+        $query = Imunisasi::with(['kunjungan.petugas'])->latest('tanggal_imunisasi');
 
-        // 2. Filter Berdasarkan Kategori Tab (Balita / Remaja / Lansia)
+        // 1. Filter Kategori Tab
         if ($kategori !== 'semua') {
             $pasienType = match($kategori) {
-                'remaja' => 'App\Models\Remaja',
-                'lansia' => 'App\Models\Lansia',
-                default  => 'App\Models\Balita',
+                'remaja'    => 'App\\Models\\Remaja',
+                'lansia'    => 'App\\Models\\Lansia',
+                'ibu_hamil' => 'App\\Models\\IbuHamil',
+                default     => 'App\\Models\\Balita',
             };
             $query->whereHas('kunjungan', function($q) use ($pasienType) {
                 $q->where('pasien_type', $pasienType);
             });
         }
 
-        // 3. Filter Berdasarkan Pencarian Real-Time (Nama Pasien atau Vaksin)
+        // 2. Pencarian Real-Time (Nama Pasien & Vaksin)
         if ($search) {
             $balitaIds = Balita::where('nama_lengkap', 'like', "%$search%")->pluck('id');
             $remajaIds = Remaja::where('nama_lengkap', 'like', "%$search%")->pluck('id');
             $lansiaIds = Lansia::where('nama_lengkap', 'like', "%$search%")->pluck('id');
+            $bumilIds  = IbuHamil::where('nama_lengkap', 'like', "%$search%")->pluck('id');
 
-            $query->where(function($q) use($balitaIds, $remajaIds, $lansiaIds, $search) {
-                // Cari dari nama atau jenis vaksin
-                $q->where('vaksin', 'like', "%{$search}%")
-                  ->orWhere('jenis_imunisasi', 'like', "%{$search}%")
-                  // Atau cari dari relasi nama pasien
-                  ->orWhereHas('kunjungan', function($q2) use ($balitaIds, $remajaIds, $lansiaIds) {
-                      $q2->where(fn($q3) => $q3->where('pasien_type', 'App\Models\Balita')->whereIn('pasien_id', $balitaIds))
-                         ->orWhere(fn($q3) => $q3->where('pasien_type', 'App\Models\Remaja')->whereIn('pasien_id', $remajaIds))
-                         ->orWhere(fn($q3) => $q3->where('pasien_type', 'App\Models\Lansia')->whereIn('pasien_id', $lansiaIds));
+            $query->where(function($q) use($search, $balitaIds, $remajaIds, $lansiaIds, $bumilIds) {
+                $q->where('vaksin', 'like', "%$search%") // Cari nama vaksin
+                  ->orWhereHas('kunjungan', function($q2) use($balitaIds, $remajaIds, $lansiaIds, $bumilIds) {
+                      $q2->where(fn($q3) => $q3->whereIn('pasien_type', ['App\\Models\\Balita'])->whereIn('pasien_id', $balitaIds))
+                         ->orWhere(fn($q3) => $q3->where('pasien_type', 'App\\Models\\Remaja')->whereIn('pasien_id', $remajaIds))
+                         ->orWhere(fn($q3) => $q3->where('pasien_type', 'App\\Models\\Lansia')->whereIn('pasien_id', $lansiaIds))
+                         ->orWhere(fn($q3) => $q3->where('pasien_type', 'App\\Models\\IbuHamil')->whereIn('pasien_id', $bumilIds));
                   });
             });
         }
 
-        // 4. Lakukan Pagination (Simpan parameter URL agar page 2 tidak hilang filternya)
-        $imunisasis = $query->paginate(10)->withQueryString();
+        $imunisasis = $query->paginate(15)->withQueryString();
+
+        // Deteksi Fetch AJAX
+        if ($request->ajax()) {
+            return view('kader.imunisasi.index', compact('imunisasis', 'kategori', 'search'))->render();
+        }
             
         return view('kader.imunisasi.index', compact('imunisasis', 'kategori', 'search'));
     }
@@ -67,20 +69,26 @@ class ImunisasiController extends Controller
      */
     public function show($id)
     {
-        $imunisasi = Imunisasi::with(['kunjungan.pasien', 'kunjungan.petugas'])
-            ->findOrFail($id);
+        $imunisasi = Imunisasi::with(['kunjungan.petugas'])->findOrFail($id);
+        
+        // Cari data profil pasien secara manual berdasarkan polimorfik
+        $imunisasi->profil_pasien = match($imunisasi->kunjungan->pasien_type) {
+            'App\\Models\\Remaja'    => Remaja::find($imunisasi->kunjungan->pasien_id),
+            'App\\Models\\Lansia'    => Lansia::find($imunisasi->kunjungan->pasien_id),
+            'App\\Models\\IbuHamil'  => IbuHamil::find($imunisasi->kunjungan->pasien_id),
+            default                  => Balita::find($imunisasi->kunjungan->pasien_id),
+        };
             
         return view('kader.imunisasi.show', compact('imunisasi'));
     }
 
     // =====================================================================
     // BLOKIR AKSES CRUD UNTUK KADER (SECURITY LEVEL)
-    // Walaupun di UI tombolnya disembunyikan, kita wajib kunci di Controller
     // =====================================================================
 
     public function create($kunjungan_id = null)
     {
-        return back()->with('error', 'Akses ditolak! Input data Imunisasi/Vaksin hanya dapat dilakukan oleh Tenaga Bidan.');
+        return back()->with('error', 'Akses ditolak! Input data Vaksin hanya dapat dilakukan oleh Tenaga Bidan.');
     }
 
     public function store(Request $request, $kunjungan_id = null)
@@ -90,7 +98,7 @@ class ImunisasiController extends Controller
 
     public function edit($id)
     {
-        return back()->with('error', 'Akses ditolak! Hanya Bidan yang dapat mengubah data rekam medis Imunisasi.');
+        return back()->with('error', 'Akses ditolak! Hanya Bidan yang dapat mengubah rekam medis.');
     }
 
     public function update(Request $request, $id)
@@ -100,6 +108,6 @@ class ImunisasiController extends Controller
 
     public function destroy($id)
     {
-        return back()->with('error', 'Akses ditolak! Penghapusan riwayat Imunisasi hanya dapat dilakukan oleh Bidan.');
+        abort(403, 'Akses Ditolak. Kewenangan Bidan.');
     }
 }

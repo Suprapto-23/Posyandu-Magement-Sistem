@@ -42,11 +42,16 @@ class NotifikasiController extends Controller
         return back()->with('success', 'Riwayat notifikasi berhasil dihapus.');
     }
 
-    // FUNGSI AJAX UNTUK REAL-TIME POLLING
+    // =====================================================================
+    // FUNGSI AJAX UNTUK REAL-TIME POLLING & SYSTEM PUSH NOTIFICATION
+    // =====================================================================
     public function fetchRecent()
     {
         $unreadCount = Notifikasi::where('user_id', Auth::id())->where('is_read', false)->count();
         $latestNotifs = Notifikasi::where('user_id', Auth::id())->latest()->take(5)->get();
+        
+        // Ambil 1 notifikasi terbaru yang BELUM DIBACA untuk di-Push ke Layar HP
+        $latestUnread = Notifikasi::where('user_id', Auth::id())->where('is_read', false)->latest()->first();
 
         $html = '';
         if ($latestNotifs->isEmpty()) {
@@ -81,8 +86,11 @@ class NotifikasiController extends Controller
         }
 
         return response()->json([
-            'unreadCount' => $unreadCount,
-            'html' => $html
+            'unreadCount'  => $unreadCount,
+            'html'         => $html,
+            // Data untuk Push Notification di OS (HP/Laptop)
+            'latest_title' => $latestUnread ? $latestUnread->judul : null,
+            'latest_body'  => $latestUnread ? $latestUnread->pesan : null,
         ]);
     }
 }

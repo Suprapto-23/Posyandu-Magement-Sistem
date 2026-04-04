@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#ffffff">
     <title>@yield('title', 'Kader Workspace') — PosyanduCare</title>
     
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect width=%2224%22 height=%2224%22 rx=%226%22 fill=%22%234f46e5%22/><path d=%22M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z%22 fill=%22white%22/></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%236d28d9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M16 23.5l-1.2-1.1C10.2 18.3 7.5 15.8 7.5 12.5 7.5 10 9.5 8 12 8c1.4 0 2.8.7 4 1.9C17.2 8.7 18.6 8 20 8c2.5 0 4.5 2 4.5 4.5 0 3.3-2.7 5.8-7.3 9.9L16 23.5z' fill='white' opacity='0.95'/%3E%3C/svg%3E">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,296 +25,428 @@
         body { 
             font-family: var(--font-sans); 
             background-color: #f8fafc; 
-            background-image: radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.08) 0px, transparent 40%),
-                              radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.05) 0px, transparent 40%);
-            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
+            color: #0f172a;
         }
         h1, h2, h3, h4, h5, h6 { font-family: var(--font-poppins); }
+        
+        /* Ultra Clean Scrollbar */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        
-        .glass-header { 
-            background: rgba(255, 255, 255, 0.85); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-        }
-        .glass-sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
 
-        @keyframes menuPop { 0% { opacity: 0; transform: scale(0.95) translateY(-10px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
-        .animate-pop { animation: menuPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; transform-origin: top right; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Smooth UI Utilities */
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+        .menu-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .submenu-grid { display: grid; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Toast Animation Spring */
+        @keyframes toastEnter { 0% { opacity: 0; transform: translateX(100%) scale(0.9); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
+        @keyframes toastLeave { 0% { opacity: 1; transform: translateX(0) scale(1); max-height: 100px; margin-bottom: 12px; } 100% { opacity: 0; transform: translateX(100%) scale(0.9); max-height: 0; margin-bottom: 0; padding: 0; border: 0; } }
+        .toast-show { animation: toastEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .toast-hide { animation: toastLeave 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
     </style>
     @stack('styles')
 </head>
-<body class="text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900 flex">
 
-    <div id="globalLoader" class="fixed inset-0 bg-white/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-200 opacity-0 pointer-events-none">
-        <div class="relative w-20 h-20 flex items-center justify-center mb-5">
-            <div class="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
-            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
-                <i class="fas fa-heart-pulse text-indigo-600 text-2xl animate-pulse"></i>
-            </div>
-        </div>
-        <p class="text-indigo-800 font-poppins font-black tracking-[0.25em] text-[10px] uppercase" id="loaderText">MEMUAT RUANG KERJA...</p>
+<body class="flex h-screen overflow-hidden selection:bg-indigo-100 selection:text-indigo-900">
+
+    {{-- 1. OFFLINE BANNER --}}
+    <div id="offlineBanner" class="fixed top-0 left-0 right-0 z-[99999] bg-rose-500 text-white text-[11px] font-black uppercase tracking-widest py-2 text-center transform -translate-y-full transition-transform duration-300 flex items-center justify-center gap-2 shadow-lg">
+        <i class="fas fa-wifi-slash animate-pulse"></i> Koneksi Terputus. Menunggu Jaringan...
     </div>
 
-    <div id="mobileOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0"></div>
+    {{-- 2. PREMIUM TOAST CONTAINER (Absolute Right) --}}
+    <div id="toastContainer" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 w-full max-w-[340px] pointer-events-none"></div>
 
-    <aside id="sidebar" class="fixed top-0 left-0 h-screen w-[280px] glass-sidebar border-r border-slate-200/80 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.03)] overflow-hidden">
+    {{-- 3. GLOBAL PAGE LOADER --}}
+    <div id="globalLoader" class="fixed inset-0 z-[9998] bg-slate-50/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="relative w-16 h-16 flex items-center justify-center mb-4">
+            <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                <i class="fas fa-heart-pulse text-indigo-600 animate-pulse text-lg"></i>
+            </div>
+        </div>
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Memuat Layar</p>
+    </div>
+
+    {{-- 4. MOBILE OVERLAY --}}
+    <div id="mobileOverlay" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0 lg:hidden"></div>
+
+    @php 
+        $route = request()->route()->getName();
+        $isDataWarga = Str::startsWith($route, 'kader.data.');
+        $isAbsensi = in_array($route, ['kader.absensi.index', 'kader.absensi.riwayat']);
         
-        <div class="h-20 flex items-center px-6 border-b border-slate-100/80 shrink-0 relative z-10">
+        // PILIHAN GAYA MENU YANG SUPER CLEAN & SEXY
+        $menuAktif = 'bg-indigo-50/80 text-indigo-700 font-bold shadow-[0_2px_10px_rgba(79,70,229,0.06)]';
+        $menuPasif = 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-medium';
+        $iconAktif = 'text-indigo-600';
+        $iconPasif = 'text-slate-400 group-hover:text-indigo-500 transition-colors';
+    @endphp
+
+    {{-- 5. SIDEBAR NAVIGATION --}}
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-[280px] bg-white border-r border-slate-200/80 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out flex flex-col shadow-2xl lg:shadow-none">
+        
+        {{-- Brand Logo --}}
+        <div class="h-[76px] flex items-center px-6 border-b border-slate-100 shrink-0">
             <div class="flex items-center gap-3 w-full">
-                <div class="w-10 h-10 rounded-[12px] bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-[0_4px_12px_rgba(79,70,229,0.3)] shrink-0 group-hover:scale-105 transition-transform">
-                    <i class="fas fa-heart-pulse text-lg"></i>
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-[0_4px_12px_rgba(79,70,229,0.3)] shrink-0">
+                    <i class="fas fa-heart-pulse text-[18px]"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h1 class="text-xl font-black text-slate-800 tracking-tight truncate font-poppins">Kader<span class="text-indigo-600">Care</span></h1>
+                    <h1 class="text-[21px] font-black text-slate-800 tracking-tight truncate font-poppins">Kader<span class="text-indigo-600">Care</span></h1>
                 </div>
                 <button id="closeSidebar" class="lg:hidden w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
-                    <i class="fas fa-times"></i>
+                    <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
         </div>
+        
+        {{-- Navigasi Utama --}}
+        <nav class="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar space-y-7">
+            
+            {{-- Grup: Overview --}}
+            <div>
+                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Overview</p>
+                <a href="{{ route('kader.dashboard') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ $route == 'kader.dashboard' ? $menuAktif : $menuPasif }}">
+                    <i class="fas fa-chart-pie w-5 text-center text-[16px] {{ $route == 'kader.dashboard' ? $iconAktif : $iconPasif }}"></i> 
+                    <span>Dashboard Utama</span>
+                </a>
+            </div>
 
-        <div class="p-5 pb-2 shrink-0 relative z-10">
-            <div class="p-3.5 bg-white border border-slate-200 rounded-[20px] flex items-center gap-3 hover:border-indigo-300 hover:shadow-sm transition-all cursor-pointer group" onclick="document.getElementById('userDropdownBtn').click()">
-                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-black border border-indigo-100 shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            {{-- Grup: Pendaftaran --}}
+            <div>
+                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Registrasi</p>
+                <div class="space-y-1">
+                    <button onclick="toggleSubmenu('menuPasien', 'iconPasien')" class="w-full group flex items-center justify-between px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ $isDataWarga ? $menuAktif : $menuPasif }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-users w-5 text-center text-[16px] {{ $isDataWarga ? $iconAktif : $iconPasif }}"></i> 
+                            <span>Database Warga</span>
+                        </div>
+                        <i id="iconPasien" class="fas fa-chevron-down text-[10px] transition-transform duration-300 {{ $isDataWarga ? 'rotate-180 text-indigo-600' : 'text-slate-400 group-hover:text-indigo-500' }}"></i>
+                    </button>
+                    
+                    <div id="menuPasien" class="submenu-grid {{ $isDataWarga ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]' }}">
+                        <div class="overflow-hidden">
+                            <div class="pl-[48px] pr-2 py-1 space-y-1 relative before:absolute before:left-[26px] before:top-3 before:bottom-3 before:w-[2px] before:bg-slate-100 before:rounded-full">
+                                @foreach([
+                                    ['route' => 'kader.data.balita.index', 'label' => 'Data Balita', 'active' => Str::startsWith($route, 'kader.data.balita')],
+                                    ['route' => 'kader.data.ibu-hamil.index', 'label' => 'Data Ibu Hamil', 'active' => Str::startsWith($route, 'kader.data.ibu-hamil')],
+                                    ['route' => 'kader.data.remaja.index', 'label' => 'Data Remaja', 'active' => Str::startsWith($route, 'kader.data.remaja')],
+                                    ['route' => 'kader.data.lansia.index', 'label' => 'Data Lansia', 'active' => Str::startsWith($route, 'kader.data.lansia')],
+                                ] as $item)
+                                    <a href="{{ route($item['route']) }}" class="smooth-route block px-4 py-2.5 text-[12.5px] rounded-xl menu-transition relative before:absolute before:left-[-25.5px] before:top-1/2 before:-translate-y-1/2 before:w-[7px] before:h-[7px] before:rounded-full {{ $item['active'] ? 'font-bold text-indigo-700 bg-white shadow-sm border border-slate-100 before:bg-indigo-500 before:ring-4 before:ring-indigo-100' : 'font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 before:bg-slate-200 hover:before:bg-indigo-300' }}">
+                                        {{ $item['label'] }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Grup: Layanan --}}
+            <div>
+                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Operasional</p>
+                <div class="space-y-1">
+                    
+                    <button onclick="toggleSubmenu('menuAbsensi', 'iconAbsensi')" class="w-full group flex items-center justify-between px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ $isAbsensi ? $menuAktif : $menuPasif }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-clipboard-user w-5 text-center text-[16px] {{ $isAbsensi ? $iconAktif : $iconPasif }}"></i> 
+                            <span>Buku Kehadiran</span>
+                        </div>
+                        <i id="iconAbsensi" class="fas fa-chevron-down text-[10px] transition-transform duration-300 {{ $isAbsensi ? 'rotate-180 text-indigo-600' : 'text-slate-400 group-hover:text-indigo-500' }}"></i>
+                    </button>
+                    
+                    <div id="menuAbsensi" class="submenu-grid {{ $isAbsensi ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]' }}">
+                        <div class="overflow-hidden">
+                            <div class="pl-[48px] pr-2 py-1 space-y-1 relative before:absolute before:left-[26px] before:top-3 before:bottom-3 before:w-[2px] before:bg-slate-100 before:rounded-full">
+                                <a href="{{ route('kader.absensi.index') }}" class="smooth-route block px-4 py-2.5 text-[12.5px] rounded-xl menu-transition relative before:absolute before:left-[-25.5px] before:top-1/2 before:-translate-y-1/2 before:w-[7px] before:h-[7px] before:rounded-full {{ $route == 'kader.absensi.index' ? 'font-bold text-indigo-700 bg-white shadow-sm border border-slate-100 before:bg-indigo-500 before:ring-4 before:ring-indigo-100' : 'font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 before:bg-slate-200 hover:before:bg-indigo-300' }}">Input Presensi</a>
+                                <a href="{{ route('kader.absensi.riwayat') }}" class="smooth-route block px-4 py-2.5 text-[12.5px] rounded-xl menu-transition relative before:absolute before:left-[-25.5px] before:top-1/2 before:-translate-y-1/2 before:w-[7px] before:h-[7px] before:rounded-full {{ $route == 'kader.absensi.riwayat' ? 'font-bold text-indigo-700 bg-white shadow-sm border border-slate-100 before:bg-indigo-500 before:ring-4 before:ring-indigo-100' : 'font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 before:bg-slate-200 hover:before:bg-indigo-300' }}">Riwayat Arsip</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ route('kader.pemeriksaan.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.pemeriksaan') ? $menuAktif : $menuPasif }}">
+                        <i class="fas fa-stethoscope w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.pemeriksaan') ? $iconAktif : $iconPasif }}"></i> 
+                        <span>Pemeriksaan Medis</span>
+                    </a>
+                    <a href="{{ route('kader.imunisasi.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.imunisasi') ? $menuAktif : $menuPasif }}">
+                        <i class="fas fa-syringe w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.imunisasi') ? $iconAktif : $iconPasif }}"></i> 
+                        <span>Imunisasi Vaksin</span>
+                    </a>
+                    <a href="{{ route('kader.kunjungan.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.kunjungan') ? $menuAktif : $menuPasif }}">
+                        <i class="fas fa-notes-medical w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.kunjungan') ? $iconAktif : $iconPasif }}"></i> 
+                        <span>Log Antrian / Tamu</span>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Grup: Manajemen --}}
+            <div>
+                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Manajemen Alat</p>
+                <div class="space-y-1">
+                    <a href="{{ route('kader.jadwal.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.jadwal') ? $menuAktif : $menuPasif }}">
+                        <i class="fas fa-calendar-alt w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.jadwal') ? $iconAktif : $iconPasif }}"></i> 
+                        <span>Jadwal Posyandu</span>
+                    </a>
+                    <a href="{{ route('kader.import.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.import') ? $menuAktif : $menuPasif }}">
+                        <i class="fas fa-file-import w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.import') ? $iconAktif : $iconPasif }}"></i> 
+                        <span>Import Data Masal</span>
+                    </a>
+                    <a href="{{ route('kader.laporan.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.laporan') ? $menuAktif : $menuPasif }}">
+                        <i class="fas fa-print w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.laporan') ? $iconAktif : $iconPasif }}"></i> 
+                        <span>Cetak Dokumen PDF</span>
+                    </a>
+                </div>
+            </div>
+            
+        </nav>
+
+        {{-- Profil Footer Sidebar --}}
+        <div class="p-4 border-t border-slate-100 bg-white shrink-0">
+            <a href="{{ route('kader.profile.index') }}" class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors group">
+                <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center font-black text-sm group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all">
                     {{ strtoupper(substr(Auth::user()->profile->full_name ?? Auth::user()->name ?? 'K', 0, 1)) }}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-[13px] font-bold text-slate-800 truncate font-poppins leading-tight">{{ Auth::user()->profile->full_name ?? Auth::user()->name ?? 'Kader Posyandu' }}</p>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5 mt-0.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_2px_rgba(16,185,129,0.2)] animate-pulse"></span>
-                        Kader Aktif
-                    </p>
+                    <p class="text-[13px] font-bold text-slate-800 truncate leading-tight">{{ Auth::user()->profile->full_name ?? Auth::user()->name ?? 'Kader' }}</p>
+                    <p class="text-[10px] font-medium text-slate-400 truncate mt-0.5">Pengaturan Akun</p>
                 </div>
-            </div>
+                <i class="fas fa-cog text-slate-300 text-sm group-hover:text-indigo-500 transition-colors"></i>
+            </a>
         </div>
-        
-        <nav class="flex-1 overflow-y-auto px-4 py-4 relative z-10 custom-scrollbar">
-            @include('partials.sidebar.kader')
-        </nav>
     </aside>
 
-    <div class="flex-1 lg:ml-[280px] min-h-screen flex flex-col w-full relative">
+    {{-- 6. MAIN CONTENT AREA --}}
+    <div class="flex-1 flex flex-col min-w-0 h-screen bg-slate-50 relative">
         
-        <header class="h-20 glass-header border-b border-white/50 sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
-            <div class="flex items-center gap-4">
-                <button id="menuToggle" class="lg:hidden w-10 h-10 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors shadow-sm bg-white border border-slate-200"><i class="fas fa-bars-staggered"></i></button>
-                <nav class="hidden sm:flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                    <a href="{{ route('kader.dashboard') }}" class="hover:text-indigo-600 transition-colors"><i class="fas fa-home text-sm"></i></a>
-                    <i class="fas fa-chevron-right text-[8px] text-slate-300 mx-1"></i>
-                    <span class="text-indigo-600">@yield('page-name', 'Dashboard')</span>
-                </nav>
+        {{-- HEADER NAVBAR --}}
+        <header class="h-[76px] glass-panel sticky top-0 z-40 flex items-center justify-between px-4 lg:px-8 border-b border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+            
+            <div class="flex items-center gap-3 lg:gap-5">
+                <button id="menuToggle" class="lg:hidden w-10 h-10 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-[12px] transition-colors bg-white border border-slate-200 shadow-sm"><i class="fas fa-bars-staggered"></i></button>
+                <div class="hidden md:flex flex-col">
+                    <h2 class="text-[18px] font-black text-slate-800 tracking-tight font-poppins leading-none">@yield('page-name', 'Beranda')</h2>
+                    <div class="flex items-center gap-1.5 mt-1 text-[11px] font-semibold text-slate-400 tracking-wide">
+                        <span>Workspace</span> <i class="fas fa-chevron-right text-[8px] opacity-50"></i> <span class="text-indigo-500">Sistem Berjalan</span>
+                    </div>
+                </div>
             </div>
             
-            <div class="flex items-center gap-2 sm:gap-4 relative">
-                <div class="hidden md:flex items-center bg-white hover:bg-slate-50 transition-colors rounded-2xl px-5 py-2.5 w-64 border border-slate-200 focus-within:bg-white focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-50 shadow-sm mr-2">
+            <div class="flex items-center gap-2 sm:gap-3">
+                
+                {{-- Pencarian Cepat --}}
+                <div class="hidden xl:flex items-center bg-slate-100 hover:bg-slate-200/50 rounded-full px-4 py-2 w-64 transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-100 focus-within:border-indigo-300 border border-transparent">
                     <i class="fas fa-search text-slate-400 text-sm"></i>
-                    <input type="text" placeholder="Cari warga posyandu..." class="bg-transparent border-none outline-none text-[13px] w-full ml-3 placeholder:text-slate-400 font-medium text-slate-700">
+                    <input type="text" id="globalSearchInput" placeholder="Pencarian cepat..." class="bg-transparent border-none outline-none text-[13px] w-full ml-3 placeholder:text-slate-400 font-medium text-slate-700">
+                    <kbd class="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[9px] font-bold text-slate-400 shadow-sm">/ </kbd>
                 </div>
+
+                <div class="w-px h-6 bg-slate-200 mx-1 hidden lg:block"></div>
                 
                 @php
                     $unreadNotifCount = \App\Models\Notifikasi::where('user_id', Auth::id())->where('is_read', false)->count();
                     $latestNotifs = \App\Models\Notifikasi::where('user_id', Auth::id())->latest()->take(5)->get();
                 @endphp
 
-                <div class="static sm:relative">
-                    <button id="notifDropdownBtn" class="relative w-10 h-10 flex items-center justify-center bg-white text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all border border-slate-200 shadow-sm hover:shadow">
-                        <i class="fas fa-bell text-[18px]"></i>
-                        <span id="notifBadge" class="absolute top-0 right-0 w-3 h-3 bg-rose-500 rounded-full ring-2 ring-white animate-pulse {{ $unreadNotifCount > 0 ? '' : 'hidden' }}"></span>
+                {{-- Notification Bell --}}
+                <div class="relative">
+                    <button id="notifDropdownBtn" class="relative w-10 h-10 flex items-center justify-center bg-white text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-[12px] transition-all border border-slate-200 shadow-sm hover:shadow group">
+                        <i class="fas fa-bell text-[16px]"></i>
+                        @if($unreadNotifCount > 0)
+                            <span id="notifBadge" class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500 border-2 border-white"></span>
+                            </span>
+                        @endif
                     </button>
                     
-                    <div id="notifDropdown" class="hidden absolute top-16 right-0 w-[calc(100vw-2rem)] sm:top-auto sm:right-0 sm:mt-3 sm:w-80 bg-white rounded-[24px] shadow-[0_15px_50px_-10px_rgba(0,0,0,0.15)] border border-slate-100 z-50 animate-pop overflow-hidden flex flex-col">
-                        <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-                            <h3 class="text-sm font-black text-slate-800 font-poppins">Pusat Notifikasi</h3>
-                            <span id="notifCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $unreadNotifCount > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-400' }}">{{ $unreadNotifCount }} Baru</span>
+                    {{-- Dropdown Notif --}}
+                    <div id="notifDropdown" class="hidden absolute top-[120%] right-0 w-[calc(100vw-2rem)] mx-4 sm:mx-0 sm:w-[380px] bg-white/95 backdrop-blur-xl border border-slate-200 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] rounded-[24px] z-50 overflow-hidden flex flex-col transition-all origin-top-right scale-95 opacity-0">
+                        <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/80 rounded-t-[24px]">
+                            <h3 class="text-[14px] font-black text-slate-800 font-poppins">Pusat Notifikasi</h3>
+                            <span id="notifCount" class="text-[10px] font-bold px-2 py-0.5 rounded text-rose-600 bg-rose-50 border border-rose-100 {{ $unreadNotifCount > 0 ? '' : 'hidden' }}">{{ $unreadNotifCount }} Baru</span>
                         </div>
-                        
-                        <div id="notifList" class="max-h-72 overflow-y-auto custom-scrollbar flex-1">
+                        <div id="notifList" class="max-h-[320px] overflow-y-auto custom-scrollbar flex-1 bg-white">
                             @forelse($latestNotifs as $n)
-                                <a href="{{ route('kader.notifikasi.index') }}" class="notif-item {{ $n->is_read ? '' : 'unread' }} flex gap-4 px-5 py-4 hover:bg-slate-50 transition-colors border-b border-slate-100 {{ $n->is_read ? 'bg-white border-l-4 border-l-transparent' : 'bg-indigo-50/40 border-l-4 border-l-indigo-500' }}">
-                                    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border {{ $n->is_read ? 'bg-slate-50 text-slate-400 border-slate-200' : 'bg-indigo-100 text-indigo-600 border-indigo-200' }}">
-                                        <i class="fas fa-{{ str_contains(strtolower($n->judul), 'jadwal') ? 'calendar-alt' : (str_contains(strtolower($n->judul), 'import') ? 'file-excel' : 'bell') }} text-sm"></i>
+                                <a href="{{ route('kader.notifikasi.index') }}" class="flex gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors border-b border-slate-50 {{ $n->is_read ? '' : 'bg-indigo-50/20' }}">
+                                    <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 {{ $n->is_read ? 'bg-slate-100 text-slate-400' : 'bg-indigo-100 text-indigo-600' }}">
+                                        <i class="fas fa-{{ str_contains(strtolower($n->judul), 'jadwal') ? 'calendar-alt' : 'bell' }} text-xs"></i>
                                     </div>
-                                    <div>
-                                        <p class="text-[13px] font-bold {{ $n->is_read ? 'text-slate-600' : 'text-slate-800' }} leading-tight font-poppins">{{ $n->judul }}</p>
-                                        <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">{{ $n->pesan }}</p>
+                                    <div class="flex-1 min-w-0 pt-0.5">
+                                        <p class="text-[13px] font-bold {{ $n->is_read ? 'text-slate-600' : 'text-slate-900' }} truncate font-poppins">{{ $n->judul }}</p>
+                                        <p class="text-[12px] {{ $n->is_read ? 'text-slate-400' : 'text-slate-600' }} line-clamp-1 mt-0.5">{{ $n->pesan }}</p>
+                                        <p class="text-[10px] font-medium text-slate-400 mt-1.5">{{ $n->created_at->diffForHumans() }}</p>
                                     </div>
                                 </a>
                             @empty
-                                <div class="flex flex-col items-center justify-center py-10 text-slate-400">
-                                    <div class="w-14 h-14 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center text-2xl mb-3 border border-slate-100"><i class="fas fa-bell-slash"></i></div>
-                                    <p class="text-[11px] font-bold uppercase tracking-widest">Belum ada notifikasi</p>
-                                </div>
+                                <div class="py-10 text-center text-slate-400"><i class="fas fa-check-circle text-3xl mb-3 opacity-30"></i><p class="text-xs font-medium">Semua bersih.</p></div>
                             @endforelse
                         </div>
-                        
-                        <div class="p-3 bg-white border-t border-slate-100 flex flex-col gap-1.5 shrink-0">
-                            <div id="markAllContainer" class="{{ $unreadNotifCount > 0 ? 'block' : 'hidden' }}">
-                                <form action="{{ route('kader.notifikasi.markAllRead') }}" method="POST" class="w-full">
-                                    @csrf
-                                    <button type="submit" id="markAllReadBtn" class="w-full py-2.5 text-[12px] font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-colors flex items-center justify-center gap-1.5">
-                                        <i class="fas fa-check-double"></i> Tandai Semua Dibaca
-                                    </button>
-                                </form>
-                            </div>
-                            <a href="{{ route('kader.notifikasi.index') }}" class="w-full py-2.5 text-[12px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 text-center rounded-xl transition-colors">
-                                Lihat Semua Notifikasi &rarr;
-                            </a>
+                        <div class="p-3 border-t border-slate-100 rounded-b-[24px] bg-slate-50/80">
+                            <a href="{{ route('kader.notifikasi.index') }}" class="w-full py-2.5 text-[12px] font-bold text-indigo-600 hover:bg-white border border-transparent hover:border-slate-200 shadow-sm text-center rounded-xl transition-all block">Lihat Semua Riwayat</a>
                         </div>
                     </div>
                 </div>
                 
-                <div class="static sm:relative ml-1">
-                    <button id="userDropdownBtn" class="flex items-center gap-2 p-1 pr-3 rounded-full bg-white hover:bg-slate-50 transition-colors border border-slate-200 shadow-sm group">
-                        <div class="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-indigo-100 text-indigo-600 font-bold group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                            {{ strtoupper(substr(Auth::user()->profile->full_name ?? Auth::user()->name ?? 'K', 0, 1)) }}
-                        </div>
-                        <i class="fas fa-chevron-down text-[10px] text-slate-400 group-hover:text-slate-600"></i>
+                {{-- Fast Logout Button (Optional but very handy) --}}
+                <form method="POST" action="{{ route('logout') }}" class="hidden sm:block">
+                    @csrf
+                    <button type="submit" class="w-10 h-10 flex items-center justify-center bg-white text-rose-500 hover:text-white hover:bg-rose-500 rounded-[12px] transition-all border border-slate-200 shadow-sm" title="Keluar">
+                        <i class="fas fa-power-off text-[14px]"></i>
                     </button>
+                </form>
 
-                    <div id="userDropdown" class="hidden absolute top-16 right-0 w-[calc(100vw-2rem)] sm:top-auto sm:right-0 sm:mt-3 sm:w-64 bg-white rounded-[24px] shadow-[0_15px_50px_-10px_rgba(0,0,0,0.1)] border border-slate-100 z-50 animate-pop overflow-hidden">
-                        <div class="px-5 py-5 border-b border-slate-50 bg-gradient-to-r from-indigo-50 to-violet-50">
-                            <p class="text-[15px] font-black text-slate-800 truncate font-poppins">{{ Auth::user()->profile->full_name ?? Auth::user()->name ?? 'Kader' }}</p>
-                            <p class="text-[10px] text-indigo-600 font-bold uppercase tracking-widest mt-1">{{ Auth::user()->email ?? 'kader@posyandu.com' }}</p>
-                        </div>
-                        <div class="p-2 border-t border-slate-50">
-                            <a href="{{ route('kader.profile.index') }}" class="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 rounded-xl transition-all"><i class="fas fa-user-circle w-4 text-center"></i> Profil Saya</a>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" onclick="showGlobalLoader('MENGAKHIRI SESI...')" class="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-bold text-rose-500 bg-rose-50 border border-rose-100 hover:bg-rose-500 hover:text-white rounded-xl mt-1 transition-all"><i class="fas fa-power-off w-4 text-center"></i> Keluar Sistem</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
             </div>
         </header>
 
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto w-full relative z-0">
-            @foreach (['success' => ['bg-emerald-50', 'text-emerald-800', 'text-emerald-500', 'fa-check-circle', 'border-emerald-200'], 'error' => ['bg-rose-50', 'text-rose-800', 'text-rose-500', 'fa-circle-exclamation', 'border-rose-200']] as $msg => $classes)
-                @if(session($msg))
-                    <div class="mb-6 px-5 py-4 {{ $classes[0] }} border {{ $classes[4] }} rounded-2xl flex items-center justify-between shadow-sm animate-[slideDown_0.4s_ease-out]">
-                        <div class="flex items-center gap-3"><i class="fas {{ $classes[3] }} {{ $classes[2] }} text-xl"></i><span class="{{ $classes[1] }} text-[13px] sm:text-sm font-bold">{{ session($msg) }}</span></div>
-                        <button onclick="this.parentElement.style.display='none'" class="{{ $classes[2] }} hover:opacity-70 p-2 transition-opacity"><i class="fas fa-times"></i></button>
-                    </div>
-                @endif
-            @endforeach
+        {{-- MAIN CONTENT INJECTION --}}
+        <main class="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 relative z-0 custom-scrollbar">
             @yield('content')
         </main>
+
+        {{-- 7. MOBILE BOTTOM NAV (iOS Tab Bar Style) --}}
+        <nav class="lg:hidden fixed bottom-0 left-0 right-0 h-16 glass-panel border-t border-slate-200 z-50 flex items-center justify-around px-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+            <a href="{{ route('kader.dashboard') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ $route == 'kader.dashboard' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
+                <i class="fas fa-chart-pie text-lg mb-1 {{ $route == 'kader.dashboard' ? 'drop-shadow-sm' : '' }}"></i> Beranda
+            </a>
+            <a href="{{ route('kader.data.balita.index') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ $isDataWarga ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
+                <i class="fas fa-users text-lg mb-1 {{ $isDataWarga ? 'drop-shadow-sm' : '' }}"></i> Warga
+            </a>
+            <a href="{{ route('kader.pemeriksaan.index') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ Str::startsWith($route,'kader.pemeriksaan') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
+                <i class="fas fa-stethoscope text-lg mb-1 {{ Str::startsWith($route,'kader.pemeriksaan') ? 'drop-shadow-sm' : '' }}"></i> Medis
+            </a>
+            <a href="{{ route('kader.jadwal.index') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ Str::startsWith($route,'kader.jadwal') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
+                <i class="fas fa-calendar-alt text-lg mb-1 {{ Str::startsWith($route,'kader.jadwal') ? 'drop-shadow-sm' : '' }}"></i> Jadwal
+            </a>
+        </nav>
     </div>
 
+    {{-- 8. CORE JAVASCRIPT ENGINE (No Dependencies Needed) --}}
     <script>
-        const showGlobalLoader = (t = 'MEMUAT DATA...') => { const l = document.getElementById('globalLoader'); if(l) { l.querySelector('p').innerText = t; l.style.display = 'flex'; l.classList.remove('opacity-0', 'pointer-events-none'); l.classList.add('opacity-100'); } };
-        const hideGlobalLoader = () => { const l = document.getElementById('globalLoader'); if(l) { l.classList.remove('opacity-100'); l.classList.add('opacity-0', 'pointer-events-none'); setTimeout(() => l.style.display = 'none', 200); } };
-        window.addEventListener('pageshow', hideGlobalLoader);
+        // --- A. PREMIUM TOAST ENGINE ---
+        const showToast = (type, title, message) => {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const icon = type === 'success' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-circle"></i>';
+            const color = type === 'success' ? 'emerald' : 'rose';
+            
+            const toastHtml = `
+                <div class="toast-item pointer-events-auto bg-white p-4 rounded-[20px] shadow-[0_15px_40px_rgba(0,0,0,0.08)] border border-slate-100 flex items-start gap-3 toast-show relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-${color}-500"></div>
+                    <div class="w-8 h-8 rounded-full bg-${color}-50 text-${color}-500 flex items-center justify-center shrink-0 ml-1">${icon}</div>
+                    <div class="flex-1 pt-1.5"><h4 class="text-[13px] font-black text-slate-800 leading-none mb-1">${title}</h4><p class="text-[11px] font-medium text-slate-500">${message}</p></div>
+                    <button onclick="removeToast(this)" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', toastHtml);
+            const newToast = container.lastElementChild;
+            setTimeout(() => removeToast(newToast.querySelector('button')), 5000);
+        };
+        const removeToast = (btn) => {
+            const toast = btn.closest('.toast-item');
+            if(toast) { toast.classList.remove('toast-show'); toast.classList.add('toast-hide'); setTimeout(() => toast.remove(), 400); }
+        };
+
+        // Inject Laravel Session to Toast
+        @if(session('success')) document.addEventListener('DOMContentLoaded', () => showToast('success', 'Aksi Berhasil', "{{ session('success') }}")); @endif
+        @if(session('error')) document.addEventListener('DOMContentLoaded', () => showToast('error', 'Kesalahan Sistem', "{{ session('error') }}")); @endif
+
+        // --- B. UI & LOADER CONTROLS ---
+        const hideLoader = () => { const l = document.getElementById('globalLoader'); if(l) { l.classList.add('opacity-0', 'pointer-events-none'); setTimeout(() => l.style.display = 'none', 300); } };
+        window.addEventListener('pageshow', hideLoader);
 
         document.addEventListener('DOMContentLoaded', () => {
-            hideGlobalLoader();
-            document.querySelectorAll('.smooth-route').forEach(el => el.addEventListener('click', e => { if(!el.classList.contains('target-blank') && el.target !== '_blank' && !e.ctrlKey) showGlobalLoader('MEMUAT HALAMAN...'); }));
+            hideLoader();
+            
+            // Tembak Loader untuk link biasa
+            document.querySelectorAll('.smooth-route').forEach(el => el.addEventListener('click', e => { 
+                if(!el.classList.contains('target-blank') && el.target !== '_blank' && !e.ctrlKey) { const l = document.getElementById('globalLoader'); if(l) { l.style.display = 'flex'; l.classList.remove('opacity-0', 'pointer-events-none'); } }
+            }));
 
+            // Sidebar Mobile Toggle
             const sidebar = document.getElementById('sidebar'), overlay = document.getElementById('mobileOverlay'), toggleBtn = document.getElementById('menuToggle'), closeBtn = document.getElementById('closeSidebar');
             const toggleSidebar = () => {
-                if (sidebar.classList.contains('-translate-x-full')) {
-                    sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); setTimeout(() => overlay.classList.add('opacity-100'), 10); document.body.classList.add('overflow-hidden');
-                } else {
-                    sidebar.classList.add('-translate-x-full'); overlay.classList.remove('opacity-100'); setTimeout(() => overlay.classList.add('hidden'), 300); document.body.classList.remove('overflow-hidden');
-                }
+                if (sidebar.classList.contains('-translate-x-full')) { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); setTimeout(() => overlay.classList.add('opacity-100'), 10); document.body.classList.add('overflow-hidden'); } 
+                else { sidebar.classList.add('-translate-x-full'); overlay.classList.remove('opacity-100'); setTimeout(() => overlay.classList.add('hidden'), 300); document.body.classList.remove('overflow-hidden'); }
             };
             if(toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
             if(closeBtn) closeBtn.addEventListener('click', toggleSidebar);
             if(overlay) overlay.addEventListener('click', toggleSidebar);
 
-            const uBtn = document.getElementById('userDropdownBtn'), uMenu = document.getElementById('userDropdown'), nBtn = document.getElementById('notifDropdownBtn'), nMenu = document.getElementById('notifDropdown');
-            if (uBtn && uMenu) uBtn.addEventListener('click', e => { e.stopPropagation(); uMenu.classList.toggle('hidden'); if(nMenu) nMenu.classList.add('hidden'); });
-            if (nBtn && nMenu) nBtn.addEventListener('click', e => { e.stopPropagation(); nMenu.classList.toggle('hidden'); if(uMenu) uMenu.classList.add('hidden'); });
-            document.addEventListener('click', e => {
-                if (uMenu && !uMenu.contains(e.target) && !uBtn.contains(e.target)) uMenu.classList.add('hidden');
-                if (nMenu && !nMenu.contains(e.target) && !nBtn.contains(e.target)) nMenu.classList.add('hidden');
-            });
-
-            // AJAX REAL-TIME POLLING PINTAR (Setiap 10 Detik)
-            let currentUnreadNotif = {{ \App\Models\Notifikasi::where('user_id', Auth::id())->where('is_read', false)->count() }};
-
-            function checkNewNotifications() {
-                fetch("{{ route('kader.notifikasi.fetch') }}", {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    const badge = document.getElementById('notifBadge');
-                    const countText = document.getElementById('notifCount');
-                    const list = document.getElementById('notifList');
-                    const markAll = document.getElementById('markAllContainer');
-
-                    if (badge) {
-                        if (data.unreadCount > 0) badge.classList.remove('hidden');
-                        else badge.classList.add('hidden');
+            // Popover Notifikasi dengan Efek Scale
+            const nBtn = document.getElementById('notifDropdownBtn'), nMenu = document.getElementById('notifDropdown');
+            if (nBtn && nMenu) {
+                nBtn.addEventListener('click', e => { 
+                    e.stopPropagation(); 
+                    if(nMenu.classList.contains('hidden')) {
+                        nMenu.classList.remove('hidden'); setTimeout(()=> { nMenu.classList.remove('scale-95','opacity-0'); nMenu.classList.add('scale-100','opacity-100'); }, 10);
+                    } else {
+                        nMenu.classList.remove('scale-100','opacity-100'); nMenu.classList.add('scale-95','opacity-0'); setTimeout(()=> nMenu.classList.add('hidden'), 200);
                     }
-                    if (countText) {
-                        countText.textContent = data.unreadCount + ' Baru';
-                        countText.className = data.unreadCount > 0 
-                            ? 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-600'
-                            : 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-400';
+                });
+                document.addEventListener('click', e => {
+                    if (!nMenu.contains(e.target) && !nBtn.contains(e.target) && !nMenu.classList.contains('hidden')) {
+                        nMenu.classList.remove('scale-100','opacity-100'); nMenu.classList.add('scale-95','opacity-0'); setTimeout(()=> nMenu.classList.add('hidden'), 200);
                     }
-                    if (list) list.innerHTML = data.html;
-                    if (markAll) {
-                        if (data.unreadCount > 0) markAll.classList.remove('hidden');
-                        else markAll.classList.add('hidden');
-                    }
-
-                    if (data.unreadCount !== currentUnreadNotif) {
-                        currentUnreadNotif = data.unreadCount;
-                        const mainWrapper = document.getElementById('main-notif-wrapper');
-                        if (mainWrapper) {
-                            fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                            .then(res => res.text())
-                            .then(html => {
-                                const doc = new DOMParser().parseFromString(html, 'text/html');
-                                const newList = doc.getElementById('main-notif-wrapper');
-                                if (newList) mainWrapper.innerHTML = newList.innerHTML;
-                                const headerCount = document.getElementById('header-unread-count');
-                                const newHeaderCount = doc.getElementById('header-unread-count');
-                                if (headerCount && newHeaderCount) {
-                                    headerCount.innerHTML = newHeaderCount.innerHTML;
-                                }
-                            });
-                        }
-                    }
-                })
-                .catch(error => console.error("Error fetching notifications:", error));
-            }
-
-            setInterval(checkNewNotifications, 10000);
-
-            const markAllReadBtn = document.getElementById('markAllReadBtn');
-            if (markAllReadBtn) {
-                markAllReadBtn.addEventListener('click', function(e) {
-                    const nBadge = document.getElementById('notifBadge');
-                    const nCount = document.getElementById('notifCount');
-                    if(nBadge) nBadge.style.display = 'none';
-                    if(nCount) {
-                        nCount.textContent = '0 Baru';
-                        nCount.className = 'text-[10px] font-bold bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full';
-                    }
-                    document.querySelectorAll('.notif-item.unread').forEach(item => {
-                        item.classList.remove('bg-indigo-50/40', 'border-l-indigo-500', 'unread');
-                        item.classList.add('bg-white', 'border-l-transparent');
-                        const iconWrapper = item.querySelector('div.rounded-full');
-                        if (iconWrapper) {
-                            iconWrapper.className = 'w-10 h-10 rounded-full flex items-center justify-center shrink-0 border bg-slate-50 text-slate-400 border-slate-200';
-                        }
-                    });
                 });
             }
+
+            // Keyboard Shortcut Search
+            const searchInput = document.getElementById('globalSearchInput');
+            if(searchInput) { document.addEventListener('keydown', e => { if (e.key === '/') { e.preventDefault(); searchInput.focus(); } }); }
+
+            // Network State Banner
+            const offlineBanner = document.getElementById('offlineBanner');
+            window.addEventListener('offline', () => { offlineBanner.classList.remove('-translate-y-full'); showToast('error', 'Koneksi Terputus', 'Periksa jaringan internet Anda.'); });
+            window.addEventListener('online', () => { offlineBanner.classList.add('-translate-y-full'); showToast('success', 'Kembali Online', 'Sistem terhubung kembali.'); });
+            if(!navigator.onLine) offlineBanner.classList.remove('-translate-y-full');
+
+            // Notifikasi Polling & Native Push
+            if (Notification.permission !== "granted" && Notification.permission !== "denied") Notification.requestPermission();
+            let currentUnreadNotif = {{ \App\Models\Notifikasi::where('user_id', Auth::id())->where('is_read', false)->count() ?? 0 }};
+            const notifSound = new Audio('data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq'); // Bip ringan
+            
+            function checkNewNotifications() {
+                if(!navigator.onLine) return;
+                fetch("{{ route('kader.notifikasi.fetch') }}", { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.json()).then(data => {
+                    const badge = document.getElementById('notifBadge'), countText = document.getElementById('notifCount'), list = document.getElementById('notifList');
+                    if (badge) { if (data.unreadCount > 0) badge.classList.remove('hidden'); else badge.classList.add('hidden'); }
+                    if (countText) { countText.textContent = data.unreadCount + ' Baru'; countText.className = data.unreadCount > 0 ? 'text-[10px] font-bold px-2 py-0.5 rounded text-rose-600 bg-rose-50 border border-rose-100' : 'hidden'; }
+                    if (list) list.innerHTML = data.html;
+
+                    if (data.unreadCount > currentUnreadNotif) {
+                        notifSound.play().catch(e=>{}); // Silent reject
+                        showToast('success', 'Pesan Baru', data.latest_title ?? 'Anda memiliki notifikasi baru.');
+                        if (Notification.permission === "granted" && data.latest_title) {
+                            const pushNotif = new Notification("KaderCare: " + data.latest_title, { body: data.latest_body, icon: "https://cdn-icons-png.flaticon.com/512/3063/3063206.png" });
+                            pushNotif.onclick = function() { window.focus(); window.location.href = "{{ route('kader.notifikasi.index') }}"; };
+                        }
+                    }
+                    currentUnreadNotif = data.unreadCount;
+                }).catch(e => {});
+            }
+            setInterval(checkNewNotifications, 12000); // Tiap 12 detik agar tidak terlalu berat
         });
+
+        // ACCORDION MENU LOGIC
+        function toggleSubmenu(menuId, iconId) {
+            const menu = document.getElementById(menuId), icon = document.getElementById(iconId);
+            if (menu.classList.contains('grid-rows-[0fr]')) {
+                menu.classList.remove('grid-rows-[0fr]'); menu.classList.add('grid-rows-[1fr]');
+                icon.classList.add('rotate-180', 'text-indigo-600'); icon.classList.remove('text-slate-400');
+            } else {
+                menu.classList.remove('grid-rows-[1fr]'); menu.classList.add('grid-rows-[0fr]');
+                icon.classList.remove('rotate-180', 'text-indigo-600'); icon.classList.add('text-slate-400');
+            }
+        }
     </script>
     @stack('scripts')
 </body>

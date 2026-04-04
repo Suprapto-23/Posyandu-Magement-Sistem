@@ -172,12 +172,18 @@ Route::prefix('kader')->name('kader.')->middleware(['auth','checkstatus','role:k
 
     Route::resource('kunjungan', KunjunganController::class);
 
-    Route::prefix('laporan')->name('laporan.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Kader\LaporanController::class, 'index'])->name('index');
-        Route::get('/balita', [\App\Http\Controllers\Kader\LaporanController::class, 'balita'])->name('balita');
-        Route::get('/remaja', [\App\Http\Controllers\Kader\LaporanController::class, 'remaja'])->name('remaja');
-        Route::get('/lansia', [\App\Http\Controllers\Kader\LaporanController::class, 'lansia'])->name('lansia');
-        Route::get('/generate/{type}', [\App\Http\Controllers\Kader\LaporanController::class, 'generate'])->name('generate');
+    Route::prefix('laporan')
+        ->name('laporan.')
+        ->controller(\App\Http\Controllers\Kader\LaporanController::class)
+        ->group(function () {
+            
+            // 1. Dashboard UI Utama (Pusat Unduhan Semua Laporan)
+            Route::get('/', 'index')->name('index');
+            
+            // 2. Mesin Generator Laporan (Direct Download PDF & Excel)
+            // Parameter type, bulan, tahun, format dikirim via Query String (GET)
+            Route::get('/generate', 'generate')->name('generate');
+            
     });
 
     Route::resource('jadwal', JadwalController::class);
