@@ -11,24 +11,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // ✅ FIX UTAMA: Alias middleware menggunakan nama class yang BENAR
+        $middleware->trustProxies(at: '*'); // ← TAMBAH INI
+
         $middleware->alias([
-            'role'        => \App\Http\Middleware\RoleMiddleware::class,   // Bukan CheckRole!
+            'role'        => \App\Http\Middleware\RoleMiddleware::class,
             'checkstatus' => \App\Http\Middleware\CheckUserStatus::class,
             'logactivity' => \App\Http\Middleware\LogUserActivity::class,
         ]);
 
-        // Redirect guest ke halaman login
         $middleware->redirectGuestsTo('/login');
 
-        // Redirect user yang sudah login ke dashboard sesuai role
         $middleware->redirectUsersTo(function () {
             $user = auth()->user();
-
-            if (!$user) {
-                return '/login';
-            }
-
+            if (!$user) return '/login';
             return match(strtolower($user->role)) {
                 'admin'  => '/admin/dashboard',
                 'bidan'  => '/bidan/dashboard',

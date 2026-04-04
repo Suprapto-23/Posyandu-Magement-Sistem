@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL; // ← TAMBAH INI
 use App\Models\Setting;
 use App\Models\Balita;
 use App\Models\Remaja;
@@ -17,22 +18,24 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // ← TAMBAH INI
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
+
         Schema::defaultStringLength(191);
 
         View::composer('*', function ($view) {
-            // A. Settings
             $settings = cache()->remember('app_settings', 3600, function () {
                 try { return Setting::getAll(); } catch (\Exception $e) { return []; }
             });
             $view->with('settings', $settings);
 
-            // B. Peran User untuk Sidebar
             $peranUser = ['umum'];
 
             if (Auth::check() && Auth::user()->role === 'user') {
                 $user    = Auth::user();
 
-                // Deteksi NIK: kolom nik → profile->nik → username numerik
                 $nikUser = $user->nik ?? ($user->profile?->nik ?? null);
                 if (empty($nikUser) && !empty($user->username) && is_numeric($user->username)) {
                     $nikUser = $user->username;
@@ -41,13 +44,12 @@ class AppServiceProvider extends ServiceProvider
                 $peranDitemukan = [];
 
                 try {
-                    // ✅ FIX: cek nik_ibu/nik_ayah DAN kolom nik balita DAN user_id
                     $adaBalita = Balita::where(function ($q) use ($nikUser) {
                             $q->where('nik_ibu', $nikUser)
                               ->orWhere('nik_ayah', $nikUser)
-                              ->orWhere('nik', $nikUser);   // ← NIK balita itu sendiri
+                              ->orWhere('nik', $nikUser);
                         })
-                        ->orWhere('user_id', $user->id)     // ← linked via user_id
+                        ->orWhere('user_id', $user->id)
                         ->exists();
 
                     if ($adaBalita) {
