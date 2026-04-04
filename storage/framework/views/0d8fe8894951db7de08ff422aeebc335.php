@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
-    <meta name="theme-color" content="#ffffff">
     <title><?php echo $__env->yieldContent('title', 'Bidan Workspace'); ?> — PosyanduCare</title>
     
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2306b6d4'/%3E%3Cstop offset='100%25' stop-color='%230284c7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='24' height='24' rx='6' fill='url(%23grad)'/%3E%3Cpath d='M12 7v10M8 12h8' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><path fill=%22%230891b2%22 d=%22M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z%22/><path fill=%22white%22 d=%22M11 7h2v3h3v2h-3v3h-2v-3H8v-2h3V7z%22/></svg>">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
@@ -20,400 +20,309 @@
     <style type="text/tailwindcss">
         @theme { 
             --font-sans: 'Inter', sans-serif; 
-            --font-poppins: 'Poppins', sans-serif; 
+            --font-poppins: 'Poppins', sans-serif;
         }
+        
         body { 
             font-family: var(--font-sans); 
-            background-color: #f0fdfa; /* Nuansa higienis medis */
-            background-image: radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.05) 0px, transparent 50%),
+            background-color: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, rgba(8, 145, 178, 0.05) 0px, transparent 50%),
                               radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.05) 0px, transparent 50%);
             background-attachment: fixed;
-            -webkit-font-smoothing: antialiased;
-            color: #0f172a;
         }
+
         h1, h2, h3, h4, h5, h6 { font-family: var(--font-poppins); }
         
-        /* Ultra Clean Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 
-        /* Smooth UI Utilities */
-        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .menu-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .submenu-grid { display: grid; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        /* Animasi Transisi Layout (Fluid Sidebar) */
-        .layout-shift { transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
 
-        /* Toast Animation Spring (Bouncy) */
-        @keyframes toastEnter { 0% { opacity: 0; transform: translateX(100%) scale(0.9); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
-        @keyframes toastLeave { 0% { opacity: 1; transform: translateX(0) scale(1); max-height: 120px; margin-bottom: 12px; } 100% { opacity: 0; transform: translateX(100%) scale(0.9); max-height: 0; margin-bottom: 0; padding: 0; border: 0; } }
-        .toast-show { animation: toastEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        .toast-hide { animation: toastLeave 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes menuPop { 0% { opacity: 0; transform: scale(0.95) translateY(-10px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+        .animate-pop { animation: menuPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; transform-origin: top right; }
     </style>
     <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 
-<body class="flex h-screen overflow-hidden selection:bg-cyan-100 selection:text-cyan-900">
+<body class="text-slate-800 antialiased selection:bg-cyan-100 selection:text-cyan-900">
 
-    
-    <div id="offlineBanner" class="fixed top-0 left-0 right-0 z-[99999] bg-rose-500 text-white text-[11px] font-black uppercase tracking-widest py-2 text-center transform -translate-y-full transition-transform duration-300 flex items-center justify-center gap-2 shadow-lg">
-        <i class="fas fa-wifi-slash animate-pulse"></i> Koneksi Terputus. Menunggu Jaringan...
-    </div>
-
-    
-    <div id="toastContainer" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 w-full max-w-[350px] pointer-events-none"></div>
-
-    
-    <div id="globalLoader" class="fixed inset-0 z-[9998] bg-white/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="globalLoader" class="fixed inset-0 bg-white/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-150 opacity-0 pointer-events-none">
         <div class="relative w-20 h-20 flex items-center justify-center mb-5">
             <div class="absolute inset-0 border-4 border-cyan-100 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-cyan-500 rounded-full border-t-transparent animate-spin"></div>
-            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
-                <i class="fas fa-stethoscope text-cyan-600 animate-pulse text-xl"></i>
+            <div class="absolute inset-0 border-4 border-cyan-600 rounded-full border-t-transparent animate-spin"></div>
+            <div class="w-12 h-12 bg-cyan-50 rounded-full flex items-center justify-center shadow-inner">
+                <i class="fas fa-stethoscope text-cyan-600 text-2xl animate-pulse"></i>
             </div>
         </div>
-        <p class="text-[10px] font-black text-cyan-700 uppercase tracking-[0.25em]" id="loaderText">MEMUAT SISTEM...</p>
+        <p class="text-cyan-800 font-poppins font-black tracking-[0.2em] text-xs" id="loaderText">MEMUAT SISTEM...</p>
     </div>
 
-    
-    <div id="mobileOverlay" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0 xl:hidden"></div>
+    <div id="mobileOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0"></div>
 
-    <?php 
-        $route = request()->route()->getName() ?? '';
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-[280px] bg-white border-r border-slate-200/80 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
         
-        // GAYA MENU BIDAN (SaaS Premium Indicator)
-        $menuAktif = 'bg-cyan-50/80 text-cyan-700 font-bold shadow-[0_2px_10px_rgba(6,182,212,0.06)] relative before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-8 before:w-1 before:bg-cyan-500 before:rounded-r-md';
-        $menuPasif = 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-medium border border-transparent';
-        $iconAktif = 'text-cyan-600 drop-shadow-sm';
-        $iconPasif = 'text-slate-400 group-hover:text-cyan-500 transition-colors';
-    ?>
-
-    
-    
-    
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-[280px] bg-white border-r border-slate-200/80 transform -translate-x-full xl:translate-x-0 transition-transform duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col shadow-2xl xl:shadow-none">
-        
-        
-        <div class="h-[80px] flex items-center px-6 border-b border-slate-100 shrink-0 bg-white relative z-10">
+        <div class="h-20 flex items-center px-6 border-b border-slate-100/80 shrink-0">
             <div class="flex items-center gap-3 w-full">
-                <div class="w-10 h-10 rounded-[14px] bg-gradient-to-br from-cyan-400 to-sky-600 text-white flex items-center justify-center shadow-[0_4px_12px_rgba(6,182,212,0.3)] shrink-0">
-                    <i class="fas fa-hand-holding-medical text-[18px]"></i>
+                <div class="w-11 h-11 rounded-[14px] bg-gradient-to-br from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow-[0_4px_12px_rgba(8,145,178,0.3)] shrink-0 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-hand-holding-medical text-xl"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h1 class="text-[22px] font-black text-slate-800 tracking-tight truncate font-poppins">Medis<span class="text-cyan-500">Care</span></h1>
+                    <h1 class="text-xl font-black text-slate-900 tracking-tight truncate font-poppins">Medis<span class="text-cyan-600">Care</span></h1>
                 </div>
-                <button id="closeSidebarBtn" class="xl:hidden w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
-                    <i class="fas fa-times text-lg"></i>
+                <button id="closeSidebar" class="lg:hidden w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
-        
-        
-        <nav class="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar space-y-7 relative z-0">
-            
-            <div>
-                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Ruang Bidan</p>
-                <a href="<?php echo e(route('bidan.dashboard')); ?>" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-[14px] menu-transition <?php echo e($route == 'bidan.dashboard' ? $menuAktif : $menuPasif); ?>">
-                    <i class="fas fa-chart-pie w-5 text-center text-[16px] <?php echo e($route == 'bidan.dashboard' ? $iconAktif : $iconPasif); ?>"></i> 
-                    <span class="text-[13.5px]">Dashboard Klinis</span>
-                </a>
-            </div>
 
-            <div>
-                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Layanan Medis</p>
-                <div class="space-y-1">
-                    <a href="<?php echo e(route('bidan.pemeriksaan.index')); ?>" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-[14px] menu-transition <?php echo e(Str::startsWith($route, 'bidan.pemeriksaan') ? $menuAktif : $menuPasif); ?>">
-                        <i class="fas fa-stethoscope w-5 text-center text-[16px] <?php echo e(Str::startsWith($route, 'bidan.pemeriksaan') ? $iconAktif : $iconPasif); ?>"></i> 
-                        <span class="text-[13.5px]">Validasi Pemeriksaan</span>
-                    </a>
-                    <a href="<?php echo e(route('bidan.imunisasi.index')); ?>" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-[14px] menu-transition <?php echo e(Str::startsWith($route, 'bidan.imunisasi') ? $menuAktif : $menuPasif); ?>">
-                        <i class="fas fa-syringe w-5 text-center text-[16px] <?php echo e(Str::startsWith($route, 'bidan.imunisasi') ? $iconAktif : $iconPasif); ?>"></i> 
-                        <span class="text-[13.5px]">Vaksin & Imunisasi</span>
-                    </a>
-                    <a href="<?php echo e(route('bidan.konseling.index')); ?>" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-[14px] menu-transition <?php echo e(Str::startsWith($route, 'bidan.konseling') ? $menuAktif : $menuPasif); ?>">
-                        <i class="fas fa-comments-medical w-5 text-center text-[16px] <?php echo e(Str::startsWith($route, 'bidan.konseling') ? $iconAktif : $iconPasif); ?>"></i> 
-                        <span class="text-[13.5px]">Konseling Tertutup</span>
-                    </a>
-                </div>
-            </div>
-
-            <div>
-                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Database</p>
-                <div class="space-y-1">
-                    <?php
-                        $isRekamMedis = request()->routeIs('bidan.rekam-medis.*');
-                        $typeParam = request()->get('type', 'balita');
-                    ?>
-
-                    <button onclick="toggleSubmenu('menuPasien', 'iconPasien')" class="w-full group flex items-center justify-between px-4 py-3 rounded-[14px] text-[13.5px] menu-transition <?php echo e($isRekamMedis ? $menuAktif : $menuPasif); ?>">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-folder-open w-5 text-center text-[16px] <?php echo e($isRekamMedis ? $iconAktif : $iconPasif); ?>"></i> 
-                            <span class="tracking-wide">Rekam Medis Warga</span>
-                        </div>
-                        <i id="iconPasien" class="fas fa-chevron-down text-[11px] transition-transform duration-300 <?php echo e($isRekamMedis ? 'rotate-180 text-cyan-600' : 'text-slate-400 group-hover:text-cyan-500'); ?>"></i>
-                    </button>
-                    
-                    <div id="menuPasien" class="submenu-grid <?php echo e($isRekamMedis ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'); ?>">
-                        <div class="overflow-hidden">
-                            <div class="pl-[48px] pr-2 py-1 space-y-1 relative before:absolute before:left-[26px] before:top-3 before:bottom-3 before:w-[2px] before:bg-slate-100 before:rounded-full">
-                                <?php $__currentLoopData = [
-                                    ['type' => 'balita', 'label' => 'Data Balita'],
-                                    ['type' => 'ibu_hamil', 'label' => 'Data Ibu Hamil'],
-                                    ['type' => 'remaja', 'label' => 'Data Remaja'],
-                                    ['type' => 'lansia', 'label' => 'Data Lansia'],
-                                ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <?php $isActive = $isRekamMedis && $typeParam == $item['type']; ?>
-                                    <a href="<?php echo e(route('bidan.rekam-medis.index', ['type' => $item['type']])); ?>" class="smooth-route block px-4 py-2.5 text-[12.5px] rounded-xl menu-transition relative before:absolute before:left-[-25.5px] before:top-1/2 before:-translate-y-1/2 before:w-[7px] before:h-[7px] before:rounded-full <?php echo e($isActive ? 'font-bold text-cyan-700 bg-white shadow-sm border border-slate-100 before:bg-cyan-500 before:ring-4 before:ring-cyan-100' : 'font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 before:bg-slate-200 hover:before:bg-cyan-300'); ?>">
-                                        <?php echo e($item['label']); ?>
-
-                                    </a>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Sistem</p>
-                <div class="space-y-1">
-                    <a href="<?php echo e(route('bidan.jadwal.index')); ?>" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-[14px] menu-transition <?php echo e(Str::startsWith($route, 'bidan.jadwal') ? $menuAktif : $menuPasif); ?>">
-                        <i class="fas fa-calendar-alt w-5 text-center text-[16px] <?php echo e(Str::startsWith($route, 'bidan.jadwal') ? $iconAktif : $iconPasif); ?>"></i> 
-                        <span class="text-[13.5px]">Jadwal Posyandu</span>
-                    </a>
-                    <a href="<?php echo e(route('bidan.laporan.index')); ?>" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-[14px] menu-transition <?php echo e(Str::startsWith($route, 'bidan.laporan') ? $menuAktif : $menuPasif); ?>">
-                        <i class="fas fa-file-pdf w-5 text-center text-[16px] <?php echo e(Str::startsWith($route, 'bidan.laporan') ? $iconAktif : $iconPasif); ?>"></i> 
-                        <span class="text-[13.5px]">Laporan Medis PDF</span>
-                    </a>
-                </div>
-            </div>
-            <div class="h-4"></div>
-        </nav>
-
-        
-        <div class="p-4 border-t border-slate-100 bg-white shrink-0">
-            <div class="flex items-center gap-3 p-2 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-cyan-200 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-cyan-600 flex items-center justify-center font-black text-sm shadow-sm group-hover:bg-cyan-500 group-hover:text-white group-hover:border-cyan-600 transition-all">
+        <div class="p-5 pb-2 shrink-0">
+            <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center gap-3 hover:border-cyan-200 hover:bg-cyan-50/50 transition-colors cursor-pointer group" onclick="document.getElementById('userDropdownBtn').click()">
+                <div class="w-11 h-11 bg-gradient-to-br from-cyan-100 to-blue-100 text-cyan-700 rounded-xl flex items-center justify-center font-black border border-white shadow-sm shrink-0 group-hover:scale-105 transition-transform">
                     <?php echo e(strtoupper(substr(Auth::user()->name ?? 'B', 0, 1))); ?>
 
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-[13px] font-bold text-slate-800 truncate leading-tight"><?php echo e(Auth::user()->name ?? 'Bidan'); ?></p>
-                    <p class="text-[10px] font-black text-cyan-500 uppercase tracking-widest truncate mt-0.5"><i class="fas fa-certificate mr-1"></i> Verifikator</p>
+                    <p class="text-sm font-bold text-slate-900 truncate font-poppins"><?php echo e(Auth::user()->name ?? 'Bidan Desa'); ?></p>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wide flex items-center gap-1.5 mt-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_0_2px_rgba(16,185,129,0.2)] animate-pulse"></span>
+                        Validator Medis
+                    </p>
                 </div>
             </div>
         </div>
+        
+        <nav class="flex-1 overflow-y-auto px-4 py-4 scroll-smooth custom-scrollbar">
+            <?php echo $__env->make('partials.sidebar.bidan', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        </nav>
+
     </aside>
 
-    
-    
-    
-    <div id="mainWrapper" class="flex-1 flex flex-col min-w-0 h-screen relative layout-shift xl:ml-[280px]">
+    <div class="lg:ml-[280px] min-h-screen flex flex-col transition-all duration-300 relative">
         
-        <header class="h-[80px] glass-panel sticky top-0 z-40 flex items-center justify-between px-4 lg:px-8 border-b border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-            <div class="flex items-center gap-3 lg:gap-5">
-                
-                <button id="toggleSidebarBtn" class="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 rounded-[12px] transition-colors bg-white border border-slate-200 shadow-sm">
+        <header class="h-20 glass-header border-b border-slate-200/80 sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm">
+            
+            <div class="flex items-center gap-4">
+                <button id="menuToggle" class="lg:hidden w-10 h-10 flex items-center justify-center text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition-colors">
                     <i class="fas fa-bars-staggered"></i>
                 </button>
                 
-                <div class="hidden md:flex flex-col">
-                    <h2 class="text-[18px] font-black text-slate-800 tracking-tight font-poppins leading-none"><?php echo $__env->yieldContent('page-name', 'Beranda Medis'); ?></h2>
-                    <div class="flex items-center gap-1.5 mt-1 text-[11px] font-semibold text-slate-400 tracking-wide">
-                        <span>Workspace Bidan</span> <i class="fas fa-chevron-right text-[8px] opacity-50"></i> <span class="text-cyan-500 font-bold">Sistem Aktif</span>
-                    </div>
-                </div>
+                <nav class="hidden sm:flex items-center gap-2 text-[13px] font-bold text-slate-400 uppercase tracking-widest">
+                    <a href="<?php echo e(route('bidan.dashboard')); ?>" class="hover:text-cyan-600 transition-colors"><i class="fas fa-home"></i></a>
+                    <i class="fas fa-chevron-right text-[9px] text-slate-300"></i>
+                    <span class="text-cyan-700"><?php echo $__env->yieldContent('page-name', 'Dashboard'); ?></span>
+                </nav>
             </div>
             
-            <div class="flex items-center gap-2 sm:gap-4">
+            <div class="flex items-center gap-2 sm:gap-4 relative">
                 
-                
-                <?php $notifCount = \App\Models\Pemeriksaan::where('status_verifikasi', 'pending')->count() ?? 0; ?>
-                <div class="relative">
-                    <button id="notifDropdownBtn" class="relative w-10 h-10 flex items-center justify-center bg-white text-slate-500 hover:text-cyan-600 hover:bg-cyan-50 rounded-[12px] transition-all border border-slate-200 shadow-sm group">
-                        <i class="fas fa-bell text-[16px] group-hover:animate-wiggle"></i>
+                <?php $notifCount = \App\Models\Pemeriksaan::where('status_verifikasi', 'pending')->count(); ?>
+
+                <div class="static sm:relative">
+                    <button id="notifDropdownBtn" class="relative w-10 h-10 flex items-center justify-center text-slate-500 hover:text-cyan-600 hover:bg-cyan-50 rounded-full transition-all border border-transparent hover:border-cyan-100">
+                        <i class="fas fa-bell text-[19px]"></i>
                         <?php if($notifCount > 0): ?>
-                            <span id="notifBadge" class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500 border-2 border-white"></span>
-                            </span>
+                            <span id="notifBadge" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
                         <?php endif; ?>
                     </button>
+                    
+                    <div id="notifDropdown" class="hidden absolute top-20 right-4 w-[calc(100vw-2rem)] sm:top-auto sm:right-0 sm:mt-3 sm:w-80 bg-white rounded-3xl shadow-[0_12px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 z-50 animate-pop overflow-hidden">
+                        <div class="px-5 py-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/80">
+                            <h3 class="text-sm font-black text-slate-800 font-poppins">Pusat Notifikasi</h3>
+                        </div>
+                        <div id="notifList" class="max-h-80 overflow-y-auto custom-scrollbar">
+                            <?php if($notifCount > 0): ?>
+                                <a href="<?php echo e(route('bidan.pemeriksaan.index')); ?>?status=pending" class="smooth-route flex gap-4 px-5 py-4 hover:bg-slate-50 transition-colors border-b border-slate-50 group">
+                                    <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300">
+                                        <i class="fas fa-file-medical-alt"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[13px] font-bold text-slate-800 leading-tight font-poppins">Antrian Validasi Baru</p>
+                                        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Terdapat <?php echo e($notifCount); ?> data hasil ukur kader yang menunggu diagnosa.</p>
+                                        <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest mt-2"><i class="fas fa-exclamation-circle mr-1"></i> Tindakan Diperlukan</p>
+                                    </div>
+                                </a>
+                            <?php else: ?>
+                                <div class="flex flex-col items-center justify-center py-12 text-slate-400">
+                                    <div class="w-16 h-16 bg-emerald-50 text-emerald-400 rounded-full flex items-center justify-center text-3xl mb-3 border border-emerald-100">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <p class="text-xs font-bold text-slate-600 uppercase tracking-widest">Antrian Bersih</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
-
-                <div class="w-px h-6 bg-slate-200 mx-1 hidden sm:block"></div>
-
                 
-                <div class="relative group">
-                    <button class="flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 rounded-full bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors">
-                        <div class="w-7 h-7 rounded-full bg-cyan-600 text-white flex items-center justify-center font-bold text-xs shadow-inner">
+                <div class="static sm:relative ml-1">
+                    <button id="userDropdownBtn" class="flex items-center gap-2 p-1 pr-3 rounded-full hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200 group">
+                        <div class="w-8 h-8 rounded-full ring-2 ring-white overflow-hidden flex items-center justify-center bg-cyan-100 text-cyan-700 font-bold shadow-sm group-hover:bg-cyan-500 group-hover:text-white transition-colors">
                             <?php echo e(strtoupper(substr(Auth::user()->name ?? 'B', 0, 1))); ?>
 
                         </div>
-                        <span class="hidden md:block text-[13px] font-bold text-slate-700 truncate max-w-[100px]"><?php echo e(Str::words(Auth::user()->name, 1, '')); ?></span>
-                        <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+                        <i class="fas fa-chevron-down text-[10px] text-slate-400 group-hover:text-slate-600"></i>
                     </button>
                     
-                    
-                    <div class="absolute right-0 top-[110%] pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        <div class="bg-white border border-slate-200 shadow-xl rounded-2xl p-2 relative">
-                            <div class="absolute -top-1.5 right-6 w-3 h-3 bg-white border-l border-t border-slate-200 transform rotate-45"></div>
-                            <form method="POST" action="<?php echo e(route('logout')); ?>" class="relative z-10">
+                    <div id="userDropdown" class="hidden absolute top-20 right-4 w-[calc(100vw-2rem)] sm:top-auto sm:right-0 sm:mt-4 sm:w-64 bg-white rounded-3xl shadow-[0_12px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 z-50 animate-pop overflow-hidden">
+                        <div class="px-5 py-5 border-b border-slate-50 bg-gradient-to-r from-cyan-50 to-blue-50">
+                            <p class="text-[15px] font-black text-slate-800 truncate font-poppins"><?php echo e(Auth::user()->name ?? 'Bidan Posyandu'); ?></p>
+                            <p class="text-[11px] text-cyan-700 font-bold uppercase tracking-widest mt-1">Akun Bidan Desa</p>
+                        </div>
+                        <div class="p-2 border-t border-slate-50">
+                            <form method="POST" action="<?php echo e(route('logout')); ?>">
                                 <?php echo csrf_field(); ?>
-                                <button type="submit" onclick="showGlobalLoader('SEDANG KELUAR...')" class="w-full flex items-center gap-3 px-3 py-2.5 text-[12px] font-bold text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
-                                    <i class="fas fa-sign-out-alt"></i> Akhiri Sesi (Logout)
+                                <button type="submit" onclick="showGlobalLoader('SEDANG KELUAR...')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 rounded-2xl transition-colors">
+                                    <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></div>
+                                    Keluar Sistem
                                 </button>
                             </form>
                         </div>
                     </div>
                 </div>
-
+                
             </div>
         </header>
 
-        
-        <main class="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 relative z-0 custom-scrollbar pb-24 lg:pb-8">
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full relative z-0">
+            <?php $__currentLoopData = ['success' => ['bg-emerald-50', 'text-emerald-800', 'text-emerald-500', 'fa-check-circle', 'border-emerald-200'], 
+                       'error' => ['bg-rose-50', 'text-rose-800', 'text-rose-500', 'fa-circle-exclamation', 'border-rose-200']]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $msg => $classes): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php if(session($msg)): ?>
+                    <div class="mb-6 px-5 py-4 <?php echo e($classes[0]); ?> border <?php echo e($classes[4]); ?> rounded-2xl flex items-center justify-between shadow-sm animate-[slideDown_0.4s_ease-out]">
+                        <div class="flex items-center gap-3">
+                            <i class="fas <?php echo e($classes[3]); ?> <?php echo e($classes[2]); ?> text-xl"></i>
+                            <span class="<?php echo e($classes[1]); ?> text-[13px] sm:text-sm font-bold"><?php echo e(session($msg)); ?></span>
+                        </div>
+                        <button onclick="this.parentElement.style.display='none'" class="<?php echo e($classes[2]); ?> hover:opacity-70 transition-opacity p-2">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                <?php endif; ?>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
             <?php echo $__env->yieldContent('content'); ?>
         </main>
-
-        
-        <nav class="xl:hidden fixed bottom-0 left-0 right-0 h-[68px] glass-panel border-t border-slate-200 z-50 flex items-center justify-around px-2 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-            <a href="<?php echo e(route('bidan.dashboard')); ?>" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors <?php echo e($route == 'bidan.dashboard' ? 'text-cyan-600' : 'text-slate-400 hover:text-slate-600'); ?>">
-                <i class="fas fa-chart-pie text-[18px] mb-1 <?php echo e($route == 'bidan.dashboard' ? 'drop-shadow-md' : ''); ?>"></i> Beranda
-            </a>
-            <a href="<?php echo e(route('bidan.rekam-medis.index')); ?>" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors <?php echo e(Str::startsWith($route,'bidan.rekam-medis') ? 'text-cyan-600' : 'text-slate-400 hover:text-slate-600'); ?>">
-                <i class="fas fa-folder-open text-[18px] mb-1 <?php echo e(Str::startsWith($route,'bidan.rekam-medis') ? 'drop-shadow-md' : ''); ?>"></i> Rekam Medis
-            </a>
-            
-            
-            <div class="relative w-full h-full flex justify-center">
-                <a href="<?php echo e(route('bidan.pemeriksaan.index')); ?>" class="absolute -top-5 flex flex-col items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 text-white shadow-[0_8px_20px_rgba(6,182,212,0.4)] border-4 border-white transition-transform active:scale-95">
-                    <i class="fas fa-stethoscope text-[20px]"></i>
-                </a>
-            </div>
-
-            <a href="<?php echo e(route('bidan.imunisasi.index')); ?>" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors <?php echo e(Str::startsWith($route,'bidan.imunisasi') ? 'text-cyan-600' : 'text-slate-400 hover:text-slate-600'); ?>">
-                <i class="fas fa-syringe text-[18px] mb-1 <?php echo e(Str::startsWith($route,'bidan.imunisasi') ? 'drop-shadow-md' : ''); ?>"></i> Vaksin
-            </a>
-            <a href="<?php echo e(route('bidan.jadwal.index')); ?>" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors <?php echo e(Str::startsWith($route,'bidan.jadwal') ? 'text-cyan-600' : 'text-slate-400 hover:text-slate-600'); ?>">
-                <i class="fas fa-calendar-alt text-[18px] mb-1 <?php echo e(Str::startsWith($route,'bidan.jadwal') ? 'drop-shadow-md' : ''); ?>"></i> Jadwal
-            </a>
-        </nav>
-
     </div>
 
-    
-    
-    
     <script>
-        // 1. SUPER TOAST NOTIFICATION ENGINE (SPRING ANIMATION)
-        const showToast = (type, title, message) => {
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
-            const icon = type === 'success' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-circle"></i>';
-            const color = type === 'success' ? 'emerald' : 'rose';
-            
-            const toastHtml = `
-                <div class="toast-item pointer-events-auto bg-white p-4 rounded-[20px] shadow-[0_15px_40px_rgba(0,0,0,0.08)] border border-slate-100 flex items-start gap-3 toast-show relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-${color}-500"></div>
-                    <div class="w-9 h-9 rounded-full bg-${color}-50 text-${color}-500 flex items-center justify-center shrink-0 ml-1 shadow-inner">${icon}</div>
-                    <div class="flex-1 pt-1.5"><h4 class="text-[13px] font-black text-slate-800 leading-none mb-1">${title}</h4><p class="text-[11px] font-medium text-slate-500 line-clamp-2">${message}</p></div>
-                    <button onclick="removeToast(this)" class="text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"><i class="fas fa-times"></i></button>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', toastHtml);
-            const newToast = container.lastElementChild;
-            setTimeout(() => removeToast(newToast.querySelector('button')), 5000);
-        };
-        const removeToast = (btn) => {
-            const toast = btn.closest('.toast-item');
-            if(toast) { toast.classList.remove('toast-show'); toast.classList.add('toast-hide'); setTimeout(() => toast.remove(), 400); }
-        };
-
-        // Otomatis Panggil Toast dari Session Controller (Ini untuk login berhasil, dll)
-        <?php if(session('success')): ?> document.addEventListener('DOMContentLoaded', () => showToast('success', 'Aksi Berhasil', "<?php echo e(session('success')); ?>")); <?php endif; ?>
-        <?php if(session('error')): ?> document.addEventListener('DOMContentLoaded', () => showToast('error', 'Peringatan', "<?php echo e(session('error')); ?>")); <?php endif; ?>
-
-        // 2. LOADER CONTROLS
+        // --- LOGIKA LOADER SAT-SET (SUPER CEPAT) ---
         const showGlobalLoader = (text = 'MEMUAT SISTEM...') => {
             const loader = document.getElementById('globalLoader');
             if(loader) {
-                document.getElementById('loaderText').innerText = text;
+                const textEl = document.getElementById('loaderText');
+                if(textEl) textEl.innerText = text;
                 loader.style.display = 'flex';
                 loader.offsetHeight; 
                 loader.classList.remove('opacity-0', 'pointer-events-none');
                 loader.classList.add('opacity-100');
             }
         };
-        const hideGlobalLoader = () => { const l = document.getElementById('globalLoader'); if(l) { l.classList.remove('opacity-100'); l.classList.add('opacity-0', 'pointer-events-none'); setTimeout(() => l.style.display = 'none', 300); } };
+
+        const hideGlobalLoader = () => {
+            const loader = document.getElementById('globalLoader');
+            if(loader) {
+                loader.classList.remove('opacity-100');
+                loader.classList.add('opacity-0', 'pointer-events-none');
+                // Sembunyikan elemen dalam 150ms (sangat cepat)
+                setTimeout(() => loader.style.display = 'none', 150);
+            }
+        };
+
+        // Eksekusi hide seketika saat kerangka HTML/DOM siap (Tidak nunggu gambar lambat)
+        document.addEventListener('DOMContentLoaded', hideGlobalLoader);
+        
+        // Eksekusi juga saat user pakai tombol Back/Forward di browser
         window.addEventListener('pageshow', hideGlobalLoader);
 
         document.addEventListener('DOMContentLoaded', () => {
-            hideGlobalLoader();
-            
-            // Aktifkan loader saat menu diklik
-            document.querySelectorAll('.smooth-route').forEach(el => el.addEventListener('click', e => { 
-                if(!el.classList.contains('target-blank') && el.target !== '_blank' && !e.ctrlKey) { showGlobalLoader(); }
-            }));
+            // Animasi Loader hanya saat klik menu link biasa
+            document.querySelectorAll('.smooth-route').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if(!this.classList.contains('target-blank') && this.target !== '_blank' && !e.ctrlKey) {
+                        showGlobalLoader();
+                    }
+                });
+            });
 
-            // 3. FLUID SIDEBAR LOGIC (Bisa Melebar ke Kiri)
+            // --- Logika Sidebar Mobile ---
             const sidebar = document.getElementById('sidebar');
-            const mainWrapper = document.getElementById('mainWrapper');
             const overlay = document.getElementById('mobileOverlay');
-            const toggleBtns = document.querySelectorAll('#toggleSidebarBtn, #closeSidebarBtn');
+            const menuToggle = document.getElementById('menuToggle');
+            const closeSidebar = document.getElementById('closeSidebar');
             
-            let isDesktop = window.innerWidth >= 1280;
-            let isSidebarOpenDesktop = true;
-            window.addEventListener('resize', () => { isDesktop = window.innerWidth >= 1280; });
-
             const toggleSidebar = () => {
-                if(isDesktop) {
-                    // Logika Laptop: Hilangkan margin mainWrapper, Geser Sidebar
-                    isSidebarOpenDesktop = !isSidebarOpenDesktop;
-                    if(isSidebarOpenDesktop) { 
-                        sidebar.classList.remove('xl:-translate-x-full'); sidebar.classList.add('xl:translate-x-0'); 
-                        mainWrapper.classList.remove('xl:ml-0'); mainWrapper.classList.add('xl:ml-[280px]'); 
-                    } else { 
-                        sidebar.classList.remove('xl:translate-x-0'); sidebar.classList.add('xl:-translate-x-full'); 
-                        mainWrapper.classList.remove('xl:ml-[280px]'); mainWrapper.classList.add('xl:ml-0'); 
-                    }
+                const isOpen = !sidebar.classList.contains('-translate-x-full');
+                if (isOpen) {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.remove('opacity-100');
+                    setTimeout(() => overlay.classList.add('hidden'), 300);
+                    document.body.classList.remove('overflow-hidden');
                 } else {
-                    // Logika HP: Pakai Overlay Hitam Blur
-                    if (sidebar.classList.contains('-translate-x-full')) { 
-                        sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); 
-                        setTimeout(() => overlay.classList.add('opacity-100'), 10); document.body.classList.add('overflow-hidden'); 
-                    } else { 
-                        sidebar.classList.add('-translate-x-full'); overlay.classList.remove('opacity-100'); 
-                        setTimeout(() => overlay.classList.add('hidden'), 300); document.body.classList.remove('overflow-hidden'); 
-                    }
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                    setTimeout(() => overlay.classList.add('opacity-100'), 10);
+                    document.body.classList.add('overflow-hidden');
                 }
             };
-            toggleBtns.forEach(btn => btn.addEventListener('click', toggleSidebar));
-            if(overlay) overlay.addEventListener('click', toggleSidebar);
 
-            // 4. OFFLINE DETECTOR
-            const offlineBanner = document.getElementById('offlineBanner');
-            window.addEventListener('offline', () => { offlineBanner.classList.remove('-translate-y-full'); showToast('error', 'Koneksi Terputus', 'Anda sedang offline. Data tidak akan tersimpan ke server.'); });
-            window.addEventListener('online', () => { offlineBanner.classList.add('-translate-y-full'); showToast('success', 'Kembali Online', 'Koneksi server terhubung.'); });
-            if(!navigator.onLine) offlineBanner.classList.remove('-translate-y-full');
+            if (menuToggle) menuToggle.addEventListener('click', toggleSidebar);
+            if (closeSidebar) closeSidebar.addEventListener('click', toggleSidebar);
+            if (overlay) overlay.addEventListener('click', toggleSidebar);
+
+            // --- Logika Dropdown Navbar ---
+            const userBtn = document.getElementById('userDropdownBtn');
+            const userMenu = document.getElementById('userDropdown');
+            const notifBtn = document.getElementById('notifDropdownBtn');
+            const notifMenu = document.getElementById('notifDropdown');
+            
+            if (userBtn && userMenu) {
+                userBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userMenu.classList.toggle('hidden');
+                    if(notifMenu) notifMenu.classList.add('hidden'); 
+                });
+            }
+
+            if (notifBtn && notifMenu) {
+                notifBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notifMenu.classList.toggle('hidden');
+                    if(userMenu) userMenu.classList.add('hidden'); 
+                });
+            }
+
+            document.addEventListener('click', (e) => {
+                if (userMenu && !userMenu.contains(e.target) && !userBtn.contains(e.target)) userMenu.classList.add('hidden');
+                if (notifMenu && !notifMenu.contains(e.target) && !notifBtn.contains(e.target)) notifMenu.classList.add('hidden');
+            });
+            
+            if(notifMenu) notifMenu.addEventListener('click', (e) => e.stopPropagation());
+            if(userMenu) userMenu.addEventListener('click', (e) => e.stopPropagation());
         });
 
-        // 5. ACCORDION LOGIC
+        // --- Logika Dropdown Submenu Sidebar ---
         function toggleSubmenu(menuId, iconId) {
-            const menu = document.getElementById(menuId), icon = document.getElementById(iconId);
+            const menu = document.getElementById(menuId);
+            const icon = document.getElementById(iconId);
             if (menu.classList.contains('grid-rows-[0fr]')) {
-                menu.classList.remove('grid-rows-[0fr]'); menu.classList.add('grid-rows-[1fr]');
-                icon.classList.add('rotate-180', 'text-cyan-600'); icon.classList.remove('text-slate-400');
+                menu.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                menu.classList.add('grid-rows-[1fr]', 'opacity-100');
+                icon.classList.add('rotate-180', 'text-cyan-600');
+                icon.classList.remove('text-slate-400');
             } else {
-                menu.classList.remove('grid-rows-[1fr]'); menu.classList.add('grid-rows-[0fr]');
-                icon.classList.remove('rotate-180', 'text-cyan-600'); icon.classList.add('text-slate-400');
+                menu.classList.add('grid-rows-[0fr]', 'opacity-0');
+                menu.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                icon.classList.remove('rotate-180', 'text-cyan-600');
+                icon.classList.add('text-slate-400');
             }
         }
     </script>
+    
     <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/layouts/bidan.blade.php ENDPATH**/ ?>

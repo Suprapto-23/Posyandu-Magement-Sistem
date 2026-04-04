@@ -1,8 +1,8 @@
-@extends('layouts.bidan')
-@section('title', 'Konseling Tertutup')
-@section('page-name', 'Layanan Telemedisin')
 
-@section('content')
+<?php $__env->startSection('title', 'Konseling Tertutup'); ?>
+<?php $__env->startSection('page-name', 'Layanan Telemedisin'); ?>
+
+<?php $__env->startSection('content'); ?>
 <style>
     .animate-slide-up { opacity: 0; animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -28,9 +28,9 @@
     
     <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden chat-container flex flex-col lg:flex-row">
         
-        {{-- ========================================== --}}
-        {{-- PANEL KIRI: DAFTAR KONTAK PESAN --}}
-        {{-- ========================================== --}}
+        
+        
+        
         <div class="w-full lg:w-1/3 xl:w-1/4 border-r border-slate-200/80 flex flex-col bg-white shrink-0 h-64 lg:h-full">
             
             <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between sticky top-0 z-10">
@@ -43,7 +43,7 @@
             </div>
 
             <div class="flex-1 overflow-y-auto chat-scroll p-2 space-y-1" id="contactList">
-                {{-- Loader Kontak --}}
+                
                 <div class="flex flex-col items-center justify-center py-10 text-slate-400">
                     <i class="fas fa-circle-notch fa-spin text-2xl mb-2 text-cyan-500"></i>
                     <p class="text-[10px] font-bold uppercase tracking-widest">Memuat Pesan...</p>
@@ -51,12 +51,12 @@
             </div>
         </div>
 
-        {{-- ========================================== --}}
-        {{-- PANEL KANAN: JENDELA OBROLAN (CHAT AREA) --}}
-        {{-- ========================================== --}}
+        
+        
+        
         <div class="w-full lg:w-2/3 xl:w-3/4 flex flex-col bg-[#f8fafc] h-[500px] lg:h-full relative">
             
-            {{-- EMPTY STATE (Saat belum ada chat dipilih) --}}
+            
             <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/80 backdrop-blur-sm z-20">
                 <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-4xl text-cyan-200 shadow-sm border border-slate-100 mb-4">
                     <i class="fas fa-comment-medical"></i>
@@ -65,7 +65,7 @@
                 <p class="text-[13px] font-medium text-slate-500 mt-2 max-w-sm text-center">Pilih nama pasien di menu sebelah kiri untuk mulai merespons keluhan kesehatan Warga.</p>
             </div>
 
-            {{-- HEADER CHAT AKTIF --}}
+            
             <div id="chatHeader" class="p-4 sm:p-5 border-b border-slate-200 bg-white/95 backdrop-blur shadow-sm flex items-center justify-between sticky top-0 z-10 opacity-0 pointer-events-none transition-opacity">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center font-black border border-cyan-200 shadow-inner" id="activeAvatar">W</div>
@@ -76,12 +76,12 @@
                 </div>
             </div>
 
-            {{-- RUANG PESAN (BUBBLES) --}}
+            
             <div class="flex-1 overflow-y-auto chat-scroll p-4 sm:p-6 space-y-4" id="chatArea">
-                {{-- Area Bubbles diinject via JS --}}
+                
             </div>
 
-            {{-- FORM INPUT PESAN --}}
+            
             <div id="chatInputArea" class="p-4 bg-white border-t border-slate-200 opacity-0 pointer-events-none transition-opacity">
                 <form id="replyForm" class="flex items-end gap-3">
                     <textarea id="replyMessage" rows="1" placeholder="Ketik saran atau resep medis untuk pasien..." class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3.5 text-[14px] text-slate-700 focus:bg-white focus:border-cyan-400 focus:ring-4 focus:ring-cyan-50 outline-none transition-all resize-none max-h-32 custom-scrollbar" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
@@ -96,7 +96,7 @@
     </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 1. FUNGSI RENDER DAFTAR KONTAK
     const loadContacts = async () => {
         try {
-            const res = await fetch("{{ route('bidan.konseling.fetch-list') }}");
+            const res = await fetch("<?php echo e(route('bidan.konseling.fetch-list')); ?>");
             const contacts = await res.json();
             
             let html = '';
@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const fetchChatData = async (userId, forceScroll) => {
         if(!userId) return;
         try {
-            const res = await fetch(`{{ url('bidan/konseling/fetch-chat') }}/${userId}`);
+            const res = await fetch(`<?php echo e(url('bidan/konseling/fetch-chat')); ?>/${userId}`);
             const data = await res.json();
             
             // Set Header Name
@@ -242,10 +242,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const formData = new FormData();
-            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('_token', '<?php echo e(csrf_token()); ?>');
             formData.append('pesan', msg);
 
-            await fetch(`{{ url('bidan/konseling/reply') }}/${activeUserId}`, {
+            await fetch(`<?php echo e(url('bidan/konseling/reply')); ?>/${activeUserId}`, {
                 method: 'POST',
                 body: formData
             });
@@ -272,4 +272,5 @@ document.addEventListener('DOMContentLoaded', function() {
     listInterval = setInterval(loadContacts, 5000); // Cek ada pasien baru chat tiap 5 dtk
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.bidan', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/bidan/konseling/index.blade.php ENDPATH**/ ?>
