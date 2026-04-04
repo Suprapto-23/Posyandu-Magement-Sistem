@@ -88,37 +88,58 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','checkstatus','role:a
 
 // ==================== BIDAN ====================
 Route::prefix('bidan')->name('bidan.')->middleware(['auth','checkstatus','role:bidan'])->group(function () {
+    
+    // 1. DASHBOARD
     Route::get('/', fn() => redirect()->route('bidan.dashboard'));
     Route::get('/dashboard', [BidanDashboard::class, 'index'])->name('dashboard');
 
-    Route::get('/pemeriksaan',             [BidanPemeriksaan::class, 'index'])->name('pemeriksaan.index');
-    Route::get('/pemeriksaan/create',      [BidanPemeriksaan::class, 'create'])->name('pemeriksaan.create');
-    Route::post('/pemeriksaan',            [BidanPemeriksaan::class, 'store'])->name('pemeriksaan.store');
-    Route::get('/pemeriksaan/{id}',        [BidanPemeriksaan::class, 'show'])->name('pemeriksaan.show');
-    Route::put('/pemeriksaan/{id}/verifikasi', [BidanPemeriksaan::class, 'verifikasi'])->name('pemeriksaan.verifikasi');
-    Route::delete('/pemeriksaan/{id}',     [BidanPemeriksaan::class, 'destroy'])->name('pemeriksaan.destroy');
+    // 2. PEMERIKSAAN MEDIS (MEJA 5) - SUPER CONTROLLER
+    Route::prefix('pemeriksaan')->name('pemeriksaan.')->group(function () {
+        Route::get('/', [BidanPemeriksaan::class, 'index'])->name('index');
+        
+        // Rute Input Mandiri oleh Bidan (KEMBALI DIAKTIFKAN)
+        Route::get('/create', [BidanPemeriksaan::class, 'create'])->name('create');
+        Route::post('/', [BidanPemeriksaan::class, 'store'])->name('store');
+        
+        // Rute Validasi (Split-View)
+        Route::get('/validasi/{id}', [BidanPemeriksaan::class, 'validasi'])->name('validasi');
+        Route::put('/validasi/{id}', [BidanPemeriksaan::class, 'simpanValidasi'])->name('simpan-validasi');
+        
+        // Rute Standar (Show, Edit, Update, Destroy)
+        Route::get('/{id}', [BidanPemeriksaan::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [BidanPemeriksaan::class, 'edit'])->name('edit');
+        Route::put('/{id}', [BidanPemeriksaan::class, 'update'])->name('update');
+        Route::delete('/{id}', [BidanPemeriksaan::class, 'destroy'])->name('destroy');
+    });
 
+    // 3. JADWAL POSYANDU
     Route::resource('jadwal', BidanJadwal::class);
 
-    Route::get('/pasien/balita', [BidanPasien::class, 'indexBalita'])->name('pasien.balita');
-    Route::get('/pasien/remaja', [BidanPasien::class, 'indexRemaja'])->name('pasien.remaja');
-    Route::get('/pasien/lansia', [BidanPasien::class, 'indexLansia'])->name('pasien.lansia');
+    // 4. IMUNISASI (VAKSIN)
+    Route::prefix('imunisasi')->name('imunisasi.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'store'])->name('store');
+        Route::get('/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'destroy'])->name('destroy');
+    });
 
-    Route::get('/imunisasi', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'index'])->name('imunisasi.index');
-    Route::get('/imunisasi/create', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'create'])->name('imunisasi.create');
-    Route::post('/imunisasi', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'store'])->name('imunisasi.store');
-    Route::get('/imunisasi/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'show'])->name('imunisasi.show');
-    Route::delete('/imunisasi/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'destroy'])->name('imunisasi.destroy');
-    Route::get('/imunisasi/{id}/edit', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'edit'])->name('imunisasi.edit');
-    Route::put('/imunisasi/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'update'])->name('imunisasi.update');
-
+    // 5. REKAM MEDIS & DATABASE PASIEN
     Route::get('/rekam-medis', [BidanRekamMedisController::class, 'index'])->name('rekam-medis.index');
     Route::get('/rekam-medis/{pasien_type}/{pasien_id}', [BidanRekamMedisController::class, 'show'])->name('rekam-medis.show');
+    
+    // Alias Route: Agar tombol "Data Pasien (View)" di Sidebar tidak error, 
+    // kita arahkan langsung ke pusat Rekam Medis (DRY - Don't Repeat Yourself)
+    Route::get('/pasien', [BidanRekamMedisController::class, 'index'])->name('pasien.index');
 
-    Route::get('/laporan',       [\App\Http\Controllers\Bidan\LaporanController::class, 'index'])->name('laporan.index');
+    // 6. LAPORAN PDF
+    Route::get('/laporan', [\App\Http\Controllers\Bidan\LaporanController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/cetak', [\App\Http\Controllers\Bidan\LaporanController::class, 'cetak'])->name('laporan.cetak');
     Route::post('/laporan/upload-ttd', [\App\Http\Controllers\Bidan\LaporanController::class, 'uploadTtd'])->name('laporan.upload-ttd');
 
+    // 7. KONSELING MEJA 5
     Route::prefix('konseling')->name('konseling.')->group(function () {
         Route::get('/', [BidanKonseling::class, 'index'])->name('index');
         Route::get('/fetch-list', [BidanKonseling::class, 'fetchList'])->name('fetch-list');
