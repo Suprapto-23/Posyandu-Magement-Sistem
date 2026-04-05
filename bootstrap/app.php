@@ -12,25 +12,21 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
 
-        // 1. Trust semua proxy (wajib untuk Vercel agar CSRF/session bisa dibaca)
-        $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO |
-            \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB
-        );
+        $middleware->trustProxies(at: '*');
 
-        // 2. Alias middleware
+        // Exclude CSRF untuk login - aman karena pakai HTTPS
+        $middleware->validateCsrfTokens(except: [
+            'login',
+        ]);
+
         $middleware->alias([
             'role'        => \App\Http\Middleware\RoleMiddleware::class,
             'checkstatus' => \App\Http\Middleware\CheckUserStatus::class,
             'logactivity' => \App\Http\Middleware\LogUserActivity::class,
         ]);
 
-        // 3. Redirect guest ke login
         $middleware->redirectGuestsTo('/login');
 
-        // 4. Redirect user yang sudah login ke dashboard sesuai role
         $middleware->redirectUsersTo(function () {
             $user = auth()->user();
             if (!$user) return '/login';
