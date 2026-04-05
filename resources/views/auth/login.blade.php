@@ -171,7 +171,6 @@
 
 @push('scripts')
 <script>
-    // Konfigurasi Tailwind untuk Animasi Kilau Tombol
     tailwind.config = {
         theme: {
             extend: {
@@ -184,7 +183,6 @@
         }
     }
 
-    // 👁️ Fitur Tampil/Sembunyi Password
     function togglePassword() {
         const pwdInput = document.getElementById('password');
         const eyeIcon = document.getElementById('eyeIcon');
@@ -200,34 +198,39 @@
         }
     }
 
-    // 🌟 ANIMASI TRANSAKSI LOGIN SUKSES
     document.getElementById('premiumLoginForm').addEventListener('submit', function(e) {
-        e.preventDefault(); 
+        e.preventDefault();
         
         const form = this;
         const btn = document.getElementById('btnSubmitAuth');
-        const overlay = document.getElementById('loginSuccessOverlay');
-        const successCircle = document.getElementById('successCircle');
 
-        // 1. Ubah tombol jadi status loading
+        // Animasi tombol loading
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-lg"></i> <span class="ml-2">VERIFIKASI...</span>';
         btn.classList.add('bg-teal-600', 'opacity-90', 'cursor-wait');
         
-        // 2. Munculkan Layar Animasi Centang setelah sedikit jeda
+        // Submit via fetch dengan CSRF token - AMAN!
         setTimeout(() => {
-            overlay.classList.remove('opacity-0', 'pointer-events-none');
-            overlay.classList.add('opacity-100');
+            const formData = new FormData(form);
             
-            // Animasi Lingkaran Putih melebar menutupi layar
-            successCircle.classList.remove('w-0', 'h-0');
-            successCircle.classList.add('w-[300vh]', 'h-[300vh]');
-
-            // 3. Submit data asli ke Laravel Controller
-            setTimeout(() => {
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content 
+                        || document.querySelector('input[name="_token"]').value,
+                    'Accept': 'application/json',
+                },
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                // Redirect ke URL dari response
+                window.location.href = response.url;
+            })
+            .catch(() => {
+                // Fallback: submit normal
                 form.submit();
-            }, 1800);
-
+            });
         }, 700);
     });
 </script>
