@@ -136,7 +136,7 @@ class LoginController extends Controller
         Log::info('=== LOGIN ATTEMPT END - SUCCESS ===');
 
         // PENTING: Gunakan redirect()->to() bukan route() untuk debugging
-        return redirect()->to($redirectUrl)->with('success', 'Login berhasil!');
+        return redirect()->intended($redirectUrl)->with('success', 'Login berhasil!');
     }
 
     /**

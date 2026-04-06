@@ -11,34 +11,39 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+    $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
+        \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |
+        \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
+        \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO |
+        \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB
+    );
 
-        $middleware->trustProxies(at: '*');
+    // ← TAMBAH INI
+    $middleware->validateCsrfTokens(except: [
+        'login',
+        'login/*',
+    ]);
 
-        // Exclude CSRF untuk login - aman karena pakai HTTPS
-        $middleware->validateCsrfTokens(except: [
-            'login',
-        ]);
+    $middleware->alias([
+        'role'        => \App\Http\Middleware\RoleMiddleware::class,
+        'checkstatus' => \App\Http\Middleware\CheckUserStatus::class,
+        'logactivity' => \App\Http\Middleware\LogUserActivity::class,
+    ]);
 
-        $middleware->alias([
-            'role'        => \App\Http\Middleware\RoleMiddleware::class,
-            'checkstatus' => \App\Http\Middleware\CheckUserStatus::class,
-            'logactivity' => \App\Http\Middleware\LogUserActivity::class,
-        ]);
+    $middleware->redirectGuestsTo('/login');
 
-        $middleware->redirectGuestsTo('/login');
-
-        $middleware->redirectUsersTo(function () {
-            $user = auth()->user();
-            if (!$user) return '/login';
-            return match(strtolower($user->role)) {
-                'admin'  => '/admin/dashboard',
-                'bidan'  => '/bidan/dashboard',
-                'kader'  => '/kader/dashboard',
-                'user'   => '/user/dashboard',
-                default  => '/home',
-            };
-        });
-    })
+    $middleware->redirectUsersTo(function () {
+        $user = auth()->user();
+        if (!$user) return '/login';
+        return match(strtolower($user->role)) {
+            'admin'  => '/admin/dashboard',
+            'bidan'  => '/bidan/dashboard',
+            'kader'  => '/kader/dashboard',
+            'user'   => '/user/dashboard',
+            default  => '/home',
+        };
+    });
+})
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
