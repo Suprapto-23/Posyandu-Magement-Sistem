@@ -1,9 +1,9 @@
-@extends('layouts.bidan')
 
-@section('title', 'Buat Jadwal Baru')
-@section('page-name', 'Tambah Agenda Medis')
 
-@push('styles')
+<?php $__env->startSection('title', 'Buat Jadwal Baru'); ?>
+<?php $__env->startSection('page-name', 'Tambah Agenda Medis'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
     .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -12,9 +12,9 @@
     .input-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 16px; transition: color 0.3s; }
     .group-focus-within .input-icon { color: #06b6d4; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div id="smoothLoader" class="fixed inset-0 bg-slate-50/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-300 opacity-0 pointer-events-none">
     <div class="relative w-20 h-20 flex items-center justify-center mb-5">
         <div class="absolute inset-0 border-4 border-cyan-100 rounded-full"></div>
@@ -31,7 +31,7 @@
             <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-poppins">Form Publikasi Jadwal</h1>
             <p class="text-slate-500 mt-1.5 font-medium text-[13px] sm:text-sm">Jadwal yang dibuat akan otomatis dikirimkan ke <strong class="text-cyan-600">Aplikasi Warga</strong> sebagai Notifikasi Push.</p>
         </div>
-        <a href="{{ route('bidan.jadwal.index') }}" class="smooth-route inline-flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-[13px] rounded-xl hover:bg-slate-50 hover:text-cyan-700 transition-colors shadow-sm shrink-0">
+        <a href="<?php echo e(route('bidan.jadwal.index')); ?>" class="smooth-route inline-flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-[13px] rounded-xl hover:bg-slate-50 hover:text-cyan-700 transition-colors shadow-sm shrink-0">
             <i class="fas fa-arrow-left"></i> Batal
         </a>
     </div>
@@ -55,15 +55,15 @@
                 <h3 class="font-black text-slate-800 text-[15px] font-poppins">Lengkapi Detail Agenda</h3>
             </div>
 
-            <form id="formJadwal" action="{{ route('bidan.jadwal.store') }}" method="POST" class="flex flex-col flex-1">
-                @csrf
+            <form id="formJadwal" action="<?php echo e(route('bidan.jadwal.store')); ?>" method="POST" class="flex flex-col flex-1">
+                <?php echo csrf_field(); ?>
                 
                 <div class="p-8 space-y-6 flex-1">
                     <div>
                         <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Judul Agenda <span class="text-rose-500">*</span></label>
                         <div class="relative group-focus-within">
                             <i class="fas fa-heading input-icon"></i>
-                            <input type="text" name="judul" value="{{ old('judul') }}" required class="premium-input" placeholder="Contoh: Imunisasi Polio Akbar Desa Mekar">
+                            <input type="text" name="judul" value="<?php echo e(old('judul')); ?>" required class="premium-input" placeholder="Contoh: Imunisasi Polio Akbar Desa Mekar">
                         </div>
                     </div>
 
@@ -72,20 +72,20 @@
                             <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Tanggal Eksekusi <span class="text-rose-500">*</span></label>
                             <div class="relative group-focus-within">
                                 <i class="fas fa-calendar-day input-icon"></i>
-                                <input type="date" name="tanggal" value="{{ old('tanggal') }}" required class="premium-input cursor-pointer" style="padding-left: 46px; padding-right: 16px;">
+                                <input type="date" name="tanggal" value="<?php echo e(old('tanggal')); ?>" required class="premium-input cursor-pointer" style="padding-left: 46px; padding-right: 16px;">
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
                             <div class="flex-1">
                                 <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Mulai <span class="text-rose-500">*</span></label>
                                 <div class="relative group-focus-within">
-                                    <input type="time" name="waktu_mulai" value="{{ old('waktu_mulai') }}" required class="premium-input px-4 cursor-pointer text-center">
+                                    <input type="time" name="waktu_mulai" value="<?php echo e(old('waktu_mulai')); ?>" required class="premium-input px-4 cursor-pointer text-center">
                                 </div>
                             </div>
                             <div class="flex-1">
                                 <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Selesai <span class="text-rose-500">*</span></label>
                                 <div class="relative group-focus-within">
-                                    <input type="time" name="waktu_selesai" value="{{ old('waktu_selesai') }}" required class="premium-input px-4 cursor-pointer text-center">
+                                    <input type="time" name="waktu_selesai" value="<?php echo e(old('waktu_selesai')); ?>" required class="premium-input px-4 cursor-pointer text-center">
                                 </div>
                             </div>
                         </div>
@@ -95,7 +95,7 @@
                         <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Lokasi Gedung / Posyandu <span class="text-rose-500">*</span></label>
                         <div class="relative group-focus-within">
                             <i class="fas fa-map-marked-alt input-icon"></i>
-                            <input type="text" name="lokasi" value="{{ old('lokasi', 'Posyandu Induk Desa') }}" required class="premium-input" placeholder="Tuliskan nama tempat/alamat detail...">
+                            <input type="text" name="lokasi" value="<?php echo e(old('lokasi', 'Posyandu Induk Desa')); ?>" required class="premium-input" placeholder="Tuliskan nama tempat/alamat detail...">
                         </div>
                     </div>
 
@@ -105,11 +105,11 @@
                             <div class="relative group-focus-within">
                                 <i class="fas fa-tags input-icon"></i>
                                 <select name="kategori" required class="premium-input cursor-pointer appearance-none" style="padding-right: 16px;">
-                                    <option value="posyandu" {{ old('kategori') == 'posyandu' ? 'selected' : '' }}>Posyandu Rutin Bulanan</option>
-                                    <option value="imunisasi" {{ old('kategori') == 'imunisasi' ? 'selected' : '' }}>Suntik Vaksin/Imunisasi</option>
-                                    <option value="pemeriksaan" {{ old('kategori') == 'pemeriksaan' ? 'selected' : '' }}>Pemeriksaan Kandungan</option>
-                                    <option value="konseling" {{ old('kategori') == 'konseling' ? 'selected' : '' }}>Penyuluhan & Edukasi</option>
-                                    <option value="lainnya" {{ old('kategori') == 'lainnya' ? 'selected' : '' }}>Lain-Lain</option>
+                                    <option value="posyandu" <?php echo e(old('kategori') == 'posyandu' ? 'selected' : ''); ?>>Posyandu Rutin Bulanan</option>
+                                    <option value="imunisasi" <?php echo e(old('kategori') == 'imunisasi' ? 'selected' : ''); ?>>Suntik Vaksin/Imunisasi</option>
+                                    <option value="pemeriksaan" <?php echo e(old('kategori') == 'pemeriksaan' ? 'selected' : ''); ?>>Pemeriksaan Kandungan</option>
+                                    <option value="konseling" <?php echo e(old('kategori') == 'konseling' ? 'selected' : ''); ?>>Penyuluhan & Edukasi</option>
+                                    <option value="lainnya" <?php echo e(old('kategori') == 'lainnya' ? 'selected' : ''); ?>>Lain-Lain</option>
                                 </select>
                             </div>
                         </div>
@@ -118,11 +118,11 @@
                             <div class="relative group-focus-within">
                                 <i class="fas fa-bullseye input-icon text-rose-400"></i>
                                 <select name="target_peserta" required class="premium-input cursor-pointer appearance-none border-rose-200 focus:border-rose-500 focus:ring-rose-50" style="padding-right: 16px;">
-                                    <option value="semua" {{ old('target_peserta') == 'semua' ? 'selected' : '' }}>Semua Elemen Warga</option>
-                                    <option value="balita" {{ old('target_peserta') == 'balita' ? 'selected' : '' }}>Khusus Anak & Balita</option>
-                                    <option value="ibu_hamil" {{ old('target_peserta') == 'ibu_hamil' ? 'selected' : '' }}>Khusus Ibu Hamil (KIA)</option>
-                                    <option value="remaja" {{ old('target_peserta') == 'remaja' ? 'selected' : '' }}>Khusus Remaja</option>
-                                    <option value="lansia" {{ old('target_peserta') == 'lansia' ? 'selected' : '' }}>Khusus Lansia (Manula)</option>
+                                    <option value="semua" <?php echo e(old('target_peserta') == 'semua' ? 'selected' : ''); ?>>Semua Elemen Warga</option>
+                                    <option value="balita" <?php echo e(old('target_peserta') == 'balita' ? 'selected' : ''); ?>>Khusus Anak & Balita</option>
+                                    <option value="ibu_hamil" <?php echo e(old('target_peserta') == 'ibu_hamil' ? 'selected' : ''); ?>>Khusus Ibu Hamil (KIA)</option>
+                                    <option value="remaja" <?php echo e(old('target_peserta') == 'remaja' ? 'selected' : ''); ?>>Khusus Remaja</option>
+                                    <option value="lansia" <?php echo e(old('target_peserta') == 'lansia' ? 'selected' : ''); ?>>Khusus Lansia (Manula)</option>
                                 </select>
                             </div>
                         </div>
@@ -132,7 +132,7 @@
                         <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Pesan / Syarat Tambahan (Opsional)</label>
                         <div class="relative group-focus-within">
                             <i class="fas fa-align-left input-icon" style="top: 24px;"></i>
-                            <textarea name="deskripsi" rows="3" class="premium-input resize-none custom-scrollbar" placeholder="Ketik pesan tambahan yang akan muncul di notifikasi warga... (Misal: Wajib membawa buku KIA/KMS)">{{ old('deskripsi') }}</textarea>
+                            <textarea name="deskripsi" rows="3" class="premium-input resize-none custom-scrollbar" placeholder="Ketik pesan tambahan yang akan muncul di notifikasi warga... (Misal: Wajib membawa buku KIA/KMS)"><?php echo e(old('deskripsi')); ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -148,9 +148,9 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     const showLoader = (text = 'MEMPROSES...') => {
         const loader = document.getElementById('smoothLoader');
@@ -190,4 +190,5 @@
         showLoader('MENDISTRIBUSIKAN NOTIFIKASI KE WARGA...');
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.bidan', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/bidan/jadwal/create.blade.php ENDPATH**/ ?>
