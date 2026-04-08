@@ -188,4 +188,76 @@ class IbuHamilController extends Controller
         return redirect()->route('kader.data.ibu-hamil.index')
             ->with('success', 'Data ibu hamil berhasil dihapus.');
     }
+    // ================================================================
+    // FITUR BARU: Hapus Banyak Data Sekaligus (Bulk Delete)
+    // ================================================================
+    public function bulkDelete(\Illuminate\Http\Request $request)
+    {
+        $ids = $request->ids;
+        if (!$ids || count($ids) == 0) {
+            return redirect()->back()->with('error', 'Tidak ada data yang dipilih untuk dihapus!');
+        }
+
+        // Proteksi: Jangan hapus yang sudah punya rekam medis bidan
+        $ibuHamils = IbuHamil::withCount('pemeriksaans')->whereIn('id', $ids)->get();
+        $deleted = 0;
+        $failed = 0;
+
+        foreach ($ibuHamils as $ibu) {
+            if ($ibu->pemeriksaans_count == 0) {
+                $ibu->delete();
+                $deleted++;
+            } else {
+                $failed++;
+            }
+        }
+
+        if ($failed > 0) {
+            return redirect()->back()->with('warning', "$deleted data berhasil dihapus. $failed data dilewati karena sudah memiliki riwayat pemeriksaan dari Bidan.");
+        }
+
+        return redirect()->back()->with('success', "$deleted Data ibu hamil berhasil dihapus secara permanen!");
+    }
+
+    // ================================================================
+    // FITUR BARU: Sinkronisasi Akun Web Warga
+    // ================================================================
+    public function syncUser($id)
+    {
+        $ibuHamil = IbuHamil::findOrFail($id);
+        
+        // Cari akun berdasarkan NIK Ibu
+        $user = $this->findLinkedUser($ibuHamil->nik, $ibuHamil->nama_lengkap);
+        
+        if ($user) {
+            $ibuHamil->user_id = $user->id;
+            $ibuHamil->save();
+            return redirect()->back()->with('success', 'Berhasil ditarik! Akun ibu hamil ini sudah terhubung dengan HP miliknya (' . $user->name . ').');
+        }
+
+        return redirect()->back()->with('error', 'Gagal! Tidak ditemukan akun Warga dengan NIK tersebut. Pastikan Ibu sudah melakukan registrasi di aplikasi Warga.');
+    }
+
+    // Helper Pencari Akun Lintas Tabel (Users & Profiles)
+    private function findLinkedUser($nik, $nama_lengkap)
+    {
+        $cleanNik  = preg_replace('/[^0-9]/', '', (string)$nik);
+
+        if (empty($cleanNik)) return null;
+
+        // Cek di tabel users
+        $user = User::where('nik', $cleanNik)->orWhere('username', $cleanNik)->first();
+        if ($user) return $user;
+
+        // Cek di tabel profiles
+        if (\Illuminate\Support\Facades\Schema::hasTable('profiles')) {
+            $profile = \Illuminate\Support\Facades\DB::table('profiles')
+                        ->where('nik', $cleanNik)
+                        ->orWhere('no_ktp', $cleanNik)
+                        ->first();
+            if ($profile) return User::find($profile->user_id);
+        }
+
+        return null;
+    }
 }

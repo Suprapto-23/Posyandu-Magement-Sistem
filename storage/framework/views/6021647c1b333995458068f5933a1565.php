@@ -1,8 +1,8 @@
-@extends('layouts.kader')
-@section('title', 'Data Pemeriksaan Fisik')
-@section('page-name', 'Log Pemeriksaan Pasien')
 
-@push('styles')
+<?php $__env->startSection('title', 'Data Pemeriksaan Fisik'); ?>
+<?php $__env->startSection('page-name', 'Log Pemeriksaan Pasien'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
     .animate-slide-up { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -13,9 +13,9 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div id="smoothLoader" class="fixed inset-0 bg-white/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-300 opacity-100 pointer-events-auto">
     <div class="relative w-20 h-20 mb-4">
         <div class="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
@@ -27,7 +27,7 @@
 
 <div class="max-w-[1400px] mx-auto animate-slide-up">
     
-    {{-- HEADER --}}
+    
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
         <div class="flex items-center gap-5">
             <div class="w-16 h-16 rounded-[20px] bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center text-3xl shadow-[0_8px_20px_rgba(79,70,229,0.3)] shrink-0">
@@ -39,19 +39,19 @@
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            <a href="{{ route('kader.pemeriksaan.create') }}" class="flex-1 md:flex-none justify-center flex items-center gap-2 px-6 py-3.5 bg-indigo-600 text-white font-black text-[13px] rounded-xl hover:bg-indigo-700 shadow-[0_8px_15px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 transition-all uppercase tracking-widest">
+            <a href="<?php echo e(route('kader.pemeriksaan.create')); ?>" class="flex-1 md:flex-none justify-center flex items-center gap-2 px-6 py-3.5 bg-indigo-600 text-white font-black text-[13px] rounded-xl hover:bg-indigo-700 shadow-[0_8px_15px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 transition-all uppercase tracking-widest">
                 <i class="fas fa-plus-circle text-lg"></i> Input Ukur Baru
             </a>
         </div>
     </div>
 
-    {{-- KENDALI NAVIGASI (FILTER KATEGORI & SEARCH) --}}
+    
     <div class="glass-card rounded-[24px] p-3 mb-6 flex flex-col xl:flex-row items-center gap-4 justify-between relative z-20 shadow-sm">
         
-        <form action="{{ route('kader.pemeriksaan.index') }}" method="GET" class="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
-            <input type="hidden" name="search" value="{{ request('search') }}">
+        <form action="<?php echo e(route('kader.pemeriksaan.index')); ?>" method="GET" class="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
+            <input type="hidden" name="search" value="<?php echo e(request('search')); ?>">
             <div class="bg-slate-100 p-1.5 rounded-full flex flex-wrap w-full sm:w-max border border-slate-200">
-                @php
+                <?php
                     $tabs = [
                         'semua' => ['label' => 'Semua', 'icon' => 'fa-layer-group', 'color' => 'text-slate-600'],
                         'balita' => ['label' => 'Balita', 'icon' => 'fa-baby', 'color' => 'text-sky-600'],
@@ -60,18 +60,18 @@
                         'lansia' => ['label' => 'Lansia', 'icon' => 'fa-user-clock', 'color' => 'text-emerald-600'],
                     ];
                     $currentKat = request('kategori', 'semua');
-                @endphp
-                @foreach($tabs as $key => $tab)
-                    <button type="submit" name="kategori" value="{{ $key }}" class="flex-1 sm:flex-none px-4 py-2 rounded-full font-extrabold text-[11px] uppercase tracking-wider transition-all {{ $currentKat == $key ? 'bg-white shadow-sm ' . $tab['color'] : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200/50' }}">
-                        <i class="fas {{ $tab['icon'] }} mr-1"></i> <span class="hidden sm:inline">{{ $tab['label'] }}</span>
+                ?>
+                <?php $__currentLoopData = $tabs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $tab): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <button type="submit" name="kategori" value="<?php echo e($key); ?>" class="flex-1 sm:flex-none px-4 py-2 rounded-full font-extrabold text-[11px] uppercase tracking-wider transition-all <?php echo e($currentKat == $key ? 'bg-white shadow-sm ' . $tab['color'] : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200/50'); ?>">
+                        <i class="fas <?php echo e($tab['icon']); ?> mr-1"></i> <span class="hidden sm:inline"><?php echo e($tab['label']); ?></span>
                     </button>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
 
             <select name="status" onchange="this.form.submit()" class="w-full sm:w-auto bg-white border border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider rounded-full px-4 py-2.5 outline-none cursor-pointer focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50 transition-all">
                 <option value="">Semua Status Validasi</option>
-                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>⏳ Menunggu Bidan</option>
-                <option value="verified" {{ request('status') == 'verified' ? 'selected' : '' }}>✅ Selesai Divalidasi</option>
+                <option value="pending" <?php echo e(request('status') == 'pending' ? 'selected' : ''); ?>>⏳ Menunggu Bidan</option>
+                <option value="verified" <?php echo e(request('status') == 'verified' ? 'selected' : ''); ?>>✅ Selesai Divalidasi</option>
             </select>
         </form>
         
@@ -84,7 +84,7 @@
         </div>
     </div>
 
-    {{-- TABEL DATA UTAMA --}}
+    
     <div class="bg-white rounded-[24px] border border-slate-200 shadow-sm overflow-hidden mb-8" id="tableContainer">
         <div class="custom-scrollbar overflow-x-auto max-h-[65vh]">
             <table class="w-full text-left border-collapse whitespace-nowrap min-w-[1000px]">
@@ -98,8 +98,8 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    @forelse($pemeriksaans as $item)
-                    @php
+                    <?php $__empty_1 = true; $__currentLoopData = $pemeriksaans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <?php
                         // UI Dinamis berdasarkan Kategori
                         $badgeColors = [
                             'balita'    => 'bg-sky-50 text-sky-600 border-sky-200',
@@ -113,79 +113,81 @@
                         $color = $badgeColors[$kat] ?? 'bg-slate-50 text-slate-600 border-slate-200';
                         $icon = $icons[$kat] ?? 'fa-user';
                         $nama = $item->nama_pasien; // Didapat dari accessor model
-                    @endphp
-                    <tr class="hover:bg-slate-50/80 transition-colors pasien-row" data-search="{{ strtolower($nama) }}">
+                    ?>
+                    <tr class="hover:bg-slate-50/80 transition-colors pasien-row" data-search="<?php echo e(strtolower($nama)); ?>">
                         
-                        {{-- TGL & KATEGORI --}}
+                        
                         <td class="px-6 py-4 border-r border-slate-200/50">
-                            <p class="font-black text-slate-800 text-[14px]">{{ \Carbon\Carbon::parse($item->tanggal_periksa)->translatedFormat('d M Y') }}</p>
-                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 mt-1 rounded border text-[9px] font-black uppercase tracking-widest {{ $color }}">
-                                <i class="fas {{ $icon }}"></i> {{ str_replace('_', ' ', $kat) }}
+                            <p class="font-black text-slate-800 text-[14px]"><?php echo e(\Carbon\Carbon::parse($item->tanggal_periksa)->translatedFormat('d M Y')); ?></p>
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 mt-1 rounded border text-[9px] font-black uppercase tracking-widest <?php echo e($color); ?>">
+                                <i class="fas <?php echo e($icon); ?>"></i> <?php echo e(str_replace('_', ' ', $kat)); ?>
+
                             </span>
                         </td>
 
-                        {{-- IDENTITAS --}}
+                        
                         <td class="px-6 py-4 border-r border-slate-200/50">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shrink-0 border border-white shadow-sm {{ $color }}">
-                                    {{ strtoupper(substr($nama, 0, 1)) }}
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shrink-0 border border-white shadow-sm <?php echo e($color); ?>">
+                                    <?php echo e(strtoupper(substr($nama, 0, 1))); ?>
+
                                 </div>
                                 <div>
-                                    <p class="text-[13px] font-black text-slate-800">{{ $nama }}</p>
-                                    <p class="text-[10px] font-bold text-slate-500 font-mono tracking-wide">ID Kunjungan: {{ $item->kunjungan->kode_kunjungan ?? '-' }}</p>
+                                    <p class="text-[13px] font-black text-slate-800"><?php echo e($nama); ?></p>
+                                    <p class="text-[10px] font-bold text-slate-500 font-mono tracking-wide">ID Kunjungan: <?php echo e($item->kunjungan->kode_kunjungan ?? '-'); ?></p>
                                 </div>
                             </div>
                         </td>
 
-                        {{-- FISIK DASAR --}}
+                        
                         <td class="px-6 py-4 border-r border-slate-200/50">
                             <div class="flex items-center gap-2">
-                                <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">BB: <span class="text-indigo-600 font-black">{{ $item->berat_badan ?? '-' }} kg</span></span>
-                                <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">TB/PB: <span class="text-emerald-600 font-black">{{ $item->tinggi_badan ?? '-' }} cm</span></span>
+                                <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">BB: <span class="text-indigo-600 font-black"><?php echo e($item->berat_badan ?? '-'); ?> kg</span></span>
+                                <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">TB/PB: <span class="text-emerald-600 font-black"><?php echo e($item->tinggi_badan ?? '-'); ?> cm</span></span>
                             </div>
-                            @if($item->imt)
-                                <p class="text-[9px] font-black text-slate-400 mt-1.5 uppercase tracking-widest">IMT: {{ $item->imt }}</p>
-                            @endif
+                            <?php if($item->imt): ?>
+                                <p class="text-[9px] font-black text-slate-400 mt-1.5 uppercase tracking-widest">IMT: <?php echo e($item->imt); ?></p>
+                            <?php endif; ?>
                         </td>
 
-                        {{-- STATUS VALIDASI --}}
+                        
                         <td class="px-6 py-4 text-center border-r border-slate-200/50">
-                            @if($item->status_verifikasi == 'verified')
+                            <?php if($item->status_verifikasi == 'verified'): ?>
                                 <div class="inline-flex flex-col items-center gap-1">
                                     <span class="bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
                                         <i class="fas fa-check-circle mr-1"></i> Tervalidasi
                                     </span>
                                     <span class="text-[9px] font-bold text-emerald-600">Oleh Bidan</span>
                                 </div>
-                            @else
+                            <?php else: ?>
                                 <div class="inline-flex flex-col items-center gap-1">
                                     <span class="bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm animate-pulse">
                                         <i class="fas fa-clock mr-1"></i> Menunggu
                                     </span>
                                     <span class="text-[9px] font-bold text-amber-600">Validasi Medis</span>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                         </td>
 
-                        {{-- AKSI --}}
+                        
                         <td class="px-6 py-4">
                             <div class="flex items-center justify-center gap-2">
-                                <a href="{{ route('kader.pemeriksaan.show', $item->id) }}" onclick="window.showLoader()" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 flex items-center justify-center transition-all shadow-sm hover:shadow-md" title="Lihat Rekam Medis"><i class="fas fa-file-medical-alt"></i></a>
+                                <a href="<?php echo e(route('kader.pemeriksaan.show', $item->id)); ?>" onclick="window.showLoader()" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 flex items-center justify-center transition-all shadow-sm hover:shadow-md" title="Lihat Rekam Medis"><i class="fas fa-file-medical-alt"></i></a>
                                 
-                                {{-- Kunci tombol edit jika sudah diverifikasi bidan --}}
-                                @if($item->status_verifikasi == 'pending')
-                                    <a href="{{ route('kader.pemeriksaan.edit', $item->id) }}" onclick="window.showLoader()" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-amber-500 hover:bg-amber-50 hover:text-amber-600 flex items-center justify-center transition-all shadow-sm hover:shadow-md" title="Koreksi Input Kader"><i class="fas fa-edit"></i></a>
-                                    <form action="{{ route('kader.pemeriksaan.destroy', $item->id) }}" method="POST">
-                                        @csrf @method('DELETE')
-                                        <button type="button" onclick="confirmDelete('{{ $item->id }}')" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 flex items-center justify-center transition-all shadow-sm hover:shadow-md" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+                                
+                                <?php if($item->status_verifikasi == 'pending'): ?>
+                                    <a href="<?php echo e(route('kader.pemeriksaan.edit', $item->id)); ?>" onclick="window.showLoader()" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-amber-500 hover:bg-amber-50 hover:text-amber-600 flex items-center justify-center transition-all shadow-sm hover:shadow-md" title="Koreksi Input Kader"><i class="fas fa-edit"></i></a>
+                                    <form action="<?php echo e(route('kader.pemeriksaan.destroy', $item->id)); ?>" method="POST">
+                                        <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
+                                        <button type="button" onclick="confirmDelete('<?php echo e($item->id); ?>')" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 flex items-center justify-center transition-all shadow-sm hover:shadow-md" title="Hapus"><i class="fas fa-trash-alt"></i></button>
                                     </form>
-                                @else
+                                <?php else: ?>
                                     <button type="button" onclick="lockedAlert()" class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 text-slate-300 cursor-not-allowed flex items-center justify-center shadow-sm" title="Terkunci (Sudah Divallidasi Bidan)"><i class="fas fa-lock"></i></button>
-                                @endif
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                     <tr>
                         <td colspan="5" class="px-6 py-20 text-center">
                             <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto mb-4 text-3xl shadow-inner border border-slate-100"><i class="fas fa-folder-open"></i></div>
@@ -193,19 +195,20 @@
                             <p class="text-sm text-slate-500 mt-1">Gunakan filter pencarian lain atau input data pengukuran baru.</p>
                         </td>
                     </tr>
-                    @endforelse
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
-        @if($pemeriksaans->hasPages())
+        <?php if($pemeriksaans->hasPages()): ?>
         <div class="px-5 py-4 border-t border-slate-100 bg-slate-50">
-            {{ $pemeriksaans->appends(request()->query())->links() }}
+            <?php echo e($pemeriksaans->appends(request()->query())->links()); ?>
+
         </div>
-        @endif
+        <?php endif; ?>
     </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script><script>
     window.hideLoader = function() {
         const l = document.getElementById('smoothLoader');
@@ -249,8 +252,8 @@
         toast: true, position: 'top-end', showConfirmButton: false, timer: 4000,
         timerProgressBar: true, didOpen: (toast) => { toast.addEventListener('mouseenter', Swal.stopTimer); toast.addEventListener('mouseleave', Swal.resumeTimer); }
     });
-    @if(session('success')) Toast.fire({ icon: 'success', title: 'Berhasil!', text: "{!! addslashes(session('success')) !!}" }); @endif
-    @if(session('error')) Toast.fire({ icon: 'error', title: 'Oops...', text: "{!! addslashes(session('error')) !!}" }); @endif
+    <?php if(session('success')): ?> Toast.fire({ icon: 'success', title: 'Berhasil!', text: "<?php echo addslashes(session('success')); ?>" }); <?php endif; ?>
+    <?php if(session('error')): ?> Toast.fire({ icon: 'error', title: 'Oops...', text: "<?php echo addslashes(session('error')); ?>" }); <?php endif; ?>
 
     function confirmDelete(id) {
         Swal.fire({
@@ -272,5 +275,6 @@
         });
     }
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.kader', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/kader/pemeriksaan/index.blade.php ENDPATH**/ ?>

@@ -289,4 +289,27 @@ class PemeriksaanController extends Controller
         $seq    = $last ? (intval(substr($last,-4))+1) : 1;
         return $prefix.str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
+    // =================================================================
+    // FITUR API: MENGAMBIL NAMA PASIEN DINAMIS UNTUK DROPDOWN CREATE
+    // =================================================================
+    public function getPasienApi(\Illuminate\Http\Request $request)
+    {
+        $kategori = $request->get('kategori');
+        $data = [];
+
+        try {
+            if ($kategori === 'balita') {
+                $data = Balita::select('id', 'nama_lengkap', 'nik')->orderBy('nama_lengkap')->get();
+            } elseif ($kategori === 'ibu_hamil') {
+                $data = IbuHamil::aktif()->select('id', 'nama_lengkap', 'nik')->orderBy('nama_lengkap')->get();
+            } elseif ($kategori === 'remaja') {
+                $data = Remaja::select('id', 'nama_lengkap', 'nik')->orderBy('nama_lengkap')->get();
+            } elseif ($kategori === 'lansia') {
+                $data = Lansia::select('id', 'nama_lengkap', 'nik')->orderBy('nama_lengkap')->get();
+            }
+            return response()->json($data);
+        } catch (\Exception $e) {
+            return response()->json([], 500);
+        }
+    }
 }

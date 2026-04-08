@@ -158,22 +158,27 @@ Route::prefix('kader')->name('kader.')->middleware(['auth','checkstatus','role:k
         Route::get('/', [AbsensiController::class, 'index'])->name('index'); 
         Route::get('/riwayat', [AbsensiController::class, 'riwayat'])->name('riwayat'); 
         Route::get('/{id}', [AbsensiController::class, 'show'])->name('show'); 
-        Route::post('/', [AbsensiController::class, 'store'])->name('store');
+        Route::post('/toggle', [AbsensiController::class, 'toggle'])->name('toggle');
+Route::post('/selesai', [AbsensiController::class, 'selesaiSesi'])->name('selesai');
         Route::put('/{id}', [AbsensiController::class, 'update'])->name('update');
         Route::delete('/{id}', [AbsensiController::class, 'destroy'])->name('destroy');
     });
 
-    Route::prefix('data')->name('data.')->group(function () {
+   Route::prefix('data')->name('data.')->group(function () {
         Route::resource('balita', BalitaController::class);
         Route::get('balita/{id}/sync', [\App\Http\Controllers\Kader\BalitaController::class, 'syncUser'])->name('balita.sync');
         Route::post('balita/bulk-delete', [\App\Http\Controllers\Kader\BalitaController::class, 'bulkDelete'])->name('balita.bulk-delete');
+        
         Route::resource('remaja', RemajaController::class);
         Route::post('remaja/bulk-delete', [\App\Http\Controllers\Kader\RemajaController::class, 'bulkDelete'])->name('remaja.bulk-delete');
         Route::get('remaja/{id}/sync', [\App\Http\Controllers\Kader\RemajaController::class, 'syncUser'])->name('remaja.sync');
+        Route::post('lansia/bulk-delete', [\App\Http\Controllers\Kader\LansiaController::class, 'bulkDelete'])->name('lansia.bulk-delete');
+        Route::get('lansia/{id}/sync', [\App\Http\Controllers\Kader\LansiaController::class, 'syncUser'])->name('lansia.sync');
         Route::resource('lansia', LansiaController::class);
+        Route::post('ibu-hamil/bulk-delete', [IbuHamilController::class, 'bulkDelete'])->name('ibu-hamil.bulk-delete');
+        Route::get('ibu-hamil/{id}/sync', [IbuHamilController::class, 'syncUser'])->name('ibu-hamil.sync');
         Route::resource('ibu-hamil', IbuHamilController::class);
-        
-    });
+});
 
     Route::prefix('pemeriksaan')->name('pemeriksaan.')->group(function () {
         Route::get('/',          [PemeriksaanController::class, 'index'])->name('index');
@@ -183,6 +188,7 @@ Route::prefix('kader')->name('kader.')->middleware(['auth','checkstatus','role:k
         Route::get('/{id}/edit', [PemeriksaanController::class, 'edit'])->name('edit');
         Route::put('/{id}',      [PemeriksaanController::class, 'update'])->name('update');
         Route::delete('/{id}',   [PemeriksaanController::class, 'destroy'])->name('destroy');
+        Route::get('api/pasien', [\App\Http\Controllers\Kader\PemeriksaanController::class, 'getPasienApi'])->name('api.pasien');
     });
 
     Route::get('/imunisasi',                                 [ImunisasiController::class, 'index'])->name('imunisasi.index');

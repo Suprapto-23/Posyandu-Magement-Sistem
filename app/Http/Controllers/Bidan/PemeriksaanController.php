@@ -21,14 +21,16 @@ class PemeriksaanController extends Controller
         $tab = $request->get('tab', 'pending');
         $search = $request->get('search');
 
-        $query = Pemeriksaan::with(['balita', 'remaja', 'lansia', 'pemeriksa'])->latest('tanggal_periksa');
+        // BUG FIXED: Ubah 'ibu_hamil' menjadi 'ibuHamil' sesuai nama fungsi di Model
+        $query = Pemeriksaan::with(['balita', 'remaja', 'lansia', 'ibuHamil', 'pemeriksa'])->latest('tanggal_periksa');
         $query->where('status_verifikasi', $tab);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->whereHas('balita', fn($s) => $s->where('nama_lengkap', 'like', "%$search%"))
                   ->orWhereHas('remaja', fn($s) => $s->where('nama_lengkap', 'like', "%$search%"))
-                  ->orWhereHas('lansia', fn($s) => $s->where('nama_lengkap', 'like', "%$search%"));
+                  ->orWhereHas('lansia', fn($s) => $s->where('nama_lengkap', 'like', "%$search%"))
+                  ->orWhereHas('ibuHamil', fn($s) => $s->where('nama_lengkap', 'like', "%$search%")); // FIXED
             });
         }
 
@@ -39,7 +41,7 @@ class PemeriksaanController extends Controller
     }
 
     /**
-     * 2. Menampilkan Form Input Manual oleh Bidan (Ini yang menyebabkan error 404 sebelumnya)
+     * 2. Menampilkan Form Input Manual oleh Bidan (Tanpa Kader)
      */
     public function create(Request $request)
     {
@@ -56,15 +58,13 @@ class PemeriksaanController extends Controller
     }
 
     /**
-     * 3. Menyimpan Input Manual Bidan (Langsung terverifikasi)
+     * 3. Menyimpan Input Manual Bidan (Langsung Verified)
      */
     public function store(Request $request)
     {
         $request->validate([
             'kategori_pasien' => 'required|in:balita,remaja,lansia,ibu_hamil',
             'pasien_id'       => 'required|integer',
-            'berat_badan'     => 'nullable|numeric|min:0',
-            'tinggi_badan'    => 'nullable|numeric|min:0',
             'diagnosa'        => 'required|string',
             'tindakan'        => 'required|string',
         ]);
@@ -73,7 +73,6 @@ class PemeriksaanController extends Controller
         $data['tanggal_periksa'] = $request->input('tanggal_periksa', now()->toDateString());
         $data['pemeriksa_id']    = Auth::id();
         
-        // Karena Bidan yang menginput, langsung statusnya Verified
         $data['status_verifikasi'] = 'verified';
         $data['verified_by']       = Auth::id();
         $data['verified_at']       = now();
@@ -85,30 +84,38 @@ class PemeriksaanController extends Controller
     }
 
     /**
-     * 4. Halaman Form Validasi Medis (Dari antrian Kader)
+     * 4. Halaman Split-View: Menampilkan Data (Verified) ATAU Form Validasi (Pending)
      */
-    public function validasi($id)
+    public function show($id) 
     {
-        $pemeriksaan = Pemeriksaan::with(['balita', 'remaja', 'lansia', 'pemeriksa'])->findOrFail($id);
-        
-        if ($pemeriksaan->status_verifikasi === 'verified') {
-            return redirect()->route('bidan.pemeriksaan.index', ['tab' => 'verified'])
-                ->with('error', 'Data ini sudah divalidasi sebelumnya.');
-        }
-
-        return view('bidan.pemeriksaan.validasi', compact('pemeriksaan'));
+        // BUG FIXED: Ubah 'ibu_hamil' menjadi 'ibuHamil'
+        $pemeriksaan = Pemeriksaan::with(['balita', 'remaja', 'lansia', 'ibuHamil', 'pemeriksa', 'verifikator'])->findOrFail($id);
+        return view('bidan.pemeriksaan.show', compact('pemeriksaan'));
     }
 
     /**
-     * 5. Menyimpan Hasil Validasi Bidan
+     * 5. Eksekusi Validasi Medis (Terima ACC, Tolak, atau Reset Ulang)
      */
-    public function simpanValidasi(Request $request, $id)
+    public function verifikasi(Request $request, $id)
     {
         $pemeriksaan = Pemeriksaan::findOrFail($id);
 
+        if ($request->status_verifikasi === 'pending') {
+            $pemeriksaan->status_verifikasi = 'pending';
+            $pemeriksaan->diagnosa = null;
+            $pemeriksaan->tindakan = null;
+            $pemeriksaan->catatan_bidan = null;
+            $pemeriksaan->verified_by = null;
+            $pemeriksaan->verified_at = null;
+            $pemeriksaan->save();
+
+            return redirect()->route('bidan.pemeriksaan.show', $id)
+                ->with('success', 'Validasi dibatalkan. Silakan berikan diagnosa ulang.');
+        }
+
         $request->validate([
-            'diagnosa'      => 'required|string',
-            'tindakan'      => 'required|string',
+            'status_verifikasi' => 'required|in:verified,rejected',
+            'diagnosa'          => 'required_if:status_verifikasi,verified',
         ]);
 
         $pemeriksaan->diagnosa = $request->diagnosa;
@@ -121,33 +128,28 @@ class PemeriksaanController extends Controller
             $pemeriksaan->posisi_janin = $request->posisi_janin;
         }
 
-        $pemeriksaan->status_verifikasi = 'verified';
+        $pemeriksaan->status_verifikasi = $request->status_verifikasi;
         $pemeriksaan->verified_by = Auth::id();
         $pemeriksaan->verified_at = now();
         $pemeriksaan->save();
 
-        return redirect()->route('bidan.pemeriksaan.index', ['tab' => 'pending'])
-            ->with('success', 'Validasi klinis berhasil disimpan. Pasien masuk ke Riwayat Rekam Medis.');
+        $pesan = $request->status_verifikasi === 'verified' ? 'Validasi klinis berhasil disimpan!' : 'Data dikembalikan karena ditolak.';
+
+        return redirect()->route('bidan.pemeriksaan.index', ['tab' => 'pending'])->with('success', $pesan);
     }
 
-    /**
-     * 6. Fungsi Standar Show, Edit, Update, Destroy
-     */
-    public function show($id) {
-        $pemeriksaan = Pemeriksaan::with(['balita', 'remaja', 'lansia', 'pemeriksa', 'verifikator'])->findOrFail($id);
-        return view('bidan.pemeriksaan.show', compact('pemeriksaan'));
+    public function edit($id) 
+    {
+        return redirect()->route('bidan.pemeriksaan.show', $id);
     }
 
-    public function edit($id) {
-        // Logika edit bisa diarahkan ke validasi jika diperlukan
-        return redirect()->route('bidan.pemeriksaan.validasi', $id);
+    public function update(Request $request, $id) 
+    {
+        return $this->verifikasi($request, $id);
     }
 
-    public function update(Request $request, $id) {
-        // Handle update
-    }
-
-    public function destroy($id) {
+    public function destroy($id) 
+    {
         Pemeriksaan::findOrFail($id)->delete();
         return back()->with('success', 'Data pemeriksaan berhasil dihapus permanen.');
     }

@@ -4,186 +4,322 @@
 @section('page-name', 'Database Ibu Hamil')
 
 @push('styles')
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
-    .animate-slide-up { opacity:0; animation:slideUpFade 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
-    @keyframes slideUpFade { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    .search-input { width:100%; background:#f8fafc; border:2px solid #e2e8f0; color:#0f172a; font-size:.875rem;
-        border-radius:1rem; padding:.75rem 1rem .75rem 2.75rem; outline:none; transition:all .3s; font-weight:600; }
-    .search-input:focus { background:#fff; border-color:#ec4899; box-shadow:0 4px 12px -3px rgba(236,72,153,.15); }
-    .custom-scrollbar::-webkit-scrollbar{height:8px}
-    .custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
-    .stacked-item { transition:all .3s cubic-bezier(.4,0,.2,1); }
-    .stacked-item:hover { transform:scale(1.01) translateY(-2px); box-shadow:0 12px 24px -5px rgba(0,0,0,.07); }
+    .animate-slide-up { opacity:0; animation:slideUpFade 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+    @keyframes slideUpFade { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+    
+    .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 10px 40px -10px rgba(236, 72, 153, 0.08); }
+    
+    .checkbox-modern {
+        appearance: none; width: 22px; height: 22px; border: 2px solid #cbd5e1; border-radius: 6px; 
+        background: #f8fafc; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; display: inline-block;
+    }
+    .checkbox-modern:hover { border-color: #f472b6; background: #fce7f3; }
+    .checkbox-modern:checked { background: #ec4899; border-color: #ec4899; transform: scale(1.05); }
+    .checkbox-modern:checked::after {
+        content: '\f00c'; font-family: 'Font Awesome 5 Free'; font-weight: 900; position: absolute; 
+        color: white; font-size: 11px; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    }
+
+    .table-container { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-5xl mx-auto animate-slide-up">
+<div id="smoothLoader" class="fixed inset-0 bg-white/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-300 opacity-100 pointer-events-auto">
+    <div class="relative w-20 h-20 mb-4">
+        <div class="absolute inset-0 border-4 border-pink-100 rounded-full"></div>
+        <div class="absolute inset-0 border-4 border-pink-500 rounded-full border-t-transparent animate-spin"></div>
+        <div class="absolute inset-0 flex items-center justify-center text-pink-500"><i class="fas fa-female text-2xl animate-pulse"></i></div>
+    </div>
+    <p class="text-sm font-black tracking-widest text-pink-500 uppercase animate-pulse">Memuat Database...</p>
+</div>
 
-    {{-- HERO BANNER --}}
-    <div class="bg-gradient-to-br from-pink-500 via-rose-500 to-pink-700 rounded-[32px] p-8 md:p-10 mb-8 relative overflow-hidden shadow-[0_15px_40px_-10px_rgba(236,72,153,0.4)] flex flex-col md:flex-row items-center justify-between gap-6">
-        <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image:radial-gradient(#fff 1px,transparent 1px);background-size:24px 24px"></div>
-        <div class="absolute -right-8 -bottom-8 opacity-10 text-[130px] pointer-events-none"><i class="fas fa-baby"></i></div>
-        <div class="relative z-10 flex items-center gap-5">
-            <div class="w-20 h-20 rounded-[20px] bg-white/20 border border-white/30 text-white flex items-center justify-center text-4xl shrink-0 shadow-lg">
-                <i class="fas fa-heart"></i>
+<div class="max-w-[1400px] mx-auto animate-slide-up">
+    
+    {{-- HEADER --}}
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+        <div class="flex items-center gap-5">
+            <div class="w-16 h-16 rounded-[20px] bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center text-3xl shadow-[0_8px_20px_rgba(236,72,153,0.3)] shrink-0 group hover:scale-105 transition-transform">
+                <i class="fas fa-female group-hover:animate-pulse transition-transform"></i>
             </div>
             <div>
-                <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white text-[10px] font-black px-3 py-1.5 rounded-full mb-2 uppercase tracking-widest">
-                    <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span> Data Aktif
-                </div>
-                <h1 class="text-3xl font-black text-white tracking-tight">Database Ibu Hamil</h1>
-                <p class="text-pink-100 text-sm font-medium mt-1">Pantau kondisi kehamilan — trimester, HPL, dan data fisik.</p>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight mb-1">Database Ibu Hamil</h1>
+                <p class="text-sm font-bold text-slate-500">Kelola master data kehamilan, HPL, dan parameter fisik dasar.</p>
             </div>
         </div>
-        <a href="{{ route('kader.data.ibu-hamil.create') }}"
-           class="relative z-10 inline-flex items-center gap-2 px-7 py-3.5 bg-white text-pink-600 font-black text-sm rounded-xl hover:bg-pink-50 shadow-lg hover:-translate-y-1 transition-all uppercase tracking-widest w-full md:w-auto justify-center">
-            <i class="fas fa-plus"></i> Tambah Data
-        </a>
-    </div>
-
-    {{-- STATS TRIMESTER --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        @php
-            $statItems = [
-                ['label'=>'Total','val'=>$stats['total'],'color'=>'slate','icon'=>'fa-users'],
-                ['label'=>'Trimester I','val'=>$stats['trimester1'],'color'=>'sky','icon'=>'fa-seedling'],
-                ['label'=>'Trimester II','val'=>$stats['trimester2'],'color'=>'violet','icon'=>'fa-leaf'],
-                ['label'=>'Trimester III','val'=>$stats['trimester3'],'color'=>'rose','icon'=>'fa-tree'],
-            ];
-        @endphp
-        @foreach($statItems as $s)
-        <div class="bg-white border border-slate-200 rounded-2xl p-4 text-center shadow-sm">
-            <div class="w-8 h-8 rounded-xl bg-{{ $s['color'] }}-50 text-{{ $s['color'] }}-600 flex items-center justify-center mx-auto mb-2 text-sm">
-                <i class="fas {{ $s['icon'] }}"></i>
-            </div>
-            <p class="text-2xl font-black text-slate-800">{{ $s['val'] }}</p>
-            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mt-0.5">{{ $s['label'] }}</p>
-        </div>
-        @endforeach
-    </div>
-
-    {{-- ALERT HAMPIR LAHIR --}}
-    @if($stats['hampir_lahir'] > 0)
-    <div class="mb-5 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3">
-        <i class="fas fa-bell text-amber-500 text-lg"></i>
-        <p class="font-bold text-amber-800 text-sm">
-            <strong>{{ $stats['hampir_lahir'] }} ibu hamil</strong> diperkirakan melahirkan dalam 30 hari ke depan.
-            <a href="{{ route('kader.data.ibu-hamil.index') }}?filter=hampir_lahir" class="underline font-black ml-1">Lihat →</a>
-        </p>
-    </div>
-    @endif
-
-    {{-- SEARCH + FILTER --}}
-    <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-sm p-4 mb-5 flex flex-col sm:flex-row gap-3">
-        <form action="{{ route('kader.data.ibu-hamil.index') }}" method="GET" class="flex flex-col sm:flex-row gap-3 flex-1">
-            <div class="relative flex-1">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama ibu, NIK, atau nama suami..." class="search-input">
-                @if($filter) <input type="hidden" name="filter" value="{{ $filter }}"> @endif
-            </div>
-            <select name="filter" onchange="this.form.submit()"
-                    class="border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 bg-white focus:outline-none focus:border-pink-400 transition-colors">
-                <option value="semua" {{ $filter=='semua'?'selected':'' }}>Semua</option>
-                <option value="aktif" {{ $filter=='aktif'?'selected':'' }}>Masih Hamil</option>
-                <option value="hampir_lahir" {{ $filter=='hampir_lahir'?'selected':'' }}>Hampir Lahir (30hr)</option>
-            </select>
-        </form>
-    </div>
-
-    {{-- LIST --}}
-    <div class="flex flex-col gap-4">
-        @forelse($ibuHamils as $ibu)
-        @php
-            $minggu   = $ibu->usia_kehamilan;
-            $trimNo   = $ibu->trimester_angka;
-            $sisaHari = $ibu->sisa_hari;
-            $trimColor = match($trimNo) { 1=>'sky', 2=>'violet', 3=>'rose', default=>'slate' };
-            $trimLabel = match($trimNo) { 1=>'Trimester I', 2=>'Trimester II', 3=>'Trimester III', default=>'-' };
-        @endphp
-        <div class="stacked-item bg-white rounded-[24px] border border-slate-200 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-pink-200">
-            <div class="flex items-center gap-4">
-                {{-- Avatar --}}
-                <div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 font-black text-lg flex items-center justify-center border border-pink-100 shrink-0">
-                    {{ strtoupper(substr($ibu->nama_lengkap,0,1)) }}
-                </div>
-                <div>
-                    <p class="font-black text-slate-800 text-[15px] group-hover:text-pink-600 transition-colors">{{ $ibu->nama_lengkap }}</p>
-                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] font-bold text-slate-400">
-                        @if($ibu->nama_suami)
-                        <span><i class="fas fa-user-tie mr-1 text-slate-300"></i>{{ $ibu->nama_suami }}</span>
-                        @endif
-                        @if($ibu->nik)
-                        <span><i class="fas fa-id-card mr-1 text-slate-300"></i>{{ $ibu->nik }}</span>
-                        @endif
-                        @if($ibu->telepon_ortu)
-                        <span><i class="fas fa-phone mr-1 text-slate-300"></i>{{ $ibu->telepon_ortu }}</span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-3 border-t sm:border-0 border-slate-100 pt-3 sm:pt-0 justify-between sm:justify-end">
-
-                {{-- Trimester badge --}}
-                @if($trimNo)
-                <span class="px-3 py-1.5 rounded-xl text-[11px] font-black bg-{{ $trimColor }}-50 text-{{ $trimColor }}-700 border border-{{ $trimColor }}-100">
-                    {{ $trimLabel }} · {{ $minggu }} mgg
-                </span>
-                @endif
-
-                {{-- HPL / Sisa hari --}}
-                @if($ibu->hpl)
-                <div class="text-center">
-                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">HPL</p>
-                    <p class="text-sm font-black {{ $sisaHari !== null && $sisaHari <= 30 ? 'text-amber-600' : 'text-slate-700' }}">
-                        {{ $ibu->hpl->format('d M Y') }}
-                    </p>
-                    @if($sisaHari !== null && $sisaHari > 0)
-                    <p class="text-[10px] text-slate-400 font-medium">{{ $sisaHari }} hari lagi</p>
-                    @elseif($sisaHari !== null && $sisaHari <= 0)
-                    <p class="text-[10px] text-amber-500 font-black">Perkiraan sudah lahir</p>
-                    @endif
-                </div>
-                @endif
-
-                {{-- Aksi --}}
-                <div class="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                    <a href="{{ route('kader.data.ibu-hamil.show', $ibu->id) }}"
-                       class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-pink-600 hover:border-pink-300 hover:bg-pink-50 shadow-sm transition-all" title="Detail">
-                        <i class="fas fa-folder-open text-sm"></i>
-                    </a>
-                    <a href="{{ route('kader.data.ibu-hamil.edit', $ibu->id) }}"
-                       class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-amber-500 hover:border-amber-300 hover:bg-amber-50 shadow-sm transition-all" title="Edit">
-                        <i class="fas fa-pen text-sm"></i>
-                    </a>
-                    <form action="{{ route('kader.data.ibu-hamil.destroy', $ibu->id) }}" method="POST"
-                          onsubmit="return confirm('Yakin hapus data ini?')" class="inline-block">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 shadow-sm transition-all" title="Hapus">
-                            <i class="fas fa-trash-alt text-sm"></i>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        @empty
-        <div class="bg-white rounded-[24px] border border-slate-200 shadow-sm p-16 text-center">
-            <div class="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center text-pink-300 mx-auto mb-4 text-3xl"><i class="fas fa-heart"></i></div>
-            <h4 class="font-black text-slate-700 text-lg">Belum Ada Data Ibu Hamil</h4>
-            <p class="text-sm text-slate-400 mt-1">Tambahkan data ibu hamil dengan menekan tombol di atas.</p>
-            <a href="{{ route('kader.data.ibu-hamil.create') }}"
-               class="inline-flex items-center gap-2 mt-5 px-6 py-2.5 bg-pink-500 text-white font-black text-sm rounded-xl hover:bg-pink-600 transition-all shadow-sm">
-                <i class="fas fa-plus"></i> Tambah Sekarang
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <a href="{{ route('kader.data.ibu-hamil.create') }}" class="flex-1 md:flex-none justify-center flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-black text-[13px] rounded-xl hover:from-pink-400 hover:to-rose-500 shadow-[0_8px_15px_rgba(236,72,153,0.3)] hover:-translate-y-0.5 transition-all uppercase tracking-widest">
+                <i class="fas fa-plus-circle text-lg"></i> Registrasi Baru
             </a>
         </div>
-        @endforelse
     </div>
 
-    {{-- PAGINATION --}}
-    @if($ibuHamils->hasPages())
-    <div class="mt-5">{{ $ibuHamils->appends(request()->query())->links() }}</div>
-    @endif
+    {{-- KENDALI NAVIGASI (FILTER & SEARCH) --}}
+    <div class="glass-card rounded-[24px] p-3 mb-6 flex flex-col xl:flex-row items-center gap-4 justify-between relative z-20">
+        
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
+            <form action="{{ route('kader.data.ibu-hamil.index') }}" method="GET" class="flex gap-2 w-full sm:w-max">
+                <input type="hidden" name="search" value="{{ request('search') }}">
+                <div class="bg-slate-100/80 p-1.5 rounded-full flex w-full border border-slate-200/50 shadow-inner">
+                    <button type="submit" name="filter" value="semua" class="flex-1 sm:flex-none px-6 py-2 rounded-full font-extrabold text-xs uppercase tracking-wider transition-all {{ request('filter', 'semua') == 'semua' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50' }}">Semua</button>
+                    <button type="submit" name="filter" value="aktif" class="flex-1 sm:flex-none px-6 py-2 rounded-full font-extrabold text-xs uppercase tracking-wider transition-all {{ request('filter') == 'aktif' ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200/50' }}">Aktif</button>
+                    <button type="submit" name="filter" value="hampir_lahir" class="flex-1 sm:flex-none px-6 py-2 rounded-full font-extrabold text-xs uppercase tracking-wider transition-all {{ request('filter') == 'hampir_lahir' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200/50' }}"><i class="fas fa-clock mr-1"></i> HPL Dekat</button>
+                </div>
+            </form>
+            
+            <form action="{{ route('kader.data.ibu-hamil.bulk-delete') }}" method="POST" id="bulkDeleteForm" class="hidden w-full sm:w-auto">
+                @csrf
+                <div id="bulkDeleteInputs"></div>
+                <button type="button" onclick="confirmBulkDelete()" class="w-full sm:w-auto px-6 py-2.5 bg-rose-50 border border-rose-200 text-rose-600 font-black text-[13px] uppercase tracking-widest rounded-full hover:bg-rose-500 hover:text-white shadow-sm transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-trash-alt"></i> Hapus (<span id="bulkCount">0</span>)
+                </button>
+            </form>
+        </div>
+        
+        <div class="w-full xl:w-80 relative group">
+            <input type="text" id="liveSearchInput" placeholder="Cari Nama / NIK..." 
+                   class="w-full bg-white border-2 border-slate-200 rounded-full py-3 pl-12 pr-4 text-sm font-bold text-slate-700 outline-none transition-all focus:border-pink-400 focus:ring-4 focus:ring-pink-50 shadow-sm placeholder:text-slate-400">
+            <div class="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-slate-100 rounded-full group-focus-within:bg-pink-100 transition-colors">
+                <i class="fas fa-search text-xs text-slate-400 group-focus-within:text-pink-500"></i>
+            </div>
+        </div>
+    </div>
+
+    {{-- TABEL DATA --}}
+    <div class="bg-white rounded-[24px] border border-slate-200 shadow-sm overflow-hidden mb-8">
+        <div class="table-container overflow-x-auto max-h-[65vh]">
+            <table class="w-full text-left border-collapse whitespace-nowrap min-w-[1000px]">
+                <thead class="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-sm border-b border-slate-200 shadow-sm">
+                    <tr class="text-[10px] uppercase tracking-widest text-slate-500 font-black">
+                        <th class="px-5 py-4 text-center w-12 border-r border-slate-200/50"><input type="checkbox" class="checkbox-modern" id="selectAll" onclick="toggleSelectAll(this)"></th>
+                        <th class="px-5 py-4 border-r border-slate-200/50">Identitas Ibu</th>
+                        <th class="px-5 py-4 border-r border-slate-200/50">Kondisi Kehamilan</th>
+                        <th class="px-5 py-4 border-r border-slate-200/50">Fisik Dasar</th>
+                        <th class="px-5 py-4 text-center border-r border-slate-200/50">Status & Akun</th>
+                        <th class="px-5 py-4 text-center">Manajemen</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($ibuHamils as $item)
+                    <tr class="hover:bg-pink-50/40 transition-colors pasien-row" data-search="{{ strtolower($item->nama_lengkap . ' ' . $item->nik . ' ' . $item->nama_suami) }}">
+                        <td class="px-5 py-4 text-center border-r border-slate-200/50"><input type="checkbox" name="ids[]" value="{{ $item->id }}" class="checkbox-modern row-checkbox" onchange="checkBulkStatus()"></td>
+                        
+                        {{-- Identitas --}}
+                        <td class="px-5 py-4 border-r border-slate-200/50">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg shrink-0 bg-pink-100 text-pink-600 border border-white shadow-sm">
+                                    {{ strtoupper(substr($item->nama_lengkap, 0, 1)) }}
+                                </div>
+                                <div>
+                                    <p class="text-[13px] font-black text-slate-800">{{ $item->nama_lengkap }}</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="text-[10px] font-bold text-slate-500 font-mono tracking-wide bg-slate-100 px-2 py-0.5 rounded"><i class="far fa-id-card text-slate-400"></i> {{ $item->nik ?? '-' }}</span>
+                                        <span class="text-[9px] font-black tracking-widest px-2 py-0.5 rounded border bg-sky-50 text-sky-600 border-sky-200" title="Suami">
+                                            <i class="fas fa-male"></i> {{ $item->nama_suami ?? '-' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        {{-- Kehamilan (HPHT & HPL) --}}
+                        <td class="px-5 py-4 border-r border-slate-200/50">
+                            <div class="flex flex-col gap-1.5">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded bg-slate-100 flex items-center justify-center text-slate-500 text-[10px]"><i class="fas fa-calendar-minus"></i></div>
+                                    <div>
+                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">HPHT</p>
+                                        <p class="text-[11px] font-bold text-slate-700">{{ $item->hpht ? $item->hpht->translatedFormat('d M Y') : 'Belum diisi' }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded bg-pink-100 flex items-center justify-center text-pink-500 text-[10px]"><i class="fas fa-baby"></i></div>
+                                    <div>
+                                        <p class="text-[9px] font-black text-pink-400 uppercase tracking-widest leading-none">HPL</p>
+                                        <p class="text-[11px] font-black text-pink-700">{{ $item->hpl ? $item->hpl->translatedFormat('d M Y') : 'Belum diisi' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        {{-- Fisik Dasar --}}
+                        <td class="px-5 py-4 border-r border-slate-200/50">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm w-16 text-center">BB: <span class="text-indigo-600 font-black">{{ $item->berat_badan ?? '-' }}</span></span>
+                                <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2 py-1 rounded shadow-sm w-16 text-center">TB: <span class="text-emerald-600 font-black">{{ $item->tinggi_badan ?? '-' }}</span></span>
+                            </div>
+                            @php
+                                $imtClass = 'bg-slate-100 text-slate-500';
+                                $imtLabel = 'Belum dihitung';
+                                if($item->imt) {
+                                    if($item->imt < 18.5) { $imtClass = 'bg-amber-100 text-amber-700 border-amber-200'; $imtLabel = 'Kurus'; }
+                                    elseif($item->imt < 25) { $imtClass = 'bg-emerald-100 text-emerald-700 border-emerald-200'; $imtLabel = 'Normal'; }
+                                    else { $imtClass = 'bg-rose-100 text-rose-700 border-rose-200'; $imtLabel = 'Gemuk/Obesitas'; }
+                                }
+                            @endphp
+                            <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest border px-2 py-0.5 rounded {{ $imtClass }}">
+                                IMT: {{ $item->imt ?? '-' }} ({{ $imtLabel }})
+                            </span>
+                        </td>
+
+                        {{-- Status & Akun --}}
+                        <td class="px-5 py-4 text-center border-r border-slate-200/50">
+                            @if($item->status == 'aktif')
+                                <span class="inline-flex items-center gap-1 mb-2 px-3 py-1 rounded-lg text-[10px] font-black bg-pink-50 text-pink-600 border border-pink-200 shadow-sm uppercase tracking-widest">
+                                    <i class="fas fa-heartbeat"></i> {{ $item->trimester }}
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 mb-2 px-3 py-1 rounded-lg text-[10px] font-black bg-slate-100 text-slate-500 border border-slate-200 shadow-sm uppercase tracking-widest">
+                                    <i class="fas fa-check-double"></i> Selesai
+                                </span>
+                            @endif
+                            
+                            <div class="block mt-1">
+                                @if($item->user_id)
+                                    <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 shadow-sm"><i class="fas fa-link"></i> Terhubung Akun Warga</span>
+                                @else
+                                    <a href="{{ route('kader.data.ibu-hamil.sync', $item->id) }}" class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-amber-600 bg-white border border-amber-300 px-2.5 py-1 rounded-md hover:bg-amber-50 hover:border-amber-400 transition-all shadow-sm"><i class="fas fa-satellite-dish animate-pulse"></i> Deteksi Akun</a>
+                                @endif
+                            </div>
+                        </td>
+
+                        {{-- Aksi --}}
+                        <td class="px-5 py-4">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{{ route('kader.data.ibu-hamil.show', $item->id) }}" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 flex items-center justify-center transition-all shadow-sm hover:shadow-md" title="Buku KIA Digital"><i class="fas fa-book-medical"></i></a>
+                                <a href="{{ route('kader.data.ibu-hamil.edit', $item->id) }}" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 flex items-center justify-center transition-all shadow-sm hover:shadow-md" title="Edit Master Data"><i class="fas fa-edit"></i></a>
+                                
+                                <form action="{{ route('kader.data.ibu-hamil.destroy', $item->id) }}" method="POST" id="delete-form-{{ $item->id }}">
+                                    @csrf @method('DELETE')
+                                    <button type="button" onclick="confirmSingleDelete('{{ $item->id }}', '{{ addslashes($item->nama_lengkap) }}')" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 flex items-center justify-center transition-all shadow-sm hover:shadow-md" title="Hapus Permanen"><i class="fas fa-trash-alt"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="px-6 py-20 text-center">
+                            <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto mb-4 text-3xl shadow-inner border border-slate-100"><i class="fas fa-clipboard-list"></i></div>
+                            <h3 class="font-black text-slate-800 text-lg">Database Ibu Hamil Kosong</h3>
+                            <p class="text-sm text-slate-500 mt-1">Belum ada data yang sesuai dengan pencarian/filter Anda.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @if($ibuHamils->hasPages())
+        <div class="px-5 py-4 border-t border-slate-100 bg-slate-50">
+            {{ $ibuHamils->appends(request()->query())->links() }}
+        </div>
+        @endif
+    </div>
 
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    window.hideLoader = function() {
+        const l = document.getElementById('smoothLoader');
+        if(l) { l.classList.remove('opacity-100', 'pointer-events-auto'); l.classList.add('opacity-0', 'pointer-events-none'); setTimeout(() => l.style.display = 'none', 300); }
+    };
+    window.showLoader = function() {
+        const l = document.getElementById('smoothLoader');
+        if(l) { l.style.display = 'flex'; l.classList.remove('opacity-0', 'pointer-events-none'); l.classList.add('opacity-100', 'pointer-events-auto'); }
+    };
+
+    document.addEventListener('DOMContentLoaded', window.hideLoader);
+    window.addEventListener('load', window.hideLoader);
+    setTimeout(window.hideLoader, 2000);
+
+    // LIVE SEARCH LOGIC
+    const searchInput = document.getElementById('liveSearchInput');
+    if(searchInput) {
+        searchInput.addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.pasien-row');
+            rows.forEach(row => {
+                const dataSearch = row.getAttribute('data-search');
+                if (dataSearch.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                    const cb = row.querySelector('.row-checkbox');
+                    if(cb && cb.checked) { cb.checked = false; checkBulkStatus(); }
+                }
+            });
+        });
+    }
+
+    // ALERTS
+    const Toast = Swal.mixin({
+        toast: true, position: 'top-end', showConfirmButton: false, timer: 4000,
+        timerProgressBar: true, didOpen: (toast) => { toast.addEventListener('mouseenter', Swal.stopTimer); toast.addEventListener('mouseleave', Swal.resumeTimer); }
+    });
+
+    @if(session('success')) Toast.fire({ icon: 'success', title: 'Berhasil!', text: "{!! addslashes(session('success')) !!}" }); @endif
+    @if(session('error')) Toast.fire({ icon: 'error', title: 'Oops...', text: "{!! addslashes(session('error')) !!}" }); @endif
+
+    // BULK DELETE
+    function toggleSelectAll(source) {
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        checkboxes.forEach(cb => {
+            const row = cb.closest('tr');
+            if(row.style.display !== 'none') cb.checked = source.checked;
+        });
+        checkBulkStatus();
+    }
+
+    function checkBulkStatus() {
+        const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+        const bulkForm = document.getElementById('bulkDeleteForm');
+        const bulkCountSpan = document.getElementById('bulkCount');
+        
+        if (checkedBoxes.length > 0) {
+            bulkForm.classList.remove('hidden');
+            bulkCountSpan.innerText = checkedBoxes.length;
+        } else {
+            bulkForm.classList.add('hidden');
+        }
+    }
+
+    function confirmSingleDelete(id, name) {
+        Swal.fire({
+            title: 'Hapus ' + name + '?',
+            html: "Data master dan histori pemeriksaan fisik ibu hamil ini akan <b>hilang permanen!</b>",
+            icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#94a3b8',
+            confirmButtonText: '<i class="fas fa-trash"></i> Ya, Hapus Permanen', cancelButtonText: 'Batal',
+            reverseButtons: true, customClass: { popup: 'rounded-3xl border border-slate-100' }
+        }).then((result) => { if (result.isConfirmed) document.getElementById('delete-form-' + id).submit(); });
+    }
+
+    function confirmBulkDelete() {
+        const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+        if(checkedBoxes.length === 0) return;
+
+        Swal.fire({
+            title: 'Hapus ' + checkedBoxes.length + ' Data Terpilih?',
+            html: "Aksi ini akan menghapus data masal beserta seluruh log pemeriksaannya.",
+            icon: 'error', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#94a3b8',
+            confirmButtonText: '<i class="fas fa-skull-crossbones"></i> Eksekusi Hapus', cancelButtonText: 'Batal',
+            reverseButtons: true, customClass: { popup: 'rounded-3xl border-4 border-rose-100 shadow-2xl' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const inputContainer = document.getElementById('bulkDeleteInputs');
+                inputContainer.innerHTML = ''; 
+                checkedBoxes.forEach(cb => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden'; input.name = 'ids[]'; input.value = cb.value;
+                    inputContainer.appendChild(input);
+                });
+                document.getElementById('bulkDeleteForm').submit();
+            }
+        });
+    }
+</script>
+@endpush
 @endsection

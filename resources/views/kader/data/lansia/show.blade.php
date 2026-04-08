@@ -1,266 +1,289 @@
 @extends('layouts.kader')
 
 @section('title', 'Detail Lansia')
-@section('page-name', 'Detail Profil')
+@section('page-name', 'Buku Medis Lansia')
 
 @push('styles')
 <style>
     .animate-slide-up { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-slide-up-delay-1 { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards; }
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    
     .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 10px 40px -10px rgba(16, 185, 129, 0.05); }
 
-    /* IMT Bar */
-    .imt-bar-track { height:8px; border-radius:9999px; background:linear-gradient(to right,#3b82f6 0%,#22c55e 30%,#eab308 65%,#ef4444 100%); position:relative; }
-    .imt-bar-thumb { position:absolute; top:50%; transform:translate(-50%,-50%); width:16px; height:16px; border-radius:50%; background:white; border:3px solid #1e293b; box-shadow:0 2px 6px rgba(0,0,0,0.2); transition:left 0.5s ease; }
+    /* IMT Bar Visualizer */
+    .imt-bar-track { height: 10px; border-radius: 9999px; background: linear-gradient(to right, #f59e0b 0%, #10b981 30%, #f59e0b 65%, #f43f5e 100%); position: relative; }
+    .imt-bar-thumb { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border-radius: 50%; background: white; border: 4px solid #1e293b; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: left 1s cubic-bezier(0.4, 0, 0.2, 1); }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto animate-slide-up">
+<div id="smoothLoader" class="fixed inset-0 bg-white/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-300 opacity-100 pointer-events-auto">
+    <div class="relative w-24 h-24 flex items-center justify-center mb-4">
+        <div class="absolute inset-0 border-4 border-emerald-100 rounded-full"></div>
+        <div class="absolute inset-0 border-4 border-emerald-600 rounded-full border-t-transparent animate-spin"></div>
+        <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg"><i class="fas fa-folder-open text-emerald-600 text-3xl animate-pulse"></i></div>
+    </div>
+    <p class="text-emerald-900 font-black font-poppins tracking-widest text-[12px] animate-pulse uppercase">MEMBUKA REKAM MEDIS...</p>
+</div>
 
-    {{-- TOP BAR --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('kader.data.lansia.index') }}" class="w-10 h-10 bg-white border border-slate-200 text-slate-500 rounded-xl flex items-center justify-center hover:bg-slate-50 transition-colors">
-                <i class="fas fa-arrow-left"></i>
+<div class="max-w-7xl mx-auto relative pb-10 z-10">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none z-0"></div>
+
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 relative z-10 animate-slide-up">
+        <div class="flex items-center gap-4">
+            <a href="{{ route('kader.data.lansia.index') }}" onclick="window.showLoader()" class="w-12 h-12 bg-white border border-slate-200 text-slate-500 rounded-[16px] flex items-center justify-center hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-600 transition-all shadow-sm group">
+                <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
             </a>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Profil Lansia</h1>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-poppins">Profil Peserta Lansia</h1>
+                <p class="text-[13px] font-bold text-slate-500 mt-0.5">Buku Pemantauan Kesehatan Lansia Berkala</p>
+            </div>
         </div>
-        <a href="{{ route('kader.data.lansia.edit', $lansia->id) }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-500 text-white font-extrabold text-sm rounded-xl hover:bg-amber-600 shadow-sm transition-all hover:-translate-y-0.5">
-            <i class="fas fa-edit"></i> Edit Profil
+        <a href="{{ route('kader.data.lansia.edit', $lansia->id) }}" onclick="window.showLoader()" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-amber-500 text-white font-black text-[13px] rounded-xl hover:bg-amber-600 shadow-[0_8px_20px_rgba(245,158,11,0.3)] transition-all hover:-translate-y-0.5 uppercase tracking-widest w-full md:w-auto">
+            <i class="fas fa-pen-nib"></i> Edit Profil
         </a>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
+        
+        {{-- PANEL KIRI: PROFIL IDENTITAS --}}
+        <div class="lg:col-span-4 space-y-6 animate-slide-up">
+            <div class="glass-card rounded-[32px] overflow-hidden sticky top-24 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                
+                <div class="bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-500 px-6 py-10 text-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+                    <div class="absolute bottom-0 left-0 w-32 h-32 bg-black/20 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
 
-        {{-- ===== KOLOM KIRI ===== --}}
-        <div class="lg:col-span-4 space-y-5">
-
-            {{-- KARTU PROFIL --}}
-            <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden sticky top-24">
-                <div class="bg-gradient-to-b from-emerald-500 to-emerald-700 px-6 py-10 text-center relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2"></div>
-                    <div class="w-28 h-28 mx-auto bg-white rounded-[24px] shadow-xl flex items-center justify-center text-emerald-500 text-5xl font-black relative z-10 border-4 border-emerald-200/30 transform rotate-3 hover:rotate-0 transition-transform duration-300">
+                    <div class="w-28 h-28 mx-auto bg-white rounded-[28px] shadow-2xl flex items-center justify-center text-emerald-500 text-5xl font-black relative z-10 border-4 border-white/20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
                         {{ strtoupper(substr($lansia->nama_lengkap, 0, 1)) }}
                     </div>
-                    <h2 class="text-2xl font-extrabold text-white mt-5 relative z-10">{{ $lansia->nama_lengkap }}</h2>
-                    <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-900/30 text-emerald-50 text-xs font-bold rounded-lg mt-2 relative z-10 backdrop-blur-sm border border-white/10">
-                        <i class="fas fa-id-card"></i> {{ $lansia->kode_lansia }}
+                    
+                    <h2 class="text-2xl font-black text-white mt-5 relative z-10 font-poppins tracking-tight leading-tight">{{ $lansia->nama_lengkap }}</h2>
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-black/20 text-emerald-50 text-[10px] font-black rounded-xl mt-3 relative z-10 backdrop-blur-md border border-white/10 tracking-widest uppercase">
+                        <i class="fas fa-fingerprint text-emerald-300"></i> NIK: {{ $lansia->nik ?? 'TIDAK ADA' }}
                     </div>
                 </div>
 
-                <div class="p-6">
-                    {{-- Stats Grid --}}
-                    <div class="grid grid-cols-2 gap-3 mb-5">
-                        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-center">
-                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Usia</p>
-                            <p class="text-base font-black text-emerald-600">{{ $usia }} Tahun</p>
+                <div class="p-6 md:p-8 bg-white/50 backdrop-blur-sm">
+                    @php
+                        $lahir = \Carbon\Carbon::parse($lansia->tanggal_lahir);
+                        $sekarang = \Carbon\Carbon::now();
+                        $umurCetak = $lahir->diff($sekarang)->y . ' Tahun';
+                    @endphp
+                    
+                    <div class="grid grid-cols-2 gap-4 text-center mb-8">
+                        <div class="p-4 bg-white rounded-[20px] border border-slate-200 shadow-sm">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Usia Saat Ini</p>
+                            <p class="text-xl font-black text-emerald-600 font-poppins">{{ $umurCetak }}</p>
                         </div>
-                        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-center">
-                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Gender</p>
-                            <p class="text-base font-black text-slate-800">
-                                @if($lansia->jenis_kelamin == 'L') <i class="fas fa-mars text-sky-500 mr-1"></i>L
-                                @else <i class="fas fa-venus text-rose-500 mr-1"></i>P @endif
-                            </p>
-                        </div>
-                    </div>
-
-                    {{-- Detail Info --}}
-                    <div class="space-y-3 mb-5">
-                        <div class="p-3 bg-slate-50 rounded-xl">
-                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">NIK</p>
-                            <p class="text-sm font-bold text-slate-800 font-mono">{{ $lansia->nik }}</p>
-                        </div>
-                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50">
-                            <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center"><i class="fas fa-calendar-alt text-xs"></i></div>
-                                <span class="text-xs font-bold text-slate-500 uppercase">TTL</span>
-                            </div>
-                            <span class="text-sm font-bold text-slate-800">{{ $lansia->tempat_lahir }}, {{ $lansia->tanggal_lahir->format('d M Y') }}</span>
-                        </div>
-                        <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50">
-                            <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0"><i class="fas fa-map-marker-alt text-xs"></i></div>
-                            <div>
-                                <span class="text-[10px] font-extrabold text-slate-400 uppercase block mb-0.5">Alamat</span>
-                                <span class="text-sm font-bold text-slate-800 leading-snug">{{ $lansia->alamat }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Penyakit Bawaan --}}
-                    <div class="border-t border-slate-100 pt-5">
-                        <h6 class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Riwayat Penyakit</h6>
-                        <div class="flex flex-wrap gap-2">
-                            @if($lansia->penyakit_bawaan)
-                                @foreach(explode(',', $lansia->penyakit_bawaan) as $sakit)
-                                    <span class="px-3 py-1.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-lg text-xs font-bold shadow-sm uppercase tracking-wide">{{ trim($sakit) }}</span>
-                                @endforeach
-                            @else
-                                <div class="w-full p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-2">
-                                    <i class="fas fa-check-circle text-emerald-500"></i>
-                                    <span class="text-xs font-bold text-emerald-700">Lansia Terpantau Sehat</span>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ===== KARTU KEMANDIRIAN ===== --}}
-            @php
-                $kemData = [
-                    'A' => ['label'=>'Mandiri',          'icon'=>'fa-walking',        'bg'=>'bg-emerald-50','border'=>'border-emerald-200','text'=>'text-emerald-700','desc'=>'Melakukan aktivitas sehari-hari secara mandiri.'],
-                    'B' => ['label'=>'Sebagian Bantuan', 'icon'=>'fa-hands-helping',  'bg'=>'bg-amber-50',  'border'=>'border-amber-200',  'text'=>'text-amber-700',  'desc'=>'Membutuhkan bantuan untuk sebagian aktivitas.'],
-                    'C' => ['label'=>'Total',            'icon'=>'fa-wheelchair',     'bg'=>'bg-rose-50',   'border'=>'border-rose-200',   'text'=>'text-rose-700',   'desc'=>'Bergantung sepenuhnya pada orang lain.'],
-                ];
-                $kem = $lansia->kemandirian ? ($kemData[$lansia->kemandirian] ?? null) : null;
-            @endphp
-            <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6">
-                <h6 class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">Tingkat Kemandirian</h6>
-                @if($kem)
-                    <div class="p-4 {{ $kem['bg'] }} border {{ $kem['border'] }} rounded-2xl flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-xl {{ $kem['bg'] }} border {{ $kem['border'] }} {{ $kem['text'] }} flex items-center justify-center text-2xl shrink-0">
-                            <i class="fas {{ $kem['icon'] }}"></i>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="text-2xl font-black {{ $kem['text'] }}">{{ $lansia->kemandirian }}</span>
-                                <span class="text-base font-extrabold {{ $kem['text'] }}">— {{ $kem['label'] }}</span>
-                            </div>
-                            <p class="text-xs {{ $kem['text'] }} opacity-80 leading-relaxed">{{ $kem['desc'] }}</p>
-                        </div>
-                    </div>
-                @else
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center">
-                        <p class="text-sm text-slate-400 font-medium">Belum diisi</p>
-                        <a href="{{ route('kader.data.lansia.edit', $lansia->id) }}" class="text-xs text-emerald-600 font-bold mt-1 inline-block hover:underline">Isi sekarang →</a>
-                    </div>
-                @endif
-            </div>
-
-            {{-- ===== KARTU IMT ===== --}}
-            @php
-                $imtColor = ''; $imtLabel = '-'; $imtPct = 0;
-                if ($lansia->imt) {
-                    // Posisi thumb: IMT 10–40 → 0–100%
-                    $imtPct = min(100, max(0, (($lansia->imt - 10) / 30) * 100));
-                    if ($lansia->imt < 18.5)      { $imtColor='text-blue-600';  $imtLabel='Kurus'; }
-                    elseif ($lansia->imt < 25.0)  { $imtColor='text-emerald-600'; $imtLabel='Normal'; }
-                    elseif ($lansia->imt < 27.0)  { $imtColor='text-yellow-600'; $imtLabel='Gemuk Ringan'; }
-                    else                           { $imtColor='text-red-600';   $imtLabel='Obesitas'; }
-                }
-            @endphp
-            <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6">
-                <h6 class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">Indeks Massa Tubuh (IMT)</h6>
-                @if($lansia->imt)
-                    <div class="text-center mb-5">
-                        <p class="text-4xl font-black {{ $imtColor }}">{{ $lansia->imt }}</p>
-                        <p class="text-sm font-extrabold {{ $imtColor }} mt-1">{{ $imtLabel }}</p>
-                    </div>
-
-                    {{-- IMT Bar --}}
-                    <div class="imt-bar-track mb-4">
-                        <div class="imt-bar-thumb" style="left: {{ $imtPct }}%"></div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="p-3 bg-slate-50 rounded-xl text-center">
-                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Berat Badan</p>
-                            <p class="text-sm font-black text-slate-700">{{ $lansia->berat_badan ?? '-' }} <span class="text-xs font-medium text-slate-400">kg</span></p>
-                        </div>
-                        <div class="p-3 bg-slate-50 rounded-xl text-center">
-                            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Tinggi Badan</p>
-                            <p class="text-sm font-black text-slate-700">{{ $lansia->tinggi_badan ?? '-' }} <span class="text-xs font-medium text-slate-400">cm</span></p>
-                        </div>
-                    </div>
-
-                    {{-- IMT Reference --}}
-                    <div class="mt-4 grid grid-cols-4 gap-1 text-center">
-                        @foreach([['<18.5','Kurus','text-blue-600'],['18.5–25','Normal','text-emerald-600'],['25–27','Gemuk','text-yellow-600'],['>27','Obesitas','text-red-600']] as $ref)
-                        <div class="p-1.5 rounded-lg bg-slate-50 border border-slate-100">
-                            <p class="text-[9px] font-extrabold {{ $ref[2] }}">{{ $ref[1] }}</p>
-                            <p class="text-[9px] text-slate-400 font-medium mt-0.5">{{ $ref[0] }}</p>
-                        </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center">
-                        <i class="fas fa-weight text-slate-300 text-3xl mb-2"></i>
-                        <p class="text-sm text-slate-400 font-medium">Belum ada data berat/tinggi badan</p>
-                        <a href="{{ route('kader.data.lansia.edit', $lansia->id) }}" class="text-xs text-emerald-600 font-bold mt-1 inline-block hover:underline">Isi sekarang →</a>
-                    </div>
-                @endif
-            </div>
-
-        </div>
-
-        {{-- ===== KOLOM KANAN: RIWAYAT KESEHATAN ===== --}}
-        <div class="lg:col-span-8">
-            <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden h-full flex flex-col">
-
-                <div class="p-6 sm:p-8 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-[16px] bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl"><i class="fas fa-notes-medical"></i></div>
-                        <div>
-                            <h3 class="text-lg font-extrabold text-slate-800">Riwayat Kesehatan Lansia</h3>
-                            <p class="text-xs font-medium text-slate-400 mt-0.5">Catatan pemeriksaan gula darah, asam urat, dll.</p>
-                        </div>
-                    </div>
-                    <a href="{{ route('kader.pemeriksaan.create') }}?kategori=lansia&pasien_id={{ $lansia->id }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-700 font-bold text-sm rounded-xl hover:bg-emerald-100 transition-colors shrink-0 border border-emerald-100">
-                        <i class="fas fa-plus"></i> Periksa Baru
-                    </a>
-                </div>
-
-                <div class="p-6 sm:p-8 flex-1 overflow-y-auto custom-scrollbar">
-                    @forelse($lansia->kunjungans as $kunjungan)
-                        <div class="relative pl-8 sm:pl-10 mb-8 last:mb-0">
-                            <div class="absolute left-[15px] sm:left-[19px] top-8 bottom-[-32px] w-[2px] bg-slate-100 last:hidden"></div>
-                            <div class="absolute left-0 top-1 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-50 border-4 border-white flex items-center justify-center text-emerald-500 shadow-sm z-10">
-                                <i class="fas fa-heartbeat text-[10px] sm:text-xs"></i>
-                            </div>
-
-                            <div class="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-sm hover:border-emerald-100 transition-colors group">
-                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
-                                    <div>
-                                        <h6 class="font-bold text-slate-800 text-sm">{{ ucfirst($kunjungan->jenis_kunjungan) }}</h6>
-                                        <p class="text-xs text-slate-400 mt-0.5">Keluhan: <span class="font-semibold text-slate-600">{{ $kunjungan->keluhan ?? 'Tidak ada keluhan' }}</span></p>
-                                    </div>
-                                    <span class="inline-block px-2.5 py-1 bg-slate-50 text-slate-500 text-[10px] font-extrabold rounded-md uppercase tracking-wider shrink-0">
-                                        {{ $kunjungan->tanggal_kunjungan->format('d M Y') }}
-                                    </span>
-                                </div>
-
-                                @if($kunjungan->pemeriksaan)
-                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
-                                        @foreach([['Tensi','tekanan_darah'],['Gula Darah','gula_darah'],['Asam Urat','asam_urat'],['Kolesterol','kolesterol']] as $item)
-                                        <div class="p-2 bg-slate-50 border border-slate-100 rounded-xl text-center">
-                                            <p class="text-[10px] text-slate-400 font-bold mb-1 uppercase">{{ $item[0] }}</p>
-                                            <p class="text-xs font-black text-slate-700">{{ $kunjungan->pemeriksaan->{$item[1]} ?? '-' }}</p>
-                                        </div>
-                                        @endforeach
-                                    </div>
-                                    <div class="mt-3 text-right border-t border-slate-50 pt-3">
-                                        <a href="{{ route('kader.kunjungan.show', $kunjungan->id) }}" class="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            Lihat Detail Medis &rarr;
-                                        </a>
-                                    </div>
+                        <div class="p-4 bg-white rounded-[20px] border border-slate-200 shadow-sm">
+                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Gender</p>
+                            <div class="flex items-center justify-center gap-2">
+                                @if($lansia->jenis_kelamin == 'L') 
+                                    <div class="w-7 h-7 rounded-full bg-sky-100 text-sky-500 flex items-center justify-center text-sm"><i class="fas fa-mars"></i></div>
+                                    <p class="text-xs font-black text-slate-800 uppercase tracking-widest">Pria</p>
+                                @else 
+                                    <div class="w-7 h-7 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-sm"><i class="fas fa-venus"></i></div>
+                                    <p class="text-xs font-black text-slate-800 uppercase tracking-widest">Wanita</p>
                                 @endif
                             </div>
                         </div>
-                    @empty
-                        <div class="flex flex-col items-center justify-center py-12 text-center h-full">
-                            <div class="w-20 h-20 bg-slate-50 rounded-[20px] flex items-center justify-center text-slate-300 mx-auto mb-4 text-3xl shadow-inner border border-slate-100">
-                                <i class="fas fa-notes-medical"></i>
+                    </div>
+
+                    {{-- IMT VISUALIZER --}}
+                    @if($lansia->imt)
+                        @php
+                            $imt = $lansia->imt;
+                            $pct = min(100, max(0, (($imt - 15) / 20) * 100)); // Rentang IMT 15 - 35
+                            $kat = $imt < 18.5 ? 'Kurus' : ($imt < 25 ? 'Normal' : ($imt < 27 ? 'Gemuk' : 'Obesitas'));
+                            $col = $imt < 18.5 ? 'text-amber-500' : ($imt < 25 ? 'text-emerald-500' : 'text-rose-500');
+                        @endphp
+                        <div class="bg-slate-50 p-5 rounded-[24px] border border-slate-200 shadow-sm mb-6 text-center">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Indeks Massa Tubuh (Kader)</p>
+                            <p class="text-3xl font-black {{ $col }} font-poppins">{{ $imt }} <span class="text-[10px] bg-white border border-slate-200 px-2 py-0.5 rounded shadow-sm text-slate-600 align-middle ml-2 uppercase">{{ $kat }}</span></p>
+                            <div class="mt-5 px-2">
+                                <div class="imt-bar-track">
+                                    <div class="imt-bar-thumb" style="left: {{ $pct }}%;"></div>
+                                </div>
+                                <div class="flex justify-between mt-3 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                    <span>Kurus</span>
+                                    <span>Normal</span>
+                                    <span>Gemuk</span>
+                                </div>
                             </div>
-                            <h4 class="font-black text-slate-800 text-lg">Belum Ada Pemeriksaan</h4>
-                            <p class="text-sm font-medium text-slate-500 mt-1 max-w-sm mx-auto">Lansia ini belum memiliki catatan riwayat kesehatan. Segera lakukan pemeriksaan.</p>
                         </div>
-                    @endforelse
+                    @endif
+
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                            <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-500 flex items-center justify-center shrink-0"><i class="fas fa-wheelchair text-lg"></i></div>
+                            <div>
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Kemandirian Fisik</span>
+                                <span class="text-[13px] font-bold text-slate-800 uppercase">{{ $lansia->kemandirian ?? 'MANDIRI' }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-400 flex items-center justify-center shrink-0 shadow-sm"><i class="fas fa-notes-medical text-lg"></i></div>
+                            <div>
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Penyakit Bawaan</span>
+                                <span class="text-[12px] font-bold text-slate-800 leading-tight block">{{ $lansia->penyakit_bawaan ?? 'Tidak ada / Sehat' }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 p-4 rounded-2xl bg-sky-50 border border-sky-100 shadow-sm">
+                            <div class="w-12 h-12 rounded-xl bg-white text-sky-500 flex items-center justify-center shrink-0 shadow-sm"><i class="fas fa-phone-alt text-lg"></i></div>
+                            <div>
+                                <span class="text-[10px] font-black text-sky-400 uppercase tracking-widest block mb-0.5">Kontak Darurat / Keluarga</span>
+                                <span class="text-[13px] font-black text-sky-800 font-mono tracking-wide">{{ $lansia->telepon_keluarga ?? 'Tidak Tersedia' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 border-t border-slate-200/60 pt-6">
+                        @if($lansia->user_id)
+                            <div class="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-4 shadow-sm">
+                                <div class="w-12 h-12 bg-white text-emerald-500 rounded-full flex items-center justify-center shadow-sm shrink-0"><i class="fas fa-check-circle text-lg"></i></div>
+                                <div>
+                                    <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-0.5">Akun Warga Aktif</p>
+                                    <p class="text-[13px] font-bold text-emerald-800">Sinkronisasi Berhasil</p>
+                                </div>
+                            </div>
+                        @else
+                            <div class="p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm">
+                                <div class="w-12 h-12 bg-white text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm"><i class="fas fa-link-slash text-lg"></i></div>
+                                <p class="text-[11px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Aplikasi Belum Terhubung</p>
+                                <a href="{{ route('kader.data.lansia.sync', $lansia->id) }}" onclick="return confirm('Sistem akan mencari akun Warga yang cocok dengan NIK ini. Lanjutkan?')" class="inline-flex items-center justify-center px-5 py-3 bg-white border border-slate-300 shadow-sm text-emerald-600 text-[11px] font-black rounded-xl hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors w-full uppercase tracking-widest">
+                                    <i class="fas fa-sync-alt mr-2 animate-spin-slow"></i> Pindai NIK Lansia
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+
                 </div>
             </div>
         </div>
 
+        {{-- PANEL KANAN: REKAM MEDIS & METABOLIK --}}
+        <div class="lg:col-span-8 space-y-6 animate-slide-up-delay-1">
+            
+            <div class="glass-card rounded-[32px] overflow-hidden border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                <div class="p-6 md:p-8 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-slate-50/50">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-[20px] bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl shadow-sm border border-emerald-200"><i class="fas fa-heartbeat"></i></div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 font-poppins">Riwayat Medis Metabolik</h3>
+                            <p class="text-[13px] font-medium text-slate-500 mt-1">Log tensi, gula darah, asam urat, & kolesterol.</p>
+                        </div>
+                    </div>
+                    <a href="{{ route('kader.pemeriksaan.create') }}?kategori=lansia&pasien_id={{ $lansia->id }}" onclick="window.showLoader()" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 text-white font-black text-[12px] rounded-xl hover:bg-emerald-700 shadow-[0_4px_15px_rgba(16,185,129,0.3)] transition-all shrink-0 uppercase tracking-widest hover:-translate-y-1 w-full sm:w-auto">
+                        <i class="fas fa-plus"></i> Input Cek Medis
+                    </a>
+                </div>
+
+                <div class="p-0">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left whitespace-nowrap min-w-[850px]">
+                            <thead>
+                                <tr class="bg-white border-b border-slate-100">
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest pl-8 w-40">Waktu Kunjungan</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fisik (BB/TB)</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Cek Darah & Tensi</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right pr-8">Detail Berkas</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                @forelse($lansia->kunjungans ?? [] as $kunjungan)
+                                <tr class="hover:bg-slate-50 transition-colors group">
+                                    <td class="px-6 py-5 pl-8">
+                                        <div class="flex flex-col">
+                                            <span class="font-black text-slate-800 text-[14px] mb-1">{{ \Carbon\Carbon::parse($kunjungan->tanggal_kunjungan)->format('d M Y') }}</span>
+                                            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-400 bg-slate-100 w-max px-2 py-0.5 rounded-md"><i class="far fa-clock"></i> {{ \Carbon\Carbon::parse($kunjungan->tanggal_kunjungan)->format('H:i') }} WIB</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        @if($kunjungan->pemeriksaan)
+                                            <div class="flex items-center gap-3">
+                                                <div class="flex flex-col bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm text-center">
+                                                    <span class="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-0.5">Berat</span>
+                                                    <span class="text-[13px] font-black text-indigo-600">{{ $kunjungan->pemeriksaan->berat_badan ?? '-' }} <span class="text-[9px] text-slate-400">kg</span></span>
+                                                </div>
+                                                <div class="flex flex-col bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm text-center">
+                                                    <span class="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-0.5">Tinggi</span>
+                                                    <span class="text-[13px] font-black text-emerald-600">{{ $kunjungan->pemeriksaan->tinggi_badan ?? '-' }} <span class="text-[9px] text-slate-400">cm</span></span>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <span class="text-slate-300 font-medium text-[11px] italic">Tidak diukur</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        @if($kunjungan->pemeriksaan)
+                                            <div class="flex flex-wrap gap-2 max-w-[250px]">
+                                                @if($kunjungan->pemeriksaan->tekanan_darah)
+                                                    <span class="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded shadow-sm" title="Tekanan Darah (Tensi)"><i class="fas fa-heartbeat"></i> {{ $kunjungan->pemeriksaan->tekanan_darah }}</span>
+                                                @endif
+                                                @if($kunjungan->pemeriksaan->gula_darah)
+                                                    <span class="text-[10px] font-bold text-sky-600 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded shadow-sm" title="Gula Darah"><i class="fas fa-cubes"></i> Gula: {{ $kunjungan->pemeriksaan->gula_darah }}</span>
+                                                @endif
+                                                @if($kunjungan->pemeriksaan->asam_urat)
+                                                    <span class="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded shadow-sm" title="Asam Urat"><i class="fas fa-bone"></i> A.Urat: {{ $kunjungan->pemeriksaan->asam_urat }}</span>
+                                                @endif
+                                                @if($kunjungan->pemeriksaan->kolesterol)
+                                                    <span class="text-[10px] font-bold text-purple-600 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded shadow-sm" title="Kolesterol"><i class="fas fa-hamburger"></i> Kol: {{ $kunjungan->pemeriksaan->kolesterol }}</span>
+                                                @endif
+                                                
+                                                @if(!$kunjungan->pemeriksaan->tekanan_darah && !$kunjungan->pemeriksaan->gula_darah && !$kunjungan->pemeriksaan->asam_urat && !$kunjungan->pemeriksaan->kolesterol)
+                                                    <span class="text-[10px] text-slate-400 italic">Hanya ukur fisik</span>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <span class="text-slate-300 font-medium text-[11px] italic">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-5 text-right pr-8">
+                                        <a href="{{ route('kader.kunjungan.show', $kunjungan->id) }}" onclick="window.showLoader()" class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 transition-all shadow-sm hover:shadow-md hover:scale-105">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="4" class="px-8 py-20 text-center">
+                                        <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto mb-5 text-3xl border border-slate-100 shadow-inner"><i class="fas fa-folder-open"></i></div>
+                                        <h4 class="font-black text-slate-800 text-lg font-poppins tracking-tight">Belum Ada Riwayat Cek Medis</h4>
+                                        <p class="text-[13px] font-medium text-slate-500 mt-2 max-w-md mx-auto">Klik tombol 'Input Cek Medis' untuk menambahkan data cek darah dan ukuran fisik lansia.</p>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    window.hideLoader = function() {
+        const l = document.getElementById('smoothLoader');
+        if(l) { l.classList.remove('opacity-100', 'pointer-events-auto'); l.classList.add('opacity-0', 'pointer-events-none'); setTimeout(() => l.style.display = 'none', 300); }
+    };
+    window.showLoader = function() {
+        const l = document.getElementById('smoothLoader');
+        if(l) { l.style.display = 'flex'; l.classList.remove('opacity-0', 'pointer-events-none'); l.classList.add('opacity-100', 'pointer-events-auto'); }
+    };
+
+    document.addEventListener('DOMContentLoaded', window.hideLoader);
+    window.addEventListener('load', window.hideLoader);
+    setTimeout(window.hideLoader, 2000); // Failsafe
+</script>
+@endpush
 @endsection

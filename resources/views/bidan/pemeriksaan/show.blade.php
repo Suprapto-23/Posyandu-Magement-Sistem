@@ -47,6 +47,7 @@
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
+        {{-- KOLOM KIRI: DATA FISIK DARI KADER --}}
         <div class="xl:col-span-2 space-y-6">
             
             <div class="bg-{{ $svColor }}-50 border border-{{ $svColor }}-200 p-6 rounded-[24px] flex items-center justify-between shadow-sm relative overflow-hidden">
@@ -72,7 +73,8 @@
                     <h3 class="font-black text-slate-800 text-[15px]">Informasi Pasien</h3>
                 </div>
                 <div class="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nama Lengkap</p><p class="font-bold text-slate-800 text-sm">{{ $pemeriksaan->nama_pasien ?? ($pemeriksaan->balita->nama_lengkap ?? ($pemeriksaan->remaja->nama_lengkap ?? ($pemeriksaan->lansia->nama_lengkap ?? '-'))) }}</p></div>
+                    {{-- BUG FIXED: ibuHamil camelCase --}}
+                    <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nama Lengkap</p><p class="font-bold text-slate-800 text-sm">{{ $pemeriksaan->nama_pasien ?? ($pemeriksaan->balita->nama_lengkap ?? ($pemeriksaan->remaja->nama_lengkap ?? ($pemeriksaan->lansia->nama_lengkap ?? ($pemeriksaan->ibuHamil->nama_lengkap ?? '-')))) }}</p></div>
                     <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Kategori</p><span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-black rounded-md uppercase border border-slate-200 tracking-wider">{{ $pemeriksaan->kategori_pasien }}</span></div>
                     <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tanggal Periksa</p><p class="font-bold text-slate-800 text-sm">{{ $pemeriksaan->tanggal_periksa?->format('d M Y') ?? '-' }}</p></div>
                     <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Petugas (Kader)</p><p class="font-bold text-slate-800 text-sm">{{ $pemeriksaan->pemeriksa?->name ?? 'Sistem' }}</p></div>
@@ -121,6 +123,7 @@
             </div>
         </div>
 
+        {{-- KOLOM KANAN: FORMULIR VALIDASI BIDAN --}}
         <div class="xl:col-span-1">
             <div class="bg-white rounded-[24px] border-2 border-cyan-500 shadow-[0_8px_30px_rgba(6,182,212,0.15)] overflow-hidden sticky top-28">
                 <div class="px-6 py-5 border-b border-cyan-500 bg-cyan-50 flex items-center gap-3">
@@ -133,6 +136,27 @@
                         <form id="formValidasi" action="{{ route('bidan.pemeriksaan.verifikasi', $pemeriksaan->id) }}" method="POST" class="space-y-6">
                             @csrf @method('PUT')
                             
+                            {{-- INJEKSI FORM KHUSUS IBU HAMIL --}}
+                            @if(in_array(strtolower($pemeriksaan->kategori_pasien), ['ibu_hamil', 'bumil']))
+                                <div class="p-4 bg-pink-50 rounded-xl border border-pink-100">
+                                    <p class="text-[10px] font-black text-pink-600 uppercase tracking-widest mb-3"><i class="fas fa-female mr-1"></i> Data Kandungan</p>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-500 mb-1">TFU (cm)</label>
+                                            <input type="text" name="tfu" value="{{ $pemeriksaan->tfu }}" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-pink-400">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-500 mb-1">DJJ (x/m)</label>
+                                            <input type="text" name="djj" value="{{ $pemeriksaan->djj }}" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-pink-400">
+                                        </div>
+                                        <div class="col-span-2">
+                                            <label class="block text-[10px] font-bold text-slate-500 mb-1">Posisi Janin</label>
+                                            <input type="text" name="posisi_janin" value="{{ $pemeriksaan->posisi_janin }}" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-pink-400" placeholder="Kepala / Sungsang">
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
                             <div>
                                 <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">Diagnosa Bidan <span class="text-rose-500">*</span></label>
                                 <textarea name="diagnosa" rows="3" required class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-[13px] rounded-xl px-4 py-3 outline-none font-medium focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/10 transition-all placeholder:text-slate-400" placeholder="Ketik hasil analisa klinis Anda di sini..."></textarea>
@@ -174,6 +198,18 @@
                         </form>
                     @else
                         <div class="space-y-6">
+                            
+                            @if(in_array(strtolower($pemeriksaan->kategori_pasien), ['ibu_hamil', 'bumil']) && $pemeriksaan->tfu)
+                                <div class="p-4 bg-pink-50 border border-pink-100 rounded-2xl">
+                                    <p class="text-[10px] font-black text-pink-600 uppercase tracking-widest mb-2"><i class="fas fa-female mr-1"></i> Kandungan (Bidan)</p>
+                                    <div class="flex gap-4 text-pink-800 text-[12px] font-bold">
+                                        <span>TFU: {{ $pemeriksaan->tfu }} cm</span>
+                                        <span>DJJ: {{ $pemeriksaan->djj }}</span>
+                                        <span>Pos: {{ $pemeriksaan->posisi_janin }}</span>
+                                    </div>
+                                </div>
+                            @endif
+
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5"><i class="fas fa-file-medical-alt mr-1"></i> Diagnosa Bidan</p>
                                 <div class="p-4 bg-cyan-50 border border-cyan-100 rounded-2xl text-cyan-900 font-bold text-[14px] leading-relaxed shadow-sm">{{ $pemeriksaan->diagnosa ?? '-' }}</div>

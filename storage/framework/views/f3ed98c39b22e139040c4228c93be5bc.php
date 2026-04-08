@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <meta name="theme-color" content="#ffffff">
-    <title>@yield('title', 'Kader Workspace') — PosyanduCare</title>
+    <title><?php echo $__env->yieldContent('title', 'Kader Workspace'); ?> — PosyanduCare</title>
     
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%236d28d9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M16 23.5l-1.2-1.1C10.2 18.3 7.5 15.8 7.5 12.5 7.5 10 9.5 8 12 8c1.4 0 2.8.7 4 1.9C17.2 8.7 18.6 8 20 8c2.5 0 4.5 2 4.5 4.5 0 3.3-2.7 5.8-7.3 9.9L16 23.5z' fill='white' opacity='0.95'/%3E%3C/svg%3E">
     
@@ -68,20 +68,20 @@
             body.mobile-sidebar-open #sidebar { transform: translateX(0); }
         }
     </style>
-    @stack('styles')
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 
 <body class="flex h-screen overflow-hidden selection:bg-indigo-100 selection:text-indigo-900">
 
-    {{-- OFFLINE BANNER --}}
+    
     <div id="offlineBanner" class="fixed top-0 left-0 right-0 z-[99999] bg-rose-500 text-white text-[11px] font-black uppercase tracking-widest py-2 text-center transform -translate-y-full transition-transform duration-300 flex items-center justify-center gap-2 shadow-lg">
         <i class="fas fa-wifi-slash animate-pulse"></i> Koneksi Terputus. Menunggu Jaringan...
     </div>
 
-    {{-- TOAST CONTAINER --}}
+    
     <div id="toastContainer" class="fixed top-6 right-6 z-[10000] flex flex-col gap-3 w-full max-w-[340px] pointer-events-none"></div>
 
-    {{-- GLOBAL PAGE LOADER --}}
+    
     <div id="globalLoader" class="fixed inset-0 z-[9998] bg-slate-50/80 backdrop-blur-sm flex flex-col items-center justify-center opacity-100 pointer-events-auto transition-opacity duration-300">
         <div class="relative w-16 h-16 flex items-center justify-center mb-4">
             <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
@@ -93,26 +93,26 @@
         <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Memuat Layar</p>
     </div>
 
-    {{-- MOBILE OVERLAY --}}
+    
     <div id="mobileOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0 lg:hidden"></div>
 
-    {{-- 1. INCLUDE SIDEBAR COMPONENT --}}
-    @include('partials.sidebar.kader')
+    
+    <?php echo $__env->make('partials.sidebar.kader', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-    {{-- 2. MAIN WRAPPER --}}
+    
     <div id="mainWrapper" class="flex-1 flex flex-col min-w-0 h-screen bg-slate-50 relative layout-transition">
         
-        {{-- HEADER NAVBAR --}}
+        
         <header class="h-[76px] glass-panel sticky top-0 z-40 flex items-center justify-between px-4 lg:px-8 border-b border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
             
             <div class="flex items-center gap-3 lg:gap-5">
-                {{-- Toggle Sidebar Button --}}
+                
                 <button id="toggleSidebarDesktop" class="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-[12px] transition-colors bg-white border border-slate-200 shadow-sm" title="Toggle Layar Penuh">
                     <i class="fas fa-bars-staggered"></i>
                 </button>
 
                 <div class="hidden md:flex flex-col">
-                    <h2 class="text-[18px] font-black text-slate-800 tracking-tight font-poppins leading-none">@yield('page-name', 'Beranda')</h2>
+                    <h2 class="text-[18px] font-black text-slate-800 tracking-tight font-poppins leading-none"><?php echo $__env->yieldContent('page-name', 'Beranda'); ?></h2>
                     <div class="flex items-center gap-1.5 mt-1 text-[11px] font-semibold text-slate-400 tracking-wide">
                         <span>Workspace</span> <i class="fas fa-chevron-right text-[8px] opacity-50"></i> <span class="text-indigo-500">Kader Pelaksana</span>
                     </div>
@@ -121,7 +121,7 @@
             
             <div class="flex items-center gap-2 sm:gap-3">
                 
-                {{-- Pencarian Cepat Header --}}
+                
                 <div class="hidden xl:flex items-center bg-slate-100 hover:bg-slate-200/50 rounded-full px-4 py-2 w-64 transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-100 focus-within:border-indigo-300 border border-transparent">
                     <i class="fas fa-search text-slate-400 text-sm"></i>
                     <input type="text" id="globalSearchInput" placeholder="Pencarian cepat NIK/Nama..." class="bg-transparent border-none outline-none text-[13px] w-full ml-3 placeholder:text-slate-400 font-medium text-slate-700">
@@ -130,54 +130,54 @@
 
                 <div class="w-px h-6 bg-slate-200 mx-1 hidden lg:block"></div>
                 
-                @php
+                <?php
                     $unreadNotifCount = \App\Models\Notifikasi::where('user_id', Auth::id())->where('is_read', false)->count();
                     $latestNotifs = \App\Models\Notifikasi::where('user_id', Auth::id())->latest()->take(5)->get();
-                @endphp
+                ?>
 
-                {{-- Notification Bell --}}
+                
                 <div class="relative">
                     <button id="notifDropdownBtn" class="relative w-10 h-10 flex items-center justify-center bg-white text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-[12px] transition-all border border-slate-200 shadow-sm hover:shadow group">
                         <i class="fas fa-bell text-[16px]"></i>
-                        @if($unreadNotifCount > 0)
+                        <?php if($unreadNotifCount > 0): ?>
                             <span id="notifBadge" class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500 border-2 border-white"></span>
                             </span>
-                        @endif
+                        <?php endif; ?>
                     </button>
                     
-                    {{-- Dropdown Notif --}}
+                    
                     <div id="notifDropdown" class="hidden absolute top-[120%] right-0 w-[calc(100vw-2rem)] mx-4 sm:mx-0 sm:w-[380px] bg-white/95 backdrop-blur-xl border border-slate-200 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] rounded-[24px] z-50 overflow-hidden flex flex-col transition-all origin-top-right scale-95 opacity-0">
                         <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/80 rounded-t-[24px]">
                             <h3 class="text-[14px] font-black text-slate-800 font-poppins">Pusat Notifikasi</h3>
-                            <span id="notifCount" class="text-[10px] font-bold px-2 py-0.5 rounded text-rose-600 bg-rose-50 border border-rose-100 {{ $unreadNotifCount > 0 ? '' : 'hidden' }}">{{ $unreadNotifCount }} Baru</span>
+                            <span id="notifCount" class="text-[10px] font-bold px-2 py-0.5 rounded text-rose-600 bg-rose-50 border border-rose-100 <?php echo e($unreadNotifCount > 0 ? '' : 'hidden'); ?>"><?php echo e($unreadNotifCount); ?> Baru</span>
                         </div>
                         <div id="notifList" class="max-h-[320px] overflow-y-auto custom-scrollbar flex-1 bg-white">
-                            @forelse($latestNotifs as $n)
-                                <a href="{{ route('kader.notifikasi.index') }}" class="loader-trigger flex gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors border-b border-slate-50 {{ $n->is_read ? '' : 'bg-indigo-50/20' }}">
-                                    <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 {{ $n->is_read ? 'bg-slate-100 text-slate-400' : 'bg-indigo-100 text-indigo-600' }}">
-                                        <i class="fas fa-{{ str_contains(strtolower($n->judul), 'jadwal') ? 'calendar-alt' : 'bell' }} text-xs"></i>
+                            <?php $__empty_1 = true; $__currentLoopData = $latestNotifs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $n): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                <a href="<?php echo e(route('kader.notifikasi.index')); ?>" class="loader-trigger flex gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors border-b border-slate-50 <?php echo e($n->is_read ? '' : 'bg-indigo-50/20'); ?>">
+                                    <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 <?php echo e($n->is_read ? 'bg-slate-100 text-slate-400' : 'bg-indigo-100 text-indigo-600'); ?>">
+                                        <i class="fas fa-<?php echo e(str_contains(strtolower($n->judul), 'jadwal') ? 'calendar-alt' : 'bell'); ?> text-xs"></i>
                                     </div>
                                     <div class="flex-1 min-w-0 pt-0.5">
-                                        <p class="text-[13px] font-bold {{ $n->is_read ? 'text-slate-600' : 'text-slate-900' }} truncate font-poppins">{{ $n->judul }}</p>
-                                        <p class="text-[12px] {{ $n->is_read ? 'text-slate-400' : 'text-slate-600' }} line-clamp-1 mt-0.5">{{ $n->pesan }}</p>
-                                        <p class="text-[10px] font-medium text-slate-400 mt-1.5">{{ $n->created_at->diffForHumans() }}</p>
+                                        <p class="text-[13px] font-bold <?php echo e($n->is_read ? 'text-slate-600' : 'text-slate-900'); ?> truncate font-poppins"><?php echo e($n->judul); ?></p>
+                                        <p class="text-[12px] <?php echo e($n->is_read ? 'text-slate-400' : 'text-slate-600'); ?> line-clamp-1 mt-0.5"><?php echo e($n->pesan); ?></p>
+                                        <p class="text-[10px] font-medium text-slate-400 mt-1.5"><?php echo e($n->created_at->diffForHumans()); ?></p>
                                     </div>
                                 </a>
-                            @empty
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <div class="py-10 text-center text-slate-400"><i class="fas fa-check-circle text-3xl mb-3 opacity-30"></i><p class="text-xs font-medium">Semua bersih.</p></div>
-                            @endforelse
+                            <?php endif; ?>
                         </div>
                         <div class="p-3 border-t border-slate-100 rounded-b-[24px] bg-slate-50/80">
-                            <a href="{{ route('kader.notifikasi.index') }}" class="loader-trigger w-full py-2.5 text-[12px] font-bold text-indigo-600 hover:bg-white border border-transparent hover:border-slate-200 shadow-sm text-center rounded-xl transition-all block">Lihat Semua Riwayat</a>
+                            <a href="<?php echo e(route('kader.notifikasi.index')); ?>" class="loader-trigger w-full py-2.5 text-[12px] font-bold text-indigo-600 hover:bg-white border border-transparent hover:border-slate-200 shadow-sm text-center rounded-xl transition-all block">Lihat Semua Riwayat</a>
                         </div>
                     </div>
                 </div>
                 
-                {{-- Fast Logout (Updated Design: Clean Icon Match) --}}
-                <form method="POST" action="{{ route('logout') }}" class="hidden sm:block m-0">
-                    @csrf
+                
+                <form method="POST" action="<?php echo e(route('logout')); ?>" class="hidden sm:block m-0">
+                    <?php echo csrf_field(); ?>
                     <button type="submit" class="relative w-10 h-10 flex items-center justify-center bg-white text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-[12px] transition-all border border-slate-200 shadow-sm hover:shadow group" title="Keluar Sistem">
                         <i class="fas fa-sign-out-alt text-[16px] group-hover:-translate-x-0.5 transition-transform"></i>
                     </button>
@@ -186,32 +186,32 @@
             </div>
         </header>
 
-        {{-- MAIN CONTENT INJECTION --}}
+        
         <main class="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 relative z-0 custom-scrollbar">
-            @yield('content')
+            <?php echo $__env->yieldContent('content'); ?>
         </main>
 
-        {{-- MOBILE BOTTOM NAV --}}
+        
         <nav class="lg:hidden fixed bottom-0 left-0 right-0 h-16 glass-panel border-t border-slate-200 z-50 flex items-center justify-around px-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
-            @php $route = request()->route()->getName(); @endphp
-            <a href="{{ route('kader.dashboard') }}" class="loader-trigger flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ $route == 'kader.dashboard' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
-                <i class="fas fa-chart-pie text-lg mb-1 {{ $route == 'kader.dashboard' ? 'drop-shadow-sm' : '' }}"></i> Beranda
+            <?php $route = request()->route()->getName(); ?>
+            <a href="<?php echo e(route('kader.dashboard')); ?>" class="loader-trigger flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors <?php echo e($route == 'kader.dashboard' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'); ?>">
+                <i class="fas fa-chart-pie text-lg mb-1 <?php echo e($route == 'kader.dashboard' ? 'drop-shadow-sm' : ''); ?>"></i> Beranda
             </a>
-            <a href="{{ route('kader.data.balita.index') }}" class="loader-trigger flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ Str::startsWith($route, 'kader.data.') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
-                <i class="fas fa-users text-lg mb-1 {{ Str::startsWith($route, 'kader.data.') ? 'drop-shadow-sm' : '' }}"></i> Warga
+            <a href="<?php echo e(route('kader.data.balita.index')); ?>" class="loader-trigger flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors <?php echo e(Str::startsWith($route, 'kader.data.') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'); ?>">
+                <i class="fas fa-users text-lg mb-1 <?php echo e(Str::startsWith($route, 'kader.data.') ? 'drop-shadow-sm' : ''); ?>"></i> Warga
             </a>
-            <a href="{{ route('kader.pemeriksaan.index') }}" class="loader-trigger flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ Str::startsWith($route,'kader.pemeriksaan') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
-                <i class="fas fa-balance-scale text-lg mb-1 {{ Str::startsWith($route,'kader.pemeriksaan') ? 'drop-shadow-sm' : '' }}"></i> Medis
+            <a href="<?php echo e(route('kader.pemeriksaan.index')); ?>" class="loader-trigger flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors <?php echo e(Str::startsWith($route,'kader.pemeriksaan') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'); ?>">
+                <i class="fas fa-balance-scale text-lg mb-1 <?php echo e(Str::startsWith($route,'kader.pemeriksaan') ? 'drop-shadow-sm' : ''); ?>"></i> Medis
             </a>
-            <a href="{{ route('kader.absensi.index') }}" class="loader-trigger flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ Str::startsWith($route,'kader.absensi') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
-                <i class="fas fa-clipboard-user text-lg mb-1 {{ Str::startsWith($route,'kader.absensi') ? 'drop-shadow-sm' : '' }}"></i> Presensi
+            <a href="<?php echo e(route('kader.absensi.index')); ?>" class="loader-trigger flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors <?php echo e(Str::startsWith($route,'kader.absensi') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'); ?>">
+                <i class="fas fa-clipboard-user text-lg mb-1 <?php echo e(Str::startsWith($route,'kader.absensi') ? 'drop-shadow-sm' : ''); ?>"></i> Presensi
             </a>
         </nav>
     </div>
 
-    {{-- ================================================================= --}}
-    {{-- CORE JAVASCRIPT ENGINE (Focus Mode & Loader Handler) --}}
-    {{-- ================================================================= --}}
+    
+    
+    
     <script>
         // --- TOAST ENGINE ---
         const showToast = (type, title, message) => {
@@ -234,8 +234,8 @@
             if(toast) { toast.classList.remove('toast-show'); toast.classList.add('toast-hide'); setTimeout(() => toast.remove(), 400); }
         };
 
-        @if(session('success')) document.addEventListener('DOMContentLoaded', () => showToast('success', 'Aksi Berhasil', "{{ session('success') }}")); @endif
-        @if(session('error')) document.addEventListener('DOMContentLoaded', () => showToast('error', 'Kesalahan Sistem', "{{ session('error') }}")); @endif
+        <?php if(session('success')): ?> document.addEventListener('DOMContentLoaded', () => showToast('success', 'Aksi Berhasil', "<?php echo e(session('success')); ?>")); <?php endif; ?>
+        <?php if(session('error')): ?> document.addEventListener('DOMContentLoaded', () => showToast('error', 'Kesalahan Sistem', "<?php echo e(session('error')); ?>")); <?php endif; ?>
 
         // --- GLOBAL LOADER ENGINE ---
         const globalLoader = document.getElementById('globalLoader');
@@ -308,6 +308,6 @@
             });
         }
     </script>
-    @stack('scripts')
+    <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
-</html>
+</html><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/layouts/kader.blade.php ENDPATH**/ ?>

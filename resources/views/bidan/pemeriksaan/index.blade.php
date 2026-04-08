@@ -65,7 +65,8 @@
                         
                         <td class="py-4 px-6 align-middle">
                             @php
-                                $namaPasien = $pem->balita->nama_lengkap ?? $pem->remaja->nama_lengkap ?? $pem->lansia->nama_lengkap ?? 'Ibu Hamil';
+                                // BUG FIXED: ibuHamil camelCase
+                                $namaPasien = $pem->balita->nama_lengkap ?? $pem->remaja->nama_lengkap ?? $pem->lansia->nama_lengkap ?? $pem->ibuHamil->nama_lengkap ?? 'Pasien Tidak Diketahui';
                                 $kat = strtolower($pem->kategori_pasien);
                                 if($kat == 'balita') { $bCol = 'rose'; $bIcon = 'baby'; }
                                 elseif($kat == 'remaja') { $bCol = 'sky'; $bIcon = 'user-graduate'; }
@@ -99,13 +100,13 @@
 
                         <td class="py-4 px-6 text-right align-middle">
                             @if($tab == 'pending')
-                                <a href="{{ route('bidan.pemeriksaan.validasi', $pem->id) }}" class="smooth-route inline-flex items-center gap-2 px-5 py-2.5 bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-500 text-[12px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm">
+                                <a href="{{ route('bidan.pemeriksaan.show', $pem->id) }}" class="smooth-route inline-flex items-center gap-2 px-5 py-2.5 bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-500 text-[12px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm">
                                     <i class="fas fa-stethoscope"></i> Periksa Sekarang
                                 </a>
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 text-[11px] font-black uppercase tracking-widest rounded-xl">
+                                <a href="{{ route('bidan.pemeriksaan.show', $pem->id) }}" class="smooth-route inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-500 hover:text-white transition-colors">
                                     <i class="fas fa-check-double"></i> Tervalidasi
-                                </span>
+                                </a>
                             @endif
                         </td>
 

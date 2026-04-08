@@ -1,225 +1,242 @@
 @extends('layouts.kader')
 @section('title', 'Tambah Data Ibu Hamil')
-@section('page-name', 'Registrasi Ibu Hamil')
+@section('page-name', 'Registrasi Kehamilan')
 
 @push('styles')
-<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
-    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-    .crm-label { display:block; font-size:.75rem; font-weight:800; color:#4b5563; margin-bottom:.375rem; text-transform:uppercase; letter-spacing:0.05em; }
-    .crm-input { width:100%; background:#f8fafc; border:2px solid #e2e8f0; color:#0f172a; font-size:.875rem;
-        border-radius:.75rem; padding:.75rem 1rem; outline:none; transition:all .3s; font-weight:600; }
-    .crm-input:focus { background:#fff; border-color:#ec4899; box-shadow:0 4px 12px -3px rgba(236,72,153,.15); }
-    .crm-input::placeholder { color:#94a3b8; font-weight:500; }
-    .crm-error { border-color:#ef4444!important; background:#fef2f2!important; }
-    .crm-error-text { color:#ef4444; font-size:.75rem; margin-top:.375rem; font-weight:700; display:block; }
-    #hpl-preview { transition: all .3s ease; }
+    .animate-slide-up { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .form-label { display: block; font-size: 0.70rem; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .form-input {
+        width: 100%; background-color: #f8fafc; border: 2px solid #e2e8f0; color: #0f172a;
+        font-size: 0.875rem; border-radius: 1rem; padding: 1rem 1.25rem; outline: none;
+        transition: all 0.3s ease; font-weight: 700; box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.02);
+    }
+    .form-input:focus { background-color: #ffffff; border-color: #ec4899; box-shadow: 0 4px 20px -3px rgba(236, 72, 153, 0.15); transform: translateY(-2px); }
+    .form-error { border-color: #f43f5e !important; background-color: #fff1f2 !important; }
+    
+    .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-4xl mx-auto fade-in">
+<div id="smoothLoader" class="fixed inset-0 bg-white/80 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-300 opacity-100 pointer-events-auto">
+    <div class="relative w-24 h-24 flex items-center justify-center mb-4">
+        <div class="absolute inset-0 border-4 border-pink-100 rounded-full"></div>
+        <div class="absolute inset-0 border-4 border-pink-500 rounded-full border-t-transparent animate-spin"></div>
+        <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg"><i class="fas fa-female text-pink-500 text-3xl animate-pulse"></i></div>
+    </div>
+    <p class="text-pink-900 font-black font-poppins tracking-widest text-[12px] animate-pulse uppercase">MENYIAPKAN FORMULIR...</p>
+</div>
 
-    <div class="mb-8 flex items-center gap-4">
-        <a href="{{ route('kader.data.ibu-hamil.index') }}"
-           class="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-500 flex items-center justify-center hover:bg-pink-50 hover:text-pink-600 transition-all shadow-sm">
-            <i class="fas fa-arrow-left"></i>
+<div class="max-w-6xl mx-auto animate-slide-up relative z-10 pb-10">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-pink-400/20 rounded-full blur-3xl pointer-events-none z-0"></div>
+
+    <div class="mb-6 flex items-center gap-3 relative z-10">
+        <a href="{{ route('kader.data.ibu-hamil.index') }}" onclick="window.showLoader()" class="w-12 h-12 rounded-[16px] bg-white border border-slate-200 text-slate-500 flex items-center justify-center hover:bg-pink-50 hover:border-pink-300 hover:text-pink-600 transition-all shadow-sm group">
+            <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
         </a>
-        <div>
-            <h1 class="text-3xl font-black text-slate-900 tracking-tight">Registrasi Ibu Hamil</h1>
-            <p class="text-sm font-medium text-slate-500 mt-1">Catat data fisik dasar ibu hamil. Pemeriksaan mendalam akan dilanjutkan oleh bidan.</p>
-        </div>
     </div>
 
-    <form action="{{ route('kader.data.ibu-hamil.store') }}" method="POST" id="formCreateIbu">
+    <div class="text-center mb-10 relative z-10">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-[24px] bg-gradient-to-br from-pink-100 to-rose-100 text-pink-600 mb-5 shadow-sm border border-pink-200 transform rotate-3 hover:rotate-0 transition-transform">
+            <i class="fas fa-female text-4xl"></i>
+        </div>
+        <h1 class="text-3xl font-black text-slate-900 tracking-tight font-poppins">Pendaftaran Ibu Hamil</h1>
+        <p class="text-slate-500 mt-2 font-medium text-[13px] max-w-lg mx-auto">Isi data kehamilan dengan lengkap. Sistem akan otomatis menghitung <b>Hari Perkiraan Lahir (HPL)</b> dan <b>Indeks Massa Tubuh (IMT)</b>.</p>
+    </div>
+
+    <form action="{{ route('kader.data.ibu-hamil.store') }}" method="POST" id="formCreateIbu" class="relative z-10">
         @csrf
-
-        {{-- SEKSI 1: IDENTITAS --}}
-        <div class="bg-white border border-slate-200/80 rounded-[24px] shadow-sm p-8 md:p-10 mb-6">
-            <h3 class="text-lg font-black text-slate-800 border-b border-slate-100 pb-4 mb-6 flex items-center gap-3">
-                <span class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm"><i class="fas fa-user"></i></span>
-                Identitas Diri
-            </h3>
+        
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 mb-8">
             
-            <div class="mb-6">
-                <label class="crm-label">Nama Lengkap Ibu <span class="text-rose-500">*</span></label>
-                <input type="text" name="nama_lengkap" value="{{ old('nama_lengkap') }}" required
-                       placeholder="Nama sesuai KTP" class="crm-input @error('nama_lengkap') crm-error @enderror">
-                @error('nama_lengkap') <span class="crm-error-text">{{ $message }}</span> @enderror
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label class="crm-label">NIK (Kunci Integrasi)</label>
-                    <input type="number" name="nik" value="{{ old('nik') }}" placeholder="16 digit NIK" class="crm-input @error('nik') crm-error @enderror">
-                    @error('nik') <span class="crm-error-text">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="crm-label">No. WhatsApp / Telepon</label>
-                    <input type="text" name="telepon_ortu" value="{{ old('telepon_ortu') }}" placeholder="08xx-xxxx-xxxx" class="crm-input">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label class="crm-label">Tempat Lahir</label>
-                    <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir') }}" placeholder="Kota kelahiran" class="crm-input">
-                </div>
-                <div>
-                    <label class="crm-label">Tanggal Lahir</label>
-                    <input type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir') }}" class="crm-input cursor-pointer" id="tgl_lahir">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label class="crm-label">Nama Suami</label>
-                    <input type="text" name="nama_suami" value="{{ old('nama_suami') }}" placeholder="Nama suami" class="crm-input">
-                </div>
-                <div>
-                    <label class="crm-label">Golongan Darah</label>
-                    <select name="golongan_darah" class="crm-input cursor-pointer">
-                        <option value="">-- Pilih --</option>
-                        @foreach(['A','B','AB','O','A+','A-','B+','B-','AB+','AB-','O+','O-'] as $gd)
-                        <option value="{{ $gd }}" {{ old('golongan_darah')==$gd?'selected':'' }}>{{ $gd }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-            
-            <div>
-                <label class="crm-label">Alamat Lengkap <span class="text-rose-500">*</span></label>
-                <textarea name="alamat" rows="2" required placeholder="Alamat domisili saat ini..." class="crm-input resize-none">{{ old('alamat') }}</textarea>
-            </div>
-        </div>
-
-        {{-- SEKSI 2: DATA KEHAMILAN --}}
-        <div class="bg-white border border-slate-200/80 rounded-[24px] shadow-sm p-8 md:p-10 mb-6">
-            <h3 class="text-lg font-black text-pink-600 border-b border-pink-100 pb-4 mb-6 flex items-center gap-3">
-                <span class="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-sm"><i class="fas fa-baby"></i></span>
-                Data Kehamilan
-            </h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label class="crm-label">HPHT (Hari Pertama Haid Terakhir)</label>
-                    <input type="date" name="hpht" id="hpht" value="{{ old('hpht') }}" class="crm-input cursor-pointer">
-                </div>
-                <div>
-                    <label class="crm-label">HPL (Hari Perkiraan Lahir)</label>
-                    <input type="date" name="hpl" id="hpl" value="{{ old('hpl') }}" class="crm-input cursor-pointer bg-slate-50 border-slate-200">
-                    <p class="text-[10px] font-bold text-slate-400 mt-1">*Sistem otomatis menghitung jika dikosongkan.</p>
-                </div>
-            </div>
-
-            <div id="hpl-preview" class="hidden p-5 bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200 rounded-2xl mb-6 shadow-sm">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-xl bg-white shadow-sm flex items-center justify-center text-pink-500 text-2xl shrink-0">
-                        <i class="fas fa-calendar-check"></i>
+            {{-- KOLOM KIRI: Identitas & Medis Kehamilan --}}
+            <div class="xl:col-span-7 flex flex-col gap-8">
+                
+                {{-- Card 1: Identitas --}}
+                <div class="glass-panel rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 md:p-10 relative overflow-hidden">
+                    <div class="flex items-center gap-4 mb-8 border-b border-slate-100 pb-5">
+                        <span class="w-10 h-10 rounded-xl bg-pink-500 text-white flex items-center justify-center font-black shadow-md">1</span>
+                        <h3 class="text-xl font-black text-slate-800 font-poppins">Identitas Diri</h3>
                     </div>
-                    <div>
-                        <p class="text-[10px] font-black text-pink-400 uppercase tracking-widest mb-1">Estimasi AI</p>
-                        <p id="preview-text" class="font-black text-pink-700 text-lg leading-none"></p>
-                        <p id="preview-hpl" class="text-xs font-bold text-pink-600 mt-1"></p>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="form-label">NIK Ibu (Akses Warga) <span class="text-rose-500">*</span></label>
+                            <input type="number" name="nik" value="{{ old('nik') }}" required placeholder="16 Digit NIK" class="form-input focus:ring-4 focus:ring-pink-50 @error('nik') form-error @enderror">
+                            @error('nik') <p class="text-rose-500 text-xs font-bold mt-1.5">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="form-label">Nama Lengkap Ibu <span class="text-rose-500">*</span></label>
+                            <input type="text" name="nama_lengkap" value="{{ old('nama_lengkap') }}" required placeholder="Sesuai KTP" class="form-input focus:ring-4 focus:ring-pink-50 @error('nama_lengkap') form-error @enderror">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div>
+                                <label class="form-label">Tempat Lahir <span class="text-rose-500">*</span></label>
+                                <input type="text" name="tempat_lahir" value="{{ old('tempat_lahir') }}" required class="form-input focus:ring-4 focus:ring-pink-50">
+                            </div>
+                            <div>
+                                <label class="form-label">Tanggal Lahir <span class="text-rose-500">*</span></label>
+                                <input type="date" name="tanggal_lahir" id="tanggal_lahir" value="{{ old('tanggal_lahir') }}" required class="form-input cursor-pointer focus:ring-4 focus:ring-pink-50">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div>
+                                <label class="form-label">Nama Suami <span class="text-rose-500">*</span></label>
+                                <input type="text" name="nama_suami" value="{{ old('nama_suami') }}" required class="form-input focus:ring-4 focus:ring-pink-50">
+                            </div>
+                            <div>
+                                <label class="form-label">No. HP Keluarga (Opsional)</label>
+                                <input type="number" name="telepon_ortu" value="{{ old('telepon_ortu') }}" placeholder="08xxx" class="form-input focus:ring-4 focus:ring-pink-50">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label">Alamat Lengkap <span class="text-rose-500">*</span></label>
+                            <textarea name="alamat" rows="2" required class="form-input resize-none focus:ring-4 focus:ring-pink-50">{{ old('alamat') }}</textarea>
+                        </div>
                     </div>
                 </div>
+
             </div>
 
-            <div>
-                <label class="crm-label">Riwayat Penyakit Penyerta (Opsional)</label>
-                <input type="text" name="riwayat_penyakit" value="{{ old('riwayat_penyakit') }}" placeholder="Mis: Hipertensi, Asma..." class="crm-input bg-amber-50/30 border-amber-200 focus:border-amber-400">
+            {{-- KOLOM KANAN: Data Klinis & Fisik --}}
+            <div class="xl:col-span-5 flex flex-col gap-8">
+                
+                {{-- Card 2: Kehamilan --}}
+                <div class="bg-rose-50/80 rounded-[32px] border border-rose-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-8 md:p-10 relative overflow-hidden">
+                    <div class="flex items-center gap-4 mb-8 border-b border-rose-200 pb-5">
+                        <span class="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center font-black shadow-md">2</span>
+                        <h3 class="text-xl font-black text-rose-900 font-poppins">Kandungan</h3>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="bg-white p-5 rounded-2xl border border-rose-100 shadow-sm">
+                            <label class="form-label text-rose-600"><i class="fas fa-calendar-minus mr-1"></i> HPHT (Haid Terakhir) <span class="text-rose-500">*</span></label>
+                            <input type="date" name="hpht" id="hpht" value="{{ old('hpht') }}" required class="form-input bg-slate-50 focus:bg-white focus:border-rose-400">
+                            
+                            <label class="form-label text-rose-600 mt-4"><i class="fas fa-baby mr-1"></i> HPL (Perkiraan Lahir) <span class="text-rose-500">*</span></label>
+                            <input type="date" name="hpl" id="hpl" value="{{ old('hpl') }}" required class="form-input bg-rose-50 border-rose-200 text-rose-800 focus:bg-white" readonly title="Dihitung Otomatis">
+                            <p class="text-[10px] font-bold text-rose-400 mt-1 italic">*HPL otomatis dihitung +280 hari dari HPHT</p>
+                        </div>
+
+                        <div>
+                            <label class="form-label">Golongan Darah</label>
+                            <select name="golongan_darah" class="form-input focus:ring-4 focus:ring-rose-50">
+                                <option value="">-- Belum Tahu --</option>
+                                @foreach(['A','B','AB','O','A+','A-','B+','B-','AB+','AB-','O+','O-'] as $gol)
+                                    <option value="{{ $gol }}" {{ old('golongan_darah') == $gol ? 'selected' : '' }}>{{ $gol }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label">Riwayat Penyakit (Opsional)</label>
+                            <textarea name="riwayat_penyakit" rows="2" placeholder="Contoh: Asma, Hipertensi..." class="form-input resize-none focus:ring-4 focus:ring-rose-50">{{ old('riwayat_penyakit') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Card 3: Fisik Awal (IMT Auto) --}}
+                <div class="bg-slate-800 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.1)] p-8 md:p-10 relative overflow-hidden">
+                    <div class="flex items-center gap-4 mb-6 border-b border-slate-700 pb-5">
+                        <span class="w-10 h-10 rounded-full bg-slate-600 text-white flex items-center justify-center font-black shadow-md">3</span>
+                        <h3 class="text-xl font-black text-white font-poppins">Fisik Dasar Ibu</h3>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-5 mb-5">
+                        <div>
+                            <label class="form-label text-slate-400">Berat Badan (kg)</label>
+                            <input type="number" step="0.1" name="berat_badan" id="berat_badan" value="{{ old('berat_badan') }}" class="form-input bg-slate-700 border-slate-600 text-white focus:bg-slate-600 focus:border-indigo-400 placeholder:text-slate-500">
+                        </div>
+                        <div>
+                            <label class="form-label text-slate-400">Tinggi (cm)</label>
+                            <input type="number" step="0.1" name="tinggi_badan" id="tinggi_badan" value="{{ old('tinggi_badan') }}" class="form-input bg-slate-700 border-slate-600 text-white focus:bg-slate-600 focus:border-indigo-400 placeholder:text-slate-500">
+                        </div>
+                    </div>
+
+                    {{-- Widget IMT Real-time --}}
+                    <div id="imt-result" class="hidden animate-slide-up bg-slate-900 border border-slate-700 p-4 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Skor IMT Ibu</p>
+                            <p class="text-2xl font-black text-white" id="imt-val">0.00</p>
+                        </div>
+                        <div id="imt-kat" class="inline-block px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider text-white bg-slate-500">
+                            -
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
-
-        {{-- SEKSI 3: DATA FISIK KADER --}}
-        <div class="bg-gradient-to-b from-emerald-50 to-white border border-emerald-200 rounded-[24px] shadow-sm p-8 md:p-10 mb-8 relative overflow-hidden">
-            <div class="absolute right-0 top-0 w-32 h-32 bg-emerald-500/10 rounded-bl-full pointer-events-none"></div>
-            
-            <div class="flex items-center justify-between border-b border-emerald-100 pb-4 mb-6">
-                <h3 class="text-lg font-black text-emerald-800 flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-full bg-emerald-200/50 text-emerald-600 flex items-center justify-center text-sm"><i class="fas fa-weight"></i></span>
-                    Data Fisik Awal
-                </h3>
-                <span class="text-[10px] font-black bg-emerald-500 text-white px-3 py-1 rounded-lg uppercase tracking-wider shadow-sm">Khusus Kader</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-6">
-                <div>
-                    <label class="crm-label text-emerald-800">Berat Badan (kg)</label>
-                    <input type="number" step="0.1" name="berat_badan" id="berat_badan" value="{{ old('berat_badan') }}" placeholder="0.0" class="crm-input border-emerald-200 focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="crm-label text-emerald-800">Tinggi Badan (cm)</label>
-                    <input type="number" step="0.1" name="tinggi_badan" id="tinggi_badan" value="{{ old('tinggi_badan') }}" placeholder="0.0" class="crm-input border-emerald-200 focus:border-emerald-500">
-                </div>
-            </div>
-
-            <div id="imt-result" class="hidden mt-6 p-4 bg-white border border-emerald-200 rounded-2xl flex items-center justify-between shadow-sm">
-                <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Indeks Massa Tubuh</p>
-                    <p id="imt-val" class="text-3xl font-black text-emerald-600 leading-none"></p>
-                </div>
-                <div class="text-right">
-                    <span id="imt-kat" class="inline-block px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider text-white bg-emerald-500"></span>
-                </div>
-            </div>
-        </div>
-
-        {{-- FOOTER --}}
-        <div class="sticky bottom-6 z-30 bg-white/90 backdrop-blur-xl border border-slate-200 p-5 rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.1)] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p class="text-[11px] font-bold text-slate-400 hidden sm:block"><i class="fas fa-shield-alt mr-1"></i> Data dienkripsi aman.</p>
-            <div class="flex gap-3 w-full sm:w-auto">
-                <a href="{{ route('kader.data.ibu-hamil.index') }}" class="w-full sm:w-auto px-6 py-3.5 bg-slate-100 text-slate-600 font-black text-sm rounded-xl hover:bg-slate-200 transition-colors text-center uppercase tracking-widest">Batal</a>
-                <button type="submit" id="btnSubmit" class="w-full sm:w-auto px-8 py-3.5 bg-pink-600 text-white font-black text-sm rounded-xl hover:bg-pink-700 shadow-md hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
-                    <i class="fas fa-paper-plane"></i> Simpan Pendaftaran
+        
+        {{-- ACTION BUTTONS --}}
+        <div class="p-8 border-t border-slate-100 bg-white/80 backdrop-blur-xl rounded-[32px] shadow-lg border border-white flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p class="text-[11px] font-bold text-slate-500 px-4 hidden sm:block"><i class="fas fa-shield-alt text-emerald-500 mr-1 text-lg align-middle"></i> Data dienkripsi. NIK Ibu menjadi akses login web Warga.</p>
+            <div class="flex flex-col sm:flex-row items-center justify-end gap-3 w-full sm:w-auto">
+                <a href="{{ route('kader.data.ibu-hamil.index') }}" onclick="window.showLoader()" class="w-full sm:w-auto px-8 py-3.5 bg-slate-100 border border-slate-200 text-slate-600 font-extrabold text-[13px] rounded-xl hover:bg-slate-200 transition-colors text-center uppercase tracking-widest">
+                    Batal
+                </a>
+                <button type="submit" id="btnSubmit" class="w-full sm:w-auto px-10 py-3.5 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-black text-[13px] rounded-xl hover:from-pink-600 hover:to-rose-700 shadow-[0_8px_20px_rgba(236,72,153,0.3)] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
+                    <i class="fas fa-save text-lg"></i> Simpan Data Ibu Hamil
                 </button>
             </div>
         </div>
+        
     </form>
 </div>
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.getElementById('tgl_lahir').max = new Date().toISOString().split('T')[0];
-    document.getElementById('hpht').max = new Date().toISOString().split('T')[0];
+    window.hideLoader = function() {
+        const l = document.getElementById('smoothLoader');
+        if(l) { l.classList.remove('opacity-100', 'pointer-events-auto'); l.classList.add('opacity-0', 'pointer-events-none'); setTimeout(() => l.style.display = 'none', 300); }
+        const btn = document.getElementById('btnSubmit');
+        if(btn) { btn.innerHTML = '<i class="fas fa-save text-lg"></i> Simpan Data Ibu Hamil'; btn.classList.remove('opacity-75', 'cursor-wait'); }
+    };
+    window.showLoader = function() {
+        const l = document.getElementById('smoothLoader');
+        if(l) { l.style.display = 'flex'; l.classList.remove('opacity-0', 'pointer-events-none'); l.classList.add('opacity-100', 'pointer-events-auto'); }
+    };
 
-    document.querySelector('input[name="nik"]')?.addEventListener('input', function() {
+    document.addEventListener('DOMContentLoaded', window.hideLoader);
+    window.addEventListener('load', window.hideLoader);
+    setTimeout(window.hideLoader, 2000);
+
+    document.getElementById('formCreateIbu').addEventListener('submit', function() {
+        const btn = document.getElementById('btnSubmit');
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-lg"></i> Menyimpan...';
+        btn.classList.add('opacity-75', 'cursor-wait');
+        window.showLoader();
+    });
+
+    // Batasi NIK max 16 karakter
+    document.querySelector('input[name="nik"]').addEventListener('input', function() {
         if (this.value.length > 16) this.value = this.value.slice(0, 16);
     });
+    document.getElementById('tanggal_lahir').max = new Date().toISOString().split('T')[0];
 
+    // AUTO-CALC: HPL dari HPHT (Rumus Naegele: HPHT + 280 hari)
     document.getElementById('hpht').addEventListener('change', function() {
-        const hpht = new Date(this.value);
-        if (isNaN(hpht)) return;
-        const hpl = new Date(hpht);
-        hpl.setDate(hpl.getDate() + 280);
-        const hplInput = document.getElementById('hpl');
-        if (!hplInput.value) hplInput.value = hpl.toISOString().split('T')[0];
-        updatePreview(hpht, hpl);
+        const hphtDate = new Date(this.value);
+        if (isNaN(hphtDate)) return;
+        const hplDate = new Date(hphtDate);
+        hplDate.setDate(hplDate.getDate() + 280);
+        document.getElementById('hpl').value = hplDate.toISOString().split('T')[0];
     });
 
-    document.getElementById('hpl').addEventListener('change', function() {
-        const hpht = new Date(document.getElementById('hpht').value);
-        const hpl  = new Date(this.value);
-        if (!isNaN(hpht) && !isNaN(hpl)) updatePreview(hpht, hpl);
-    });
-
-    function updatePreview(hpht, hpl) {
-        const today = new Date();
-        const minggu = Math.floor((today - hpht) / (7 * 24 * 3600 * 1000));
-        let trimLabel = minggu <= 12 ? 'Trimester I' : (minggu <= 27 ? 'Trimester II' : 'Trimester III');
-        const sisaHari = Math.floor((hpl - today) / (24 * 3600 * 1000));
-        const opt = {day:'numeric',month:'long',year:'numeric'};
-        document.getElementById('preview-text').textContent = `${trimLabel} — ${minggu} Minggu`;
-        document.getElementById('preview-hpl').textContent = `Diperkirakan lahir: ${hpl.toLocaleDateString('id-ID', opt)} (${sisaHari > 0 ? sisaHari+' hari lagi' : 'Sudah waktunya lahir'})`;
-        document.getElementById('hpl-preview').classList.remove('hidden');
-    }
-
+    // AUTO-CALC: IMT
     function hitungIMT() {
         const bb = parseFloat(document.getElementById('berat_badan').value);
         const tb = parseFloat(document.getElementById('tinggi_badan').value);
-        if (!bb || !tb || tb < 50) { document.getElementById('imt-result').classList.add('hidden'); return; }
+        const resultDiv = document.getElementById('imt-result');
+        
+        if (!bb || !tb || tb < 50) { resultDiv.classList.add('hidden'); return; }
+        
         const imt = (bb / Math.pow(tb/100, 2)).toFixed(2);
         let kat = imt < 18.5 ? 'Kurus' : (imt < 25 ? 'Normal' : (imt < 27 ? 'Gemuk Ringan' : 'Obesitas'));
         let color = imt < 18.5 ? 'bg-amber-500' : (imt < 25 ? 'bg-emerald-500' : 'bg-rose-500');
@@ -228,21 +245,19 @@
         const imtKatEl = document.getElementById('imt-kat');
         imtKatEl.textContent = kat;
         imtKatEl.className = `inline-block px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider text-white ${color}`;
-        document.getElementById('imt-result').classList.remove('hidden');
+        resultDiv.classList.remove('hidden');
     }
     
     document.getElementById('berat_badan').addEventListener('input', hitungIMT);
     document.getElementById('tinggi_badan').addEventListener('input', hitungIMT);
 
-    // Animasi Submit (Real-time Feel)
-    document.getElementById('formCreateIbu').addEventListener('submit', function(e) {
-        Swal.fire({
-            title: 'Menyimpan Data...',
-            html: 'Sistem sedang memproses pendaftaran dan mengintegrasikan akun.',
-            allowOutsideClick: false, showConfirmButton: false,
-            willOpen: () => { Swal.showLoading(); }
-        });
-    });
+    // Trigger on load in case of validation back
+    if(document.getElementById('hpht').value && !document.getElementById('hpl').value) {
+        document.getElementById('hpht').dispatchEvent(new Event('change'));
+    }
+    if(document.getElementById('berat_badan').value && document.getElementById('tinggi_badan').value) {
+        hitungIMT();
+    }
 </script>
 @endpush
 @endsection
