@@ -12,6 +12,7 @@ use App\Models\IbuHamil;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AbsensiController extends Controller
 {
@@ -19,24 +20,24 @@ class AbsensiController extends Controller
     {
         $kategori = $request->get('kategori', 'bayi');
         $pasiens  = $this->getPasienByKategori($kategori);
-        $tanggal  = today()->format('Y-m-d'); // Kunci absensi ke hari ini
+        $tanggal  = today()->format('Y-m-d');
 
-        // Cek apakah sudah ada sesi yang terbuat HARI INI
-        $sesiHariIni = AbsensiPosyandu::where('kategori', $kategori)
+        // Cek apakah sesi hari ini sudah ada
+        $sesiHariIni = AbsensiPosyandu::with('details')->where('kategori', $kategori)
             ->whereDate('tanggal_posyandu', $tanggal)
             ->first();
 
-        // Tarik data siapa saja yang sudah dicentang (untuk antisipasi refresh halaman)
-        $hadirList = [];
+        // Siapkan array data kehadiran jika sudah pernah diisi sebelumnya
+        $absensiData = [];
         $pertemuanBerikutnya = AbsensiPosyandu::where('kategori', $kategori)->count() + 1;
 
         if ($sesiHariIni) {
-            $hadirList = AbsensiDetail::where('absensi_id', $sesiHariIni->id)
-                            ->where('hadir', true)
-                            ->pluck('pasien_id')
-                            ->toArray();
-            
-            // Pertemuan tidak bertambah jika sesi hari ini sudah ada
+            foreach ($sesiHariIni->details as $detail) {
+                $absensiData[$detail->pasien_id] = [
+                    'hadir'      => $detail->hadir,
+                    'keterangan' => $detail->keterangan
+                ];
+            }
             $pertemuanBerikutnya = $sesiHariIni->nomor_pertemuan; 
         }
 
@@ -49,28 +50,28 @@ class AbsensiController extends Controller
         }
 
         return view('kader.absensi.index', compact(
-            'kategori', 'pasiens', 'pertemuanBerikutnya', 'sesiHariIni', 'statsPerKategori', 'hadirList'
+            'kategori', 'pasiens', 'pertemuanBerikutnya', 'sesiHariIni', 'statsPerKategori', 'absensiData'
         ));
     }
 
     /**
-     * FUNGSI BARU: INSTANT SAVE AJAX (Menggantikan metode store lama)
-     * Dipanggil otomatis di belakang layar setiap kali Kader klik centang/un-centang
+     * BULK SUBMIT: Menyimpan seluruh absensi dalam 1x Transaksi Database.
+     * Sangat aman dan profesional untuk skala Enterprise / Skripsi.
      */
-    public function toggle(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
-            'kategori'  => 'required|in:bayi,balita,remaja,lansia,ibu_hamil',
-            'pasien_id' => 'required|integer',
-            'hadir'     => 'required|boolean', // true jika dicentang, false jika dihilangkan
+            'kategori'      => 'required|in:bayi,balita,remaja,lansia,ibu_hamil',
+            'kehadiran'     => 'required|array', // Berisi ID pasien => status (1 atau 0)
+            'keterangan'    => 'nullable|array', // Berisi ID pasien => keterangan alasan
         ]);
 
         $kategori = $request->kategori;
         $tanggal  = today()->format('Y-m-d');
 
+        DB::beginTransaction();
         try {
-            // 1. CARI ATAU BUAT SESI (Smart Initialize)
-            // Jika ini centangan pertama hari ini, sistem otomatis membuat wadah sesinya
+            // 1. BUAT ATAU AMBIL SESI ABSENSI HARI INI
             $sesi = AbsensiPosyandu::firstOrCreate(
                 [
                     'kategori'         => $kategori,
@@ -85,49 +86,39 @@ class AbsensiController extends Controller
                 ]
             );
 
-            // 2. SIMPAN/UPDATE CENTANGAN (Real-Time)
-            AbsensiDetail::updateOrCreate(
-                [
-                    'absensi_id'  => $sesi->id,
-                    'pasien_id'   => $request->pasien_id,
-                    'pasien_type' => $kategori
-                ],
-                [
-                    'hadir'       => $request->hadir,
-                    'updated_at'  => now(),
-                ]
-            );
+            // 2. LOOPING DATA DAN SIMPAN KE DATABASE (Bulk Upsert Logic)
+            foreach ($request->kehadiran as $pasien_id => $statusHadir) {
+                // Konversi string '1' / '0' menjadi boolean
+                $isHadir = $statusHadir == '1' ? true : false;
+                
+                // Ambil keterangan jika pasien absen, kosongkan jika hadir
+                $keterangan = !$isHadir ? ($request->keterangan[$pasien_id] ?? null) : null;
 
-            return response()->json([
-                'status'  => 'success',
-                'message' => $request->hadir ? 'Hadir tersimpan' : 'Hadir dibatalkan',
-            ]);
+                AbsensiDetail::updateOrCreate(
+                    [
+                        'absensi_id'  => $sesi->id,
+                        'pasien_id'   => $pasien_id,
+                        'pasien_type' => $kategori
+                    ],
+                    [
+                        'hadir'       => $isHadir,
+                        'keterangan'  => $keterangan,
+                        'updated_at'  => now(),
+                    ]
+                );
+            }
+
+            DB::commit();
+
+            // Arahkan langsung ke halaman Ringkasan (Show)
+            return redirect()->route('kader.absensi.show', $sesi->id)
+                ->with('success', 'Sesi absensi berhasil disimpan dan dikunci!');
 
         } catch (\Exception $e) {
-            return response()->json(['status' => 'error', 'message' => 'Gagal menyimpan: ' . $e->getMessage()], 500);
+            DB::rollBack();
+            Log::error('Gagal Simpan Absensi: ' . $e->getMessage());
+            return back()->with('error', 'Sistem Gagal Menyimpan: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * FUNGSI BARU: Penutup Sesi
-     * Dipanggil saat Kader klik tombol "Selesai & Ringkasan" di paling bawah
-     */
-    public function selesaiSesi(Request $request)
-    {
-        $kategori = $request->kategori;
-        $tanggal  = today()->format('Y-m-d');
-
-        $sesi = AbsensiPosyandu::where('kategori', $kategori)
-            ->whereDate('tanggal_posyandu', $tanggal)
-            ->first();
-
-        // Jika Kader klik selesai tanpa mencentang 1 orang pun (maka sesi belum tercipta)
-        if (!$sesi) {
-            return back()->with('error', 'Tidak ada data absensi yang dicatat hari ini.');
-        }
-
-        return redirect()->route('kader.absensi.show', $sesi->id)
-            ->with('success', 'Sesi absensi hari ini telah dikunci dan diselesaikan.');
     }
 
     public function show($id)
@@ -148,17 +139,14 @@ class AbsensiController extends Controller
         $totalHadir  = $details->where('hadir', true)->count();
         $totalAbsen  = $totalPasien - $totalHadir;
 
-        $sebelumnya = AbsensiPosyandu::where('kategori', $absensi->kategori)
-            ->where('nomor_pertemuan', '<', $absensi->nomor_pertemuan)
-            ->orderBy('nomor_pertemuan', 'desc')->first();
-
-        $berikutnya = AbsensiPosyandu::where('kategori', $absensi->kategori)
-            ->where('nomor_pertemuan', '>', $absensi->nomor_pertemuan)
-            ->orderBy('nomor_pertemuan', 'asc')->first();
+        // 🔥 LOGIKA BARU: Tarik seluruh riwayat sesi di kategori yang sama untuk menu Dropdown
+        $semuaSesi = AbsensiPosyandu::where('kategori', $absensi->kategori)
+            ->orderBy('tanggal_posyandu', 'desc') // Urutkan dari yang terbaru
+            ->get();
 
         return view('kader.absensi.show', compact(
             'absensi', 'details', 'totalHadir', 'totalAbsen', 'totalPasien',
-            'sebelumnya', 'berikutnya'
+            'semuaSesi'
         ));
     }
 

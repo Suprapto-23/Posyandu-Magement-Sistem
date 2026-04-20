@@ -33,26 +33,26 @@ class JadwalPosyandu extends Model
     // Scope: akan datang (hari ini ke depan)
     public function scopeMendatang($query)
     {
-        return $query->whereDate('tanggal', '>=', Carbon::today());
+        return $query->whereDate('tanggal', '>=', Carbon::today('Asia/Jakarta'));
     }
 
     // Scope: sudah lewat
     public function scopeLewat($query)
     {
-        return $query->whereDate('tanggal', '<', Carbon::today());
+        return $query->whereDate('tanggal', '<', Carbon::today('Asia/Jakarta'));
     }
 
     // Accessor: apakah hari ini
     public function getIsTodayAttribute(): bool
     {
-        return Carbon::parse($this->tanggal)->isToday();
+        return Carbon::parse($this->tanggal)->setTimezone('Asia/Jakarta')->isToday();
     }
 
     // Accessor: apakah sudah lewat
     public function getIsPastAttribute(): bool
     {
-        return Carbon::parse($this->tanggal)->isPast()
-            && !Carbon::parse($this->tanggal)->isToday();
+        return Carbon::parse($this->tanggal)->setTimezone('Asia/Jakarta')->isPast()
+            && !Carbon::parse($this->tanggal)->setTimezone('Asia/Jakarta')->isToday();
     }
 
     // Warna strip berdasarkan target peserta

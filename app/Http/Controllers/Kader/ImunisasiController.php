@@ -21,7 +21,8 @@ class ImunisasiController extends Controller
         $kategori = $request->get('kategori', 'semua');
         $search   = $request->get('search', '');
 
-        $query = Imunisasi::with(['kunjungan.petugas'])->latest('tanggal_imunisasi');
+        // 🔥 FIX UTAMA: Tambahkan 'kunjungan.pasien' agar nama warga ikut ditarik dari database
+        $query = Imunisasi::with(['kunjungan.petugas', 'kunjungan.pasien'])->latest('tanggal_imunisasi');
 
         // 1. Filter Kategori Tab
         if ($kategori !== 'semua') {
@@ -46,7 +47,7 @@ class ImunisasiController extends Controller
             $query->where(function($q) use($search, $balitaIds, $remajaIds, $lansiaIds, $bumilIds) {
                 $q->where('vaksin', 'like', "%$search%") // Cari nama vaksin
                   ->orWhereHas('kunjungan', function($q2) use($balitaIds, $remajaIds, $lansiaIds, $bumilIds) {
-                      $q2->where(fn($q3) => $q3->whereIn('pasien_type', ['App\\Models\\Balita'])->whereIn('pasien_id', $balitaIds))
+                      $q2->where(fn($q3) => $q3->where('pasien_type', 'App\\Models\\Balita')->whereIn('pasien_id', $balitaIds))
                          ->orWhere(fn($q3) => $q3->where('pasien_type', 'App\\Models\\Remaja')->whereIn('pasien_id', $remajaIds))
                          ->orWhere(fn($q3) => $q3->where('pasien_type', 'App\\Models\\Lansia')->whereIn('pasien_id', $lansiaIds))
                          ->orWhere(fn($q3) => $q3->where('pasien_type', 'App\\Models\\IbuHamil')->whereIn('pasien_id', $bumilIds));
@@ -69,15 +70,8 @@ class ImunisasiController extends Controller
      */
     public function show($id)
     {
-        $imunisasi = Imunisasi::with(['kunjungan.petugas'])->findOrFail($id);
-        
-        // Cari data profil pasien secara manual berdasarkan polimorfik
-        $imunisasi->profil_pasien = match($imunisasi->kunjungan->pasien_type) {
-            'App\\Models\\Remaja'    => Remaja::find($imunisasi->kunjungan->pasien_id),
-            'App\\Models\\Lansia'    => Lansia::find($imunisasi->kunjungan->pasien_id),
-            'App\\Models\\IbuHamil'  => IbuHamil::find($imunisasi->kunjungan->pasien_id),
-            default                  => Balita::find($imunisasi->kunjungan->pasien_id),
-        };
+        // 🔥 FIX UTAMA: Cukup panggil relasi 'kunjungan.pasien', tidak perlu mencari (find) manual lagi
+        $imunisasi = Imunisasi::with(['kunjungan.petugas', 'kunjungan.pasien'])->findOrFail($id);
             
         return view('kader.imunisasi.show', compact('imunisasi'));
     }

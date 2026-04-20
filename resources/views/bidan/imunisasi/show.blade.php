@@ -1,117 +1,122 @@
 @extends('layouts.bidan')
-@section('title', 'Detail Imunisasi')
-@section('page-name', 'Detail Imunisasi')
+
+@section('title', 'Detail Riwayat Imunisasi')
+@section('page-name', 'Sertifikat Vaksinasi')
 
 @push('styles')
 <style>
-    .animate-slide-up { opacity: 0; animation: slideUpFade 0.4s ease-out forwards; }
-    @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .receipt-edge { background-image: radial-gradient(#f8fafc 4px, transparent 4px); background-size: 16px 16px; background-position: -8px -8px; }
 </style>
 @endpush
 
 @section('content')
-<div id="smoothLoader" class="fixed inset-0 bg-slate-50/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-300 opacity-100">
-    <div class="relative w-20 h-20 flex items-center justify-center mb-4">
-        <div class="absolute inset-0 border-4 border-cyan-100 rounded-full"></div>
-        <div class="absolute inset-0 border-4 border-cyan-500 rounded-full border-t-transparent animate-spin"></div>
-        <i class="fas fa-eye text-cyan-500 text-2xl animate-pulse"></i>
-    </div>
-    <p class="text-cyan-800 font-black font-poppins tracking-widest text-[11px] animate-pulse uppercase">Memuat Data...</p>
-</div>
+@php
+    $pasien = $imunisasi->kunjungan->pasien ?? null;
+    $nama = $pasien->nama_lengkap ?? 'Anonim';
+    $nik = $pasien->nik ?? '-';
+    $kategori = class_basename($imunisasi->kunjungan->pasien_type ?? '');
+@endphp
 
-<div class="max-w-4xl mx-auto animate-slide-up">
-
-    <div class="mb-6 flex justify-between items-center">
-        <a href="{{ route('bidan.imunisasi.index') }}" class="smooth-route inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 font-bold text-[13px] rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+<div class="max-w-3xl mx-auto animate-slide-up pb-10">
+    
+    <div class="mb-6 flex items-center justify-between">
+        <a href="{{ route('bidan.imunisasi.index') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 font-bold text-[12px] uppercase tracking-widest rounded-xl hover:bg-slate-50 hover:text-cyan-600 transition-colors shadow-sm">
             <i class="fas fa-arrow-left"></i> Kembali ke Register
         </a>
-        <a href="{{ route('bidan.imunisasi.edit', $imunisasi->id) }}" class="smooth-route inline-flex items-center gap-2 px-5 py-2.5 bg-amber-50 border border-amber-200 text-amber-600 font-bold text-[13px] rounded-xl hover:bg-amber-500 hover:text-white transition-colors shadow-sm">
-            <i class="fas fa-pen"></i> Edit Data
-        </a>
+        <button onclick="window.print()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-800 border border-slate-800 text-white font-bold text-[12px] uppercase tracking-widest rounded-xl hover:bg-black transition-colors shadow-sm">
+            <i class="fas fa-print"></i> Cetak Dokumen
+        </button>
     </div>
 
-    <div class="bg-white rounded-[32px] p-8 md:p-12 mb-8 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col items-center justify-center text-center relative overflow-hidden">
-        <div class="absolute inset-0 opacity-40 pointer-events-none" style="background-image: radial-gradient(#06b6d4 1px, transparent 1px); background-size: 24px 24px;"></div>
-        <div class="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500/10 blur-3xl rounded-full pointer-events-none"></div>
+    {{-- Kertas Sertifikat / Bukti Vaksin --}}
+    <div class="bg-white rounded-[32px] shadow-[0_15px_50px_rgba(0,0,0,0.06)] border border-slate-100 overflow-hidden relative print:shadow-none print:border-none print:w-full">
         
-        <div class="relative z-10">
-            <div class="w-24 h-24 mx-auto rounded-[24px] bg-gradient-to-br from-cyan-400 to-sky-500 text-white flex items-center justify-center text-4xl mb-5 shadow-[0_8px_20px_rgba(6,182,212,0.3)] transform -rotate-3 hover:rotate-0 transition-transform duration-300">
-                <i class="fas fa-prescription-bottle-alt"></i>
+        <div class="p-8 md:p-10 bg-gradient-to-r from-cyan-600 to-blue-700 flex items-center justify-between gap-4 relative overflow-hidden">
+            <i class="fas fa-certificate absolute -right-10 -bottom-10 text-9xl text-white/10 rotate-12"></i>
+            <div class="flex items-center gap-5 relative z-10">
+                <div class="w-16 h-16 rounded-[20px] bg-white border border-slate-200 text-cyan-600 flex items-center justify-center text-3xl shadow-sm">
+                    <i class="fas fa-shield-virus"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-white tracking-tight font-poppins">Bukti Imunisasi Medis</h2>
+                    <p class="text-[12px] font-bold text-cyan-100 mt-1 uppercase tracking-widest">ID Rekam: IMU-{{ str_pad($imunisasi->id, 5, '0', STR_PAD_LEFT) }}</p>
+                </div>
             </div>
-            <h2 class="text-3xl sm:text-4xl font-black text-slate-800 font-poppins mb-2 tracking-tight">{{ $imunisasi->vaksin }}</h2>
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-cyan-50 border border-cyan-100 rounded-lg">
-                <span class="text-cyan-700 font-black uppercase tracking-widest text-[11px]">{{ $imunisasi->jenis_imunisasi }}</span>
-                <span class="text-cyan-300 text-xs">|</span>
-                <span class="text-cyan-700 font-bold text-[11px]">DOSIS <strong class="font-black text-cyan-900">{{ $imunisasi->dosis }}</strong></span>
+            <div class="hidden sm:flex relative z-10 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30 text-white items-center gap-2">
+                <i class="fas fa-check-circle"></i> <span class="text-[11px] font-black uppercase tracking-widest">Tervalidasi</span>
             </div>
         </div>
+
+        <div class="p-8 md:p-10">
+            
+            <div class="mb-8">
+                <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <i class="fas fa-user-check text-cyan-400"></i> Identitas Penerima Vaksin
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Nama Lengkap</p>
+                        <p class="text-[16px] font-black text-slate-800 font-poppins">{{ $nama }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Kategori / NIK</p>
+                        <p class="text-[14px] font-bold text-slate-700"><span class="bg-white px-2 py-0.5 rounded border border-slate-200 shadow-sm mr-2">{{ $kategori }}</span> {{ $nik }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <i class="fas fa-syringe text-cyan-400"></i> Rincian Tindakan Medis
+                </h3>
+                <div class="bg-white border-2 border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                    <table class="w-full text-left text-[13px]">
+                        <tbody class="divide-y divide-slate-100">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-4 px-6 font-black text-slate-500 w-2/5 bg-slate-50/50 uppercase tracking-wide text-[10px]">Program Layanan</td>
+                                <td class="py-4 px-6 font-bold text-slate-800">{{ $imunisasi->jenis_imunisasi }}</td>
+                            </tr>
+                            <tr class="hover:bg-cyan-50 transition-colors">
+                                <td class="py-4 px-6 font-black text-slate-500 bg-slate-50/50 uppercase tracking-wide text-[10px]">Vaksin Diberikan</td>
+                                <td class="py-4 px-6 font-black text-cyan-600 text-[16px] font-poppins">{{ $imunisasi->vaksin }}</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-4 px-6 font-black text-slate-500 bg-slate-50/50 uppercase tracking-wide text-[10px]">Tanggal Pelaksanaan</td>
+                                <td class="py-4 px-6 font-bold text-slate-800"><i class="far fa-calendar-alt text-slate-400 mr-2"></i>{{ \Carbon\Carbon::parse($imunisasi->tanggal_imunisasi)->translatedFormat('l, d F Y') }}</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-4 px-6 font-black text-slate-500 bg-slate-50/50 uppercase tracking-wide text-[10px]">Bidan Penanggung Jawab</td>
+                                <td class="py-4 px-6 font-bold text-slate-800"><i class="fas fa-user-md text-slate-400 mr-2"></i>{{ $imunisasi->kunjungan->petugas->name ?? 'Bidan Desa' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <i class="fas fa-file-medical-alt text-amber-400"></i> Observasi Klinis (KIPI)
+                </h3>
+                @php $hasKipi = !empty($imunisasi->keterangan) && $imunisasi->keterangan != '-'; @endphp
+                <div class="p-6 rounded-2xl border-2 {{ $hasKipi ? 'border-amber-200 bg-amber-50/50 text-slate-800' : 'border-emerald-100 bg-emerald-50/50 text-emerald-700' }}">
+                    <div class="flex items-start gap-4">
+                        <i class="fas {{ $hasKipi ? 'fa-exclamation-triangle text-amber-500' : 'fa-check-circle text-emerald-500' }} text-2xl mt-0.5"></i>
+                        <div>
+                            <p class="text-[12px] font-black uppercase tracking-widest {{ $hasKipi ? 'text-amber-600' : 'text-emerald-600' }} mb-1">
+                                {{ $hasKipi ? 'Catatan Keluhan Pasca Imunisasi' : 'Aman Terkendali' }}
+                            </p>
+                            <p class="text-[14px] font-medium leading-relaxed">
+                                {{ $hasKipi ? $imunisasi->keterangan : 'Tidak ditemukan keluhan klinis (KIPI) pasca pemberian vaksin pada pasien ini.' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="h-4 w-full receipt-edge opacity-50"></div>
     </div>
-
-    <div class="bg-white rounded-[32px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden mb-10">
-        <div class="px-8 py-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center"><i class="fas fa-file-invoice"></i></div>
-            <h3 class="font-black text-slate-800 text-[15px]">Rekam Jejak Eksekusi</h3>
-        </div>
-        
-        <div class="p-8">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-6">
-                <div class="flex items-start gap-4">
-                    <div class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center border border-slate-100 shrink-0"><i class="fas fa-child"></i></div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Identitas Pasien</p>
-                        <p class="text-[15px] font-bold text-slate-800 leading-tight">{{ $imunisasi->kunjungan->pasien->nama_lengkap ?? 'Tidak diketahui' }}</p>
-                        <p class="text-[11px] font-bold text-cyan-500 mt-1 uppercase">{{ class_basename($imunisasi->kunjungan->pasien_type) }}</p>
-                    </div>
-                </div>
-                
-                <div class="flex items-start gap-4">
-                    <div class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center border border-slate-100 shrink-0"><i class="fas fa-calendar-check"></i></div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Waktu Pemberian Vaksin</p>
-                        <p class="text-[15px] font-bold text-slate-800 leading-tight">{{ \Carbon\Carbon::parse($imunisasi->tanggal_imunisasi)->translatedFormat('l, d F Y') }}</p>
-                        <p class="text-[11px] font-bold text-slate-400 mt-1"><i class="far fa-clock"></i> Tercatat pada {{ $imunisasi->created_at->format('H:i') }} WIB</p>
-                    </div>
-                </div>
-
-                <div class="flex items-start gap-4">
-                    <div class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center border border-slate-100 shrink-0"><i class="fas fa-user-md"></i></div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Petugas Medis (Bidan)</p>
-                        <p class="text-[15px] font-bold text-slate-800 leading-tight">{{ Auth::user()->name }}</p>
-                        <p class="text-[11px] font-bold text-emerald-500 mt-1"><i class="fas fa-check-circle"></i> Tervalidasi Sistem</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
-
-@push('scripts')
-<script>
-    const showLoader = () => {
-        const loader = document.getElementById('smoothLoader');
-        if(loader) {
-            loader.style.display = 'flex';
-            loader.classList.remove('opacity-0', 'pointer-events-none');
-            loader.classList.add('opacity-100');
-        }
-    };
-
-    window.addEventListener('pageshow', () => {
-        const loader = document.getElementById('smoothLoader');
-        if(loader) {
-            loader.classList.remove('opacity-100');
-            loader.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => loader.style.display = 'none', 300);
-        }
-    });
-
-    document.querySelectorAll('.smooth-route').forEach(link => {
-        link.addEventListener('click', function(e) {
-            if(this.target !== '_blank' && !e.ctrlKey) showLoader();
-        });
-    });
-</script>
-@endpush
 @endsection

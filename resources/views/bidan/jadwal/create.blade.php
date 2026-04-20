@@ -7,9 +7,14 @@
 <style>
     .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-    .premium-input { width: 100%; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px 16px 14px 46px; font-size: 14px; font-weight: 600; color: #1e293b; outline: none; transition: all 0.3s ease; }
+    
+    .premium-input { 
+        width: 100%; background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; 
+        padding: 14px 16px 14px 46px; font-size: 13px; font-weight: 700; color: #1e293b; 
+        outline: none; transition: all 0.3s ease; 
+    }
     .premium-input:focus { background-color: #ffffff; border-color: #06b6d4; box-shadow: 0 0 0 4px rgba(6,182,212,0.1); }
-    .input-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 16px; transition: color 0.3s; }
+    .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 15px; transition: color 0.3s; z-index: 10; }
     .group-focus-within .input-icon { color: #06b6d4; }
 </style>
 @endpush
@@ -19,40 +24,54 @@
     <div class="relative w-20 h-20 flex items-center justify-center mb-5">
         <div class="absolute inset-0 border-4 border-cyan-100 rounded-full"></div>
         <div class="absolute inset-0 border-4 border-cyan-600 rounded-full border-t-transparent animate-spin"></div>
-        <i class="fas fa-paper-plane text-cyan-600 text-2xl animate-pulse"></i>
+        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
+            <i class="fas fa-paper-plane text-cyan-600 text-xl animate-pulse"></i>
+        </div>
     </div>
-    <p class="text-cyan-800 font-poppins font-black tracking-widest text-[11px] animate-pulse" id="loaderText">MENYIMPAN & MEMBROADCAST NOTIFIKASI...</p>
+    <div class="bg-white px-5 py-2 rounded-full shadow-sm border border-slate-100 flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-cyan-500 animate-ping"></div>
+        <p class="text-[10px] font-black text-cyan-700 uppercase tracking-[0.2em] font-poppins" id="loaderText">BROADCAST NOTIFIKASI...</p>
+    </div>
 </div>
 
 <div class="max-w-[1000px] mx-auto animate-slide-up pb-10">
 
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-poppins">Form Publikasi Jadwal</h1>
-            <p class="text-slate-500 mt-1.5 font-medium text-[13px] sm:text-sm">Jadwal yang dibuat akan otomatis dikirimkan ke <strong class="text-cyan-600">Aplikasi Warga</strong> sebagai Notifikasi Push.</p>
+            <p class="text-slate-500 mt-1 font-medium text-[13px]">Jadwal yang dibuat akan otomatis dikirimkan ke <strong class="text-cyan-600">Aplikasi Warga</strong> sebagai Notifikasi Push.</p>
         </div>
-        <a href="{{ route('bidan.jadwal.index') }}" class="smooth-route inline-flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-[13px] rounded-xl hover:bg-slate-50 hover:text-cyan-700 transition-colors shadow-sm shrink-0">
-            <i class="fas fa-arrow-left"></i> Batal
+        <a href="{{ route('bidan.jadwal.index') }}" class="smooth-route inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-[12px] uppercase tracking-widest rounded-xl hover:bg-slate-50 hover:text-cyan-700 transition-colors shadow-sm shrink-0">
+            <i class="fas fa-arrow-left"></i> Kembali
         </a>
     </div>
 
     <div class="bg-white rounded-[32px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex flex-col md:flex-row">
         
-        <div class="md:w-4/12 bg-gradient-to-br from-cyan-500 to-sky-600 p-8 lg:p-10 flex flex-col relative overflow-hidden">
+        {{-- PANEL KIRI (Informasi Broadcast) --}}
+        <div class="md:w-4/12 bg-gradient-to-br from-cyan-600 to-blue-700 p-8 lg:p-10 flex flex-col relative overflow-hidden">
             <div class="absolute -right-10 -bottom-10 w-48 h-48 border-[20px] border-white/10 rounded-full"></div>
             
-            <div class="w-20 h-20 bg-white/20 backdrop-blur-md rounded-[20px] border border-white/30 flex items-center justify-center text-4xl text-white mb-8 shadow-xl relative z-10 transform -rotate-3">
+            <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-[18px] border border-white/30 flex items-center justify-center text-3xl text-white mb-6 shadow-xl relative z-10 transform -rotate-3">
                 <i class="fas fa-broadcast-tower"></i>
             </div>
             
             <h2 class="text-2xl font-black text-white font-poppins tracking-tight mb-3 relative z-10 leading-tight">Sistem Broadcast Pintar</h2>
-            <p class="text-cyan-50 text-[13px] leading-relaxed relative z-10 font-medium">Sistem secara otomatis mendeteksi siapa sasaran jadwal ini. Jika Anda memilih "Khusus Ibu Hamil", maka HANYA akun Ibu Hamil yang akan menerima pesan peringatan (Notifikasi) di HP mereka.</p>
+            <p class="text-cyan-100 text-[13px] leading-relaxed relative z-10 font-medium">Sistem secara otomatis mendeteksi siapa sasaran jadwal ini. Jika Anda memilih "Khusus Ibu Hamil", maka HANYA akun Ibu Hamil yang akan menerima pesan peringatan (Notifikasi) di HP mereka.</p>
+            
+            <div class="mt-auto pt-8 relative z-10 hidden md:block">
+                <div class="px-4 py-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
+                    <p class="text-[10px] font-black text-white uppercase tracking-widest mb-1"><i class="fas fa-check-circle text-cyan-300"></i> Status Push</p>
+                    <p class="text-[12px] font-bold text-cyan-50">Otomatis Aktif</p>
+                </div>
+            </div>
         </div>
 
+        {{-- PANEL KANAN (Form Input) --}}
         <div class="md:w-8/12 flex flex-col">
             <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
-                <i class="fas fa-edit text-cyan-600 text-xl"></i>
-                <h3 class="font-black text-slate-800 text-[15px] font-poppins">Lengkapi Detail Agenda</h3>
+                <div class="w-10 h-10 rounded-[12px] bg-white border border-slate-200 text-cyan-600 flex items-center justify-center shadow-sm"><i class="fas fa-edit text-lg"></i></div>
+                <h3 class="font-black text-slate-800 text-[16px] font-poppins">Lengkapi Detail Agenda</h3>
             </div>
 
             <form id="formJadwal" action="{{ route('bidan.jadwal.store') }}" method="POST" class="flex flex-col flex-1">
@@ -67,25 +86,27 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Tanggal Eksekusi <span class="text-rose-500">*</span></label>
                             <div class="relative group-focus-within">
                                 <i class="fas fa-calendar-day input-icon"></i>
-                                <input type="date" name="tanggal" value="{{ old('tanggal') }}" required class="premium-input cursor-pointer" style="padding-left: 46px; padding-right: 16px;">
+                                <input type="date" name="tanggal" value="{{ old('tanggal') }}" required class="premium-input cursor-pointer" style="padding-right: 16px;">
                             </div>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <div class="flex-1">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
                                 <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Mulai <span class="text-rose-500">*</span></label>
                                 <div class="relative group-focus-within">
-                                    <input type="time" name="waktu_mulai" value="{{ old('waktu_mulai') }}" required class="premium-input px-4 cursor-pointer text-center">
+                                    <i class="far fa-clock input-icon"></i>
+                                    <input type="time" name="waktu_mulai" value="{{ old('waktu_mulai') }}" required class="premium-input cursor-pointer" style="padding-left: 42px; padding-right: 10px;">
                                 </div>
                             </div>
-                            <div class="flex-1">
+                            <div>
                                 <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Selesai <span class="text-rose-500">*</span></label>
                                 <div class="relative group-focus-within">
-                                    <input type="time" name="waktu_selesai" value="{{ old('waktu_selesai') }}" required class="premium-input px-4 cursor-pointer text-center">
+                                    <i class="far fa-clock input-icon"></i>
+                                    <input type="time" name="waktu_selesai" value="{{ old('waktu_selesai') }}" required class="premium-input cursor-pointer" style="padding-left: 42px; padding-right: 10px;">
                                 </div>
                             </div>
                         </div>
@@ -114,10 +135,10 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-black text-rose-500 uppercase tracking-widest mb-2 pl-1">Target Peserta (Sasaran) <span class="text-rose-500">*</span></label>
+                            <label class="block text-[11px] font-black text-rose-500 uppercase tracking-widest mb-2 pl-1">Target Sasaran <span class="text-rose-500">*</span></label>
                             <div class="relative group-focus-within">
                                 <i class="fas fa-bullseye input-icon text-rose-400"></i>
-                                <select name="target_peserta" required class="premium-input cursor-pointer appearance-none border-rose-200 focus:border-rose-500 focus:ring-rose-50" style="padding-right: 16px;">
+                                <select name="target_peserta" required class="premium-input cursor-pointer appearance-none border-rose-200 bg-rose-50 focus:bg-white text-rose-800 focus:border-rose-500 focus:ring-rose-50" style="padding-right: 16px;">
                                     <option value="semua" {{ old('target_peserta') == 'semua' ? 'selected' : '' }}>Semua Elemen Warga</option>
                                     <option value="balita" {{ old('target_peserta') == 'balita' ? 'selected' : '' }}>Khusus Anak & Balita</option>
                                     <option value="ibu_hamil" {{ old('target_peserta') == 'ibu_hamil' ? 'selected' : '' }}>Khusus Ibu Hamil (KIA)</option>
@@ -129,17 +150,17 @@
                     </div>
 
                     <div>
-                        <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Pesan / Syarat Tambahan (Opsional)</label>
+                        <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Pesan Tambahan (Opsional)</label>
                         <div class="relative group-focus-within">
                             <i class="fas fa-align-left input-icon" style="top: 24px;"></i>
-                            <textarea name="deskripsi" rows="3" class="premium-input resize-none custom-scrollbar" placeholder="Ketik pesan tambahan yang akan muncul di notifikasi warga... (Misal: Wajib membawa buku KIA/KMS)">{{ old('deskripsi') }}</textarea>
+                            <textarea name="deskripsi" rows="3" class="premium-input resize-none custom-scrollbar" placeholder="Ketik pesan yang akan muncul di HP warga (Misal: Wajib membawa buku KIA/KMS)">{{ old('deskripsi') }}</textarea>
                         </div>
                     </div>
                 </div>
 
                 <div class="px-8 py-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 hidden sm:flex"><i class="fas fa-info-circle text-cyan-500 text-sm"></i> Validasi Ganda Aktif</p>
-                    <button type="submit" id="btnSubmit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black text-[13px] uppercase tracking-widest rounded-[14px] hover:from-cyan-600 hover:to-blue-700 shadow-[0_8px_20px_rgba(6,182,212,0.3)] hover:-translate-y-0.5 transition-all duration-300">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 hidden sm:flex"><i class="fas fa-check-circle text-emerald-500 text-sm"></i> Data Terenkripsi</p>
+                    <button type="submit" id="btnSubmit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black text-[13px] uppercase tracking-widest rounded-2xl hover:shadow-[0_10px_20px_rgba(6,182,212,0.3)] hover:-translate-y-1 transition-all duration-300">
                         <i class="fas fa-paper-plane text-lg"></i> Publikasi & Broadcast
                     </button>
                 </div>

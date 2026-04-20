@@ -61,4 +61,9 @@ class LansiaImport implements ToModel, WithHeadingRow
         }
         return null;
     }
+    // Beri tahu sistem bahwa nama-nama kolom ada di baris ke-3 (karena baris 1 & 2 dipakai untuk Judul Besar)
+    public function headingRow(): int
+    {
+        return 3;
+    }
 }

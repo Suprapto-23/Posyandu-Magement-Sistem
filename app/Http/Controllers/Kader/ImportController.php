@@ -7,36 +7,47 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Response;
 
-// Memanggil Model Utama
+// Memanggil Model Utama untuk Log Riwayat
 use App\Models\DataImport; 
 
-// Memanggil Class Import
+// Memanggil Class Import (Mesin Eksekutor Upload Excel)
 use App\Imports\BalitaImport;
 use App\Imports\RemajaImport;
 use App\Imports\LansiaImport;
 
+// Memanggil Class Export (Mesin Pembuat Template Excel Kosong)
+use App\Exports\TemplateExport;
+
 class ImportController extends Controller
 {
+    /**
+     * Menampilkan Halaman Dashboard / Perkenalan Import Center
+     */
     public function index()
     {
         return view('kader.import.index');
     }
 
+    /**
+     * Menampilkan Halaman Wizard Upload (Drag & Drop)
+     */
     public function create(Request $request)
     {
+        // Menangkap parameter 'type' jika pengguna datang dari tombol spesifik
         $type = $request->get('type', '');
         return view('kader.import.create', compact('type'));
     }
 
+    /**
+     * Mesin Utama Eksekusi Data Excel ke Database (Terintegrasi AJAX)
+     */
     public function store(Request $request)
     {
-        // 1. Validasi
+        // 1. Validasi Input dari Form
         $request->validate([
-            'jenis_data' => 'required|in:balita,remaja,lansia',
-            'file'       => 'required|file|mimes:xlsx,xls,csv|max:10240', 
+            'jenis_data' => 'required|in:balita,remaja,lansia', // Tambahkan 'ibu_hamil' jika file Importnya sudah Anda buat
+            'file'       => 'required|file|mimes:xlsx,xls,csv|max:10240', // Maksimal 10MB
         ]);
 
         $file = $request->file('file');
@@ -44,10 +55,10 @@ class ImportController extends Controller
         $jenisData = $request->jenis_data;
         $isSmartImport = $request->has('smart_import');
 
-        // 2. Simpan fisik file
+        // 2. Simpan fisik file ke storage lokal (sebagai arsip)
         $path = $file->store('imports');
 
-        // 3. Catat ke DB (Status Processing)
+        // 3. Catat aktivitas ini ke Database Log (Status: Processing)
         $riwayat = DataImport::create([
             'nama_file'  => $originalName,
             'jenis_data' => $jenisData,
@@ -57,32 +68,38 @@ class ImportController extends Controller
         ]);
 
         try {
+            // 4. Tentukan Class Import berdasarkan pilihan dropdown
             $importClass = match($jenisData) {
                 'balita' => new BalitaImport(),
                 'remaja' => new RemajaImport(),
                 'lansia' => new LansiaImport(),
             };
             
-            // HITUNG BARIS DULU SEBELUM IMPORT AGAR MUNCUL DI TERMINAL SHOW
+            // 5. INTEL ENGINE: Hitung jumlah baris di Excel sebelum dieksekusi (Untuk Log Terminal)
             $arrayData = Excel::toArray($importClass, $file);
             $jumlahBaris = 0;
             if (isset($arrayData[0])) {
-                $jumlahBaris = count($arrayData[0]); // Ambil jumlah baris di Sheet 1
+                // Total baris dikurangi 3 baris (Karena baris 1, 2, 3 adalah Header/Judul Template kita)
+                $totalBarisExcel = count($arrayData[0]);
+                $jumlahBaris = $totalBarisExcel > 3 ? ($totalBarisExcel - 3) : 0; 
             }
 
-            // EKSEKUSI IMPORT
+            if ($jumlahBaris === 0) {
+                throw new \Exception("File Excel kosong atau Anda belum mengisi data di bawah baris ke-3.");
+            }
+
+            // 6. EKSEKUSI UTAMA: Masukkan data ke Database
             Excel::import($importClass, $file);
 
+            // 7. Catat Keberhasilan ke Terminal Log
             $modeText = $isSmartImport ? '[Mode Smart Mapping AI Aktif]' : '[Mode Standar]';
-            
-            // Update Riwayat dengan Jumlah Baris
             $riwayat->update([
                 'status'         => 'completed',
-                'data_tersimpan' => $jumlahBaris, // Angka ini akan muncul di show.blade.php
-                'catatan'        => "{$modeText} Berhasil membaca {$jumlahBaris} baris data dari Excel. Data telah dianalisis dan disimpan ke sistem.",
+                'data_tersimpan' => $jumlahBaris,
+                'catatan'        => "{$modeText} Berhasil membaca {$jumlahBaris} baris data warga dari Excel. Data telah divalidasi, disinkronisasi dengan akun keluarga, dan disimpan ke sistem utama Posyandu.",
             ]);
 
-            // RESPONSE AJAX (Real-Time dengan JSON)
+            // 8. Berikan Respons Sukses ke Javascript (AJAX / SweetAlert)
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'status' => 'success',
@@ -91,13 +108,15 @@ class ImportController extends Controller
                 ]);
             }
 
+            // Fallback jika tidak menggunakan AJAX
             return redirect()->route('kader.import.history')->with('success', 'Sukses! Data berhasil di-import.');
 
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            // Tangkap Error Validasi Bawaan Laravel Excel
             $failures = $e->failures();
             $errorMsg = "Gagal di baris ke-" . $failures[0]->row() . ": " . $failures[0]->errors()[0];
             
-            $riwayat->update(['status' => 'failed', 'catatan' => $errorMsg]);
+            $riwayat->update(['status' => 'failed', 'catatan' => "[VALIDATION ERROR]\n" . $errorMsg]);
             
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['status' => 'error', 'message' => $errorMsg], 422);
@@ -105,21 +124,26 @@ class ImportController extends Controller
             return redirect()->route('kader.import.history')->with('error', $errorMsg);
 
         } catch (\Throwable $e) { 
+            // Tangkap Error Sistem / Database / Kesalahan Format Excel
             Log::error('Kesalahan Import Data : ' . $e->getMessage());
-            $riwayat->update(['status' => 'failed', 'catatan' => 'Error Server: ' . $e->getMessage()]);
+            $riwayat->update(['status' => 'failed', 'catatan' => "[SERVER ERROR]\n" . $e->getMessage()]);
 
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['status' => 'error', 'message' => 'Format Excel tidak valid atau kolom tidak sesuai.'], 500);
+                return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
             }
-            return redirect()->route('kader.import.history')->with('error', 'Terjadi kesalahan sistem.');
+            return redirect()->route('kader.import.history')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Menampilkan Tabel Riwayat (Log History)
+     */
     public function history(Request $request)
     {
         $tanggal = $request->get('tanggal');
         $query = DataImport::query();
 
+        // Fitur filter berdasarkan tanggal eksekusi
         if ($tanggal) {
             $query->whereDate('created_at', $tanggal);
         }
@@ -128,54 +152,50 @@ class ImportController extends Controller
         return view('kader.import.history', compact('imports', 'tanggal'));
     }
 
+    /**
+     * Menampilkan Detail Terminal Log per File
+     */
     public function show($id)
     {
         $import = DataImport::findOrFail($id);
         return view('kader.import.show', compact('import'));
     }
 
+    /**
+     * Menghapus Log Riwayat beserta File Fisik Excelnya
+     */
     public function destroy($id)
     {
         try {
             $import = DataImport::findOrFail($id);
+            
+            // Hapus file excel dari server agar hardisk tidak penuh
             if ($import->file_path && Storage::exists($import->file_path)) {
                 Storage::delete($import->file_path);
             }
+            
+            // Hapus record database
             $import->delete();
-            return redirect()->route('kader.import.history')->with('success', 'Log riwayat import dihapus.');
+            
+            return redirect()->route('kader.import.history')->with('success', 'Log riwayat import dan arsip file berhasil dihapus.');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal menghapus data riwayat.');
         }
     }
 
+    /**
+     * ENGINE GENERATOR TEMPLATE KOSONG (.XLSX)
+     */
     public function downloadTemplate($type)
     {
-        if (!in_array($type, ['balita', 'remaja', 'lansia'])) abort(404);
+        // Proteksi keamanan: pastikan tipenya valid
+        if (!in_array($type, ['balita', 'remaja', 'lansia', 'ibu_hamil'])) {
+            abort(404, 'Kategori template tidak ditemukan.');
+        }
 
-        $headers = match($type) {
-            'balita' => ['nama_lengkap', 'nik_balita', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir_yyyy_mm_dd', 'nama_ibu', 'nik_ibu', 'berat_lahir_kg', 'panjang_lahir_cm', 'alamat_lengkap'],
-            'remaja' => ['nama_lengkap', 'nik', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir_yyyy_mm_dd', 'nama_sekolah', 'kelas', 'nama_ortu', 'no_hp_ortu', 'alamat_lengkap'],
-            'lansia' => ['nama_lengkap', 'nik', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir_yyyy_mm_dd', 'riwayat_penyakit', 'status_keluarga', 'no_hp', 'alamat_lengkap'],
-        };
+        $fileName = "Formulir_Massal_KaderCare_" . strtoupper($type) . ".xlsx";
 
-        $csvFileName = "Template_KaderCare_" . strtoupper($type) . ".csv";
-        $handle = fopen('php://temp', 'w');
-        fputcsv($handle, $headers); 
-        
-        $dummyData = match($type) {
-            'balita' => ['Budi Santoso', '3200000000000001', 'L', 'Jakarta', '2024-01-15', 'Siti Aminah', '3200000000000002', '3.5', '50', 'Jl. Merdeka No 1'],
-            'remaja' => ['Ahmad Yani', '3200000000000003', 'L', 'Bandung', '2010-05-20', 'SMPN 1 Bandung', '8A', 'Bambang', '08123456789', 'Jl. Pahlawan No 2'],
-            'lansia' => ['Suprapto', '3200000000000004', 'L', 'Surabaya', '1950-10-10', 'Hipertensi', 'Kepala Keluarga', '08111222333', 'Jl. Sudirman No 3'],
-        };
-        fputcsv($handle, $dummyData); 
-
-        rewind($handle);
-        $csvContent = stream_get_contents($handle);
-        fclose($handle);
-
-        return Response::make($csvContent, 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $csvFileName . '"',
-        ]);
+        // Memanggil class TemplateExport yang akan melukis Excel secara on-the-fly
+        return Excel::download(new TemplateExport($type), $fileName);
     }
 }

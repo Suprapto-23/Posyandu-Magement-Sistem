@@ -9,20 +9,27 @@ class Konseling extends Model
 {
     use HasFactory;
 
-    // Arahkan ke tabel yang baru saja kita buat via SQL
     protected $table = 'konselings';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'pasien_type', // balita, ibu_hamil, remaja, lansia
+        'pasien_id',
+        'tanggal',
+        'waktu',
+        'keluhan',
+        'tindakan',
+        'bidan_id'
+    ];
 
-    // Relasi ke Warga (User)
-    public function user() 
-    { 
-        return $this->belongsTo(User::class, 'user_id'); 
-    }
-
-    // Relasi ke Bidan (User)
-    public function bidan() 
-    { 
-        return $this->belongsTo(User::class, 'bidan_id'); 
+    // Accessor dinamis untuk menarik relasi pasien (Polymorphic manual yang aman)
+    public function getPasienAttribute()
+    {
+        return match($this->pasien_type) {
+            'balita'    => Balita::find($this->pasien_id),
+            'ibu_hamil' => IbuHamil::find($this->pasien_id),
+            'remaja'    => Remaja::find($this->pasien_id),
+            'lansia'    => Lansia::find($this->pasien_id),
+            default     => null,
+        };
     }
 }

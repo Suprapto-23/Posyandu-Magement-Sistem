@@ -110,8 +110,8 @@ Route::prefix('bidan')->name('bidan.')->middleware(['auth','checkstatus','role:b
         Route::get('/{id}/edit', [BidanPemeriksaan::class, 'edit'])->name('edit');
         Route::put('/{id}', [BidanPemeriksaan::class, 'update'])->name('update');
         Route::delete('/{id}', [BidanPemeriksaan::class, 'destroy'])->name('destroy');
+        Route::put('/{id}/verifikasi', [App\Http\Controllers\Bidan\PemeriksaanController::class, 'verifikasi'])->name('verifikasi');
     });
-
     // 3. JADWAL POSYANDU
     Route::resource('jadwal', BidanJadwal::class);
 
@@ -145,7 +145,10 @@ Route::prefix('bidan')->name('bidan.')->middleware(['auth','checkstatus','role:b
         Route::get('/fetch-list', [BidanKonseling::class, 'fetchList'])->name('fetch-list');
         Route::get('/fetch-chat/{user_id}', [BidanKonseling::class, 'fetchChat'])->name('fetch-chat');
         Route::post('/reply/{user_id}', [BidanKonseling::class, 'reply'])->name('reply');
+        
     });
+    Route::get('rujukan', [App\Http\Controllers\Bidan\RujukanController::class, 'index'])->name('rujukan.index');
+    Route::get('rujukan/{id}/cetak', [App\Http\Controllers\Bidan\RujukanController::class, 'cetak'])->name('rujukan.cetak');
 });
 
 // ==================== KADER ====================
@@ -153,14 +156,12 @@ Route::prefix('kader')->name('kader.')->middleware(['auth','checkstatus','role:k
     Route::get('/', fn() => redirect()->route('kader.dashboard'));
     Route::get('/dashboard', [KaderDashboard::class, 'index'])->name('dashboard');
 
-    // 👇 RUTE ABSENSI DITAMBAHKAN DI SINI 👇
+    // RUTE ABSENSI DI WEB.PHP (UBAH MENJADI SEPERTI INI)
     Route::prefix('absensi')->name('absensi.')->group(function () {
         Route::get('/', [AbsensiController::class, 'index'])->name('index'); 
         Route::get('/riwayat', [AbsensiController::class, 'riwayat'])->name('riwayat'); 
+        Route::post('/store', [AbsensiController::class, 'store'])->name('store'); // 👈 INI YANG BARU
         Route::get('/{id}', [AbsensiController::class, 'show'])->name('show'); 
-        Route::post('/toggle', [AbsensiController::class, 'toggle'])->name('toggle');
-Route::post('/selesai', [AbsensiController::class, 'selesaiSesi'])->name('selesai');
-        Route::put('/{id}', [AbsensiController::class, 'update'])->name('update');
         Route::delete('/{id}', [AbsensiController::class, 'destroy'])->name('destroy');
     });
 

@@ -1,5 +1,4 @@
 @extends('layouts.kader')
-
 @section('title', 'Upload Data Import')
 @section('page-name', 'Smart Import Wizard')
 
@@ -29,7 +28,7 @@
 @endpush
 
 @section('content')
-<div class="max-w-5xl mx-auto animate-slide-up">
+<div class="max-w-5xl mx-auto animate-slide-up pb-10">
     
     <div class="text-center mb-10 mt-4">
         <div class="inline-flex items-center justify-center w-20 h-20 rounded-[24px] bg-gradient-to-br from-indigo-500 to-violet-600 text-white mb-5 shadow-[0_8px_20px_rgba(79,70,229,0.3)] transform hover:rotate-12 transition-transform">
@@ -42,7 +41,7 @@
     <form action="{{ route('kader.import.store') }}" method="POST" enctype="multipart/form-data" id="importForm">
         @csrf
         
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-8 bg-white rounded-[32px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 md:p-10 relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full pointer-events-none -z-10"></div>
                 
@@ -55,9 +54,9 @@
                     <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3">Kategori Database Target <span class="text-rose-500">*</span></label>
                     <select name="jenis_data" id="jenis_data" required class="w-full bg-slate-50 border-2 border-slate-200 text-slate-800 text-[14px] rounded-2xl px-5 py-4 outline-none font-bold focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all cursor-pointer">
                         <option value="">-- Pilih Tujuan Modul --</option>
-                        <option value="balita" {{ old('jenis_data', $type ?? '') == 'balita' ? 'selected' : '' }}>🍼 Modul Data Bayi / Balita</option>
+                        <option value="balita" {{ old('jenis_data', $type ?? '') == 'balita' ? 'selected' : '' }}>👶 Modul Data Bayi / Balita</option>
                         <option value="remaja" {{ old('jenis_data', $type ?? '') == 'remaja' ? 'selected' : '' }}>🎓 Modul Data Remaja</option>
-                        <option value="lansia" {{ old('jenis_data', $type ?? '') == 'lansia' ? 'selected' : '' }}>👴 Modul Data Lansia</option>
+                        <option value="lansia" {{ old('jenis_data', $type ?? '') == 'lansia' ? 'selected' : '' }}>🧓 Modul Data Lansia</option>
                     </select>
                 </div>
 
@@ -112,18 +111,19 @@
             </div>
         </div>
         
-        <div class="sticky bottom-6 z-30 bg-white/90 backdrop-blur-xl border border-slate-200 p-5 rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.1)] flex flex-col sm:flex-row items-center justify-between gap-6 transform transition-all">
+        {{-- BOTTOM ACTION BAR (Posisi Anteng di Bawah Grid) --}}
+        <div class="mt-8 bg-white border border-slate-200 p-6 md:p-8 rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] flex flex-col sm:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-4 hidden sm:flex">
                 <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl shrink-0"><i class="fas fa-shield-check"></i></div>
                 <div>
-                    <p class="text-[13px] font-black text-slate-800">Sistem Keamanan Aktif</p>
-                    <p class="text-[11px] font-bold text-slate-400">Enkripsi 256-bit. Data terhindar dari duplikasi.</p>
+                    <p class="text-[13px] font-black text-slate-800">Proses Aman (Encrypted)</p>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Sistem perlindungan redundansi NIK aktif.</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3 w-full sm:w-auto">
-                <a href="{{ route('kader.import.index') }}" class="w-full sm:w-auto px-6 py-4 bg-slate-100 text-slate-600 font-black text-[13px] rounded-xl hover:bg-slate-200 transition-colors text-center uppercase tracking-widest">Batal</a>
-                <button type="submit" id="btnProses" class="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-[13px] rounded-xl hover:shadow-[0_8px_20px_rgba(79,70,229,0.4)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
-                    <i class="fas fa-bolt"></i> Mulai Impor Data
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                <a href="{{ route('kader.import.index') }}" class="loader-trigger w-full sm:w-auto px-6 py-4 bg-slate-100 text-slate-600 font-black text-[12px] rounded-[16px] hover:bg-slate-200 transition-colors text-center uppercase tracking-widest">Batal</a>
+                <button type="submit" id="btnProses" class="btn-press w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-[12px] rounded-[16px] hover:shadow-[0_8px_20px_rgba(79,70,229,0.4)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
+                    <i class="fas fa-bolt text-lg"></i> Mulai Impor Data
                 </button>
             </div>
         </div>
@@ -174,10 +174,12 @@
             document.getElementById('jenis_data').focus();
             return;
         }
-        window.location.href = "{{ route('kader.import.download-template', '') }}/" + jenisData;
+        
+        // Fix Missing Parameter Route (Solusi Menggunakan Replace string)
+        let urlTemplate = "{{ route('kader.import.download-template', ':type') }}";
+        window.location.href = urlTemplate.replace(':type', jenisData);
     }
 
-    // 🔥 AJAX dengan Animasi SweetAlert2 🔥
     document.getElementById('importForm').addEventListener('submit', async function(e) {
         e.preventDefault(); 
         
@@ -186,10 +188,6 @@
             return;
         }
 
-        const btn = document.getElementById('btnProses');
-        const originalBtnHtml = btn.innerHTML;
-        
-        // Memunculkan Pop-up Loading
         Swal.fire({
             title: 'AI Sedang Membaca Data...',
             html: 'Mohon tunggu, sistem sedang memetakan kolom dan mengintegrasikan akun warga.',

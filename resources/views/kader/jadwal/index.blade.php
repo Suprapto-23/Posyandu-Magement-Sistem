@@ -1,233 +1,278 @@
 @extends('layouts.kader')
-
 @section('title', 'Jadwal Posyandu')
-@section('page-name', 'Kelola Jadwal')
+@section('page-name', 'Kelola Jadwal Acara')
 
 @push('styles')
 <style>
-    .animate-slide-up { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     
     .search-input {
-        width: 100%; background-color: #f8fafc; border: 2px solid #e2e8f0; color: #0f172a;
-        font-size: 0.875rem; border-radius: 1rem; padding: 0.85rem 1rem 0.85rem 2.75rem;
-        outline: none; transition: all 0.3s ease; font-weight: 600; box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.02);
+        width: 100%; background: rgba(255,255,255,0.9); border: 2px solid #e2e8f0; color: #0f172a;
+        font-size: 0.875rem; border-radius: 1rem; padding: 0.75rem 1rem 0.75rem 2.75rem;
+        outline: none; transition: all 0.3s ease; font-weight: 600;
     }
-    .search-input:focus { background-color: #ffffff; border-color: #8b5cf6; box-shadow: 0 4px 12px -3px rgba(139, 92, 246, 0.15); }
-    .search-input::placeholder { color: #94a3b8; font-weight: 500; }
-    .custom-scrollbar::-webkit-scrollbar { height: 8px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    .table-loading { opacity: 0.4; pointer-events: none; filter: grayscale(50%); transition: all 0.3s ease; }
+    .search-input:focus { background-color: #ffffff; border-color: #6366f1; box-shadow: 0 4px 20px -3px rgba(99, 102, 241, 0.15); }
+    
+    .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.6); }
+    
+    .jadwal-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .jadwal-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.15); border-color: rgba(199, 210, 254, 0.8); }
+    
+    #data-wrapper { transition: opacity 0.3s ease; }
+    .loading-state { opacity: 0.4; pointer-events: none; filter: grayscale(30%); }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-7xl mx-auto animate-slide-up">
+<div class="max-w-[1400px] mx-auto animate-slide-up pb-10">
 
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-[18px] bg-violet-100 text-violet-600 flex items-center justify-center text-2xl shadow-inner border border-violet-200/50 transform -rotate-3">
+    {{-- HEADER BRANDING --}}
+    <div class="bg-white rounded-[28px] p-6 md:p-8 mb-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] border border-slate-100">
+        <div class="flex items-center gap-5 w-full md:w-auto">
+            <div class="w-16 h-16 rounded-[20px] bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-600 flex items-center justify-center text-3xl shrink-0 shadow-sm border border-indigo-100">
                 <i class="fas fa-calendar-alt"></i>
             </div>
             <div>
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Jadwal Posyandu</h1>
-                <p class="text-slate-500 mt-1 font-medium text-sm">Buat acara dan umumkan jadwal ke warga.</p>
+                <h2 class="text-2xl font-black font-poppins text-slate-800 tracking-tight">Manajemen Agenda</h2>
+                <p class="text-slate-500 text-[13px] font-medium mt-1">Atur dan pantau kegiatan Posyandu dengan mudah.</p>
             </div>
         </div>
-        <a href="{{ route('kader.jadwal.create') }}" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-violet-600 text-white font-extrabold text-sm rounded-xl hover:bg-violet-700 shadow-[0_4px_12px_rgba(139,92,246,0.3)] hover:-translate-y-0.5 transition-all">
-            <i class="fas fa-plus"></i> Buat Jadwal Baru
+        
+        <a href="{{ route('kader.jadwal.create') }}" class="loader-trigger w-full md:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-indigo-600 text-white font-black text-[13px] rounded-[14px] hover:bg-indigo-700 shadow-[0_8px_20px_rgba(99,102,241,0.3)] hover:-translate-y-0.5 transition-all uppercase tracking-widest">
+            <i class="fas fa-plus-circle text-lg"></i> Buat Agenda Baru
         </a>
     </div>
 
-    <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-4 mb-6 flex flex-col lg:flex-row items-center justify-between gap-4">
-        
-        <div class="flex gap-2 w-full lg:w-auto overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
-            @php $currentStatus = request('status', 'semua'); @endphp
-            @foreach(['semua'=>'Semua Jadwal', 'aktif'=>'📅 Aktif/Akan Datang', 'selesai'=>'✅ Selesai'] as $k => $l)
-                <a href="{{ request()->fullUrlWithQuery(['status'=>$k, 'page'=>1]) }}" 
-                   data-status="{{ $k }}"
-                   class="status-btn px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all duration-300 border 
-                   {{ $currentStatus == $k ? 'bg-violet-600 text-white border-violet-600 shadow-md' : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 hover:text-slate-800' }}">
-                    {{ $l }}
-                </a>
+    {{-- FILTER & SEARCH (AJAX READY) --}}
+    <div class="glass-card rounded-[24px] p-3 mb-8 flex flex-col xl:flex-row items-center justify-between gap-4 relative z-20">
+        <form id="filterForm" action="{{ route('kader.jadwal.index') }}" method="GET" class="hidden">
+            <input type="hidden" name="search" id="hiddenSearch" value="{{ request('search') }}">
+            <input type="hidden" name="status" id="hiddenStatus" value="{{ request('status', 'semua') }}">
+        </form>
+
+        {{-- Filter Tabs --}}
+        <div class="flex gap-2 w-full xl:w-auto overflow-x-auto custom-scrollbar pb-2 sm:pb-0 justify-start bg-slate-50/80 p-1.5 rounded-[20px] border border-slate-100">
+            @php 
+                $tabs = [
+                    'semua'      => ['label' => 'Semua', 'icon' => 'fa-layer-group'],
+                    'aktif'      => ['label' => 'Aktif', 'icon' => 'fa-clock'],
+                    'selesai'    => ['label' => 'Selesai', 'icon' => 'fa-check-circle'],
+                    'dibatalkan' => ['label' => 'Batal', 'icon' => 'fa-times-circle']
+                ];
+                $currentStatus = request('status', 'semua'); 
+            @endphp
+            
+            @foreach($tabs as $k => $v)
+                <button type="button" data-status="{{ $k }}" class="tab-btn px-5 py-2 rounded-xl font-bold text-[12px] whitespace-nowrap transition-all flex items-center gap-2 border {{ $currentStatus == $k ? 'bg-white text-indigo-600 border-slate-200 shadow-sm active-tab' : 'bg-transparent text-slate-500 border-transparent hover:bg-white hover:border-slate-200' }}">
+                   <i class="fas {{ $v['icon'] }} {{ $currentStatus == $k ? 'text-indigo-500' : 'text-slate-400' }}"></i> {{ $v['label'] }}
+                </button>
             @endforeach
         </div>
         
-        <div class="w-full lg:w-1/3 relative">
-            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input type="text" id="searchInput" value="{{ $search ?? '' }}" placeholder="Cari nama kegiatan / lokasi..." class="search-input" autocomplete="off">
-            <div id="searchSpinner" class="absolute right-4 top-1/2 -translate-y-1/2 hidden">
-                <i class="fas fa-spinner fa-spin text-violet-500"></i>
-            </div>
+        {{-- Live Search --}}
+        <div class="w-full xl:w-96 relative group">
+            <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-sm group-focus-within:text-indigo-500 transition-colors"></i>
+            <input type="text" id="liveSearchInput" value="{{ request('search') }}" placeholder="Cari agenda atau lokasi..." class="search-input">
+            <div id="searchSpinner" class="absolute right-5 top-1/2 -translate-y-1/2 hidden"><i class="fas fa-circle-notch fa-spin text-indigo-500"></i></div>
         </div>
     </div>
 
-    <div id="table-container" class="transition-opacity duration-300">
-        <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
-            <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full text-left border-collapse min-w-[900px]">
-                    <thead>
-                        <tr class="bg-slate-50/80 border-b border-slate-100">
-                            <th class="px-6 py-5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Waktu & Tanggal</th>
-                            <th class="px-6 py-5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Detail Kegiatan</th>
-                            <th class="px-6 py-5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Target & Lokasi</th>
-                            <th class="px-6 py-5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest text-center">Status</th>
-                            <th class="px-6 py-5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest text-right">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @forelse($jadwals as $jadwal)
-                        <tr class="hover:bg-slate-50/50 transition-colors group">
+    {{-- MAIN CARD GRID AREA (AJAX TARGET) --}}
+    <div id="mainContentArea" class="relative">
+        <div id="data-wrapper">
+            @if(isset($jadwals) && $jadwals->count() > 0)
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    @foreach($jadwals as $jadwal)
+                    <div class="jadwal-card bg-white rounded-[24px] p-6 border border-slate-100 flex flex-col shadow-sm relative group overflow-hidden">
+                        
+                        {{-- Background Aksen Blur --}}
+                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-50 rounded-full blur-3xl opacity-50 group-hover:bg-indigo-100 transition-colors pointer-events-none"></div>
+
+                        {{-- Bagian Atas: Badge --}}
+                        <div class="flex justify-between items-start mb-5 relative z-10">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 text-[9px] font-black uppercase tracking-widest rounded-lg border border-slate-200 shadow-sm">
+                                <i class="fas fa-users text-slate-400"></i> {{ str_replace('_', ' ', $jadwal->target_peserta) }}
+                            </span>
                             
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex flex-col items-center justify-center font-bold shadow-sm border border-violet-100 leading-none">
-                                        <span class="text-xs">{{ \Carbon\Carbon::parse($jadwal->tanggal)->format('M') }}</span>
-                                        <span class="text-lg font-black">{{ \Carbon\Carbon::parse($jadwal->tanggal)->format('d') }}</span>
-                                    </div>
-                                    <div>
-                                        <p class="font-black text-slate-800 text-sm">{{ \Carbon\Carbon::parse($jadwal->tanggal)->format('Y') }}</p>
-                                        <p class="text-[11px] font-bold text-slate-400 mt-0.5"><i class="fas fa-clock mr-1"></i> {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }}</p>
-                                    </div>
-                                </div>
-                            </td>
+                            @if($jadwal->status == 'aktif')
+                                <span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-sm"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Aktif</span>
+                            @elseif($jadwal->status == 'selesai')
+                                <span class="bg-slate-50 text-slate-500 border border-slate-200 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-sm"><i class="fas fa-check"></i> Selesai</span>
+                            @else
+                                <span class="bg-rose-50 text-rose-600 border border-rose-200 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-sm"><i class="fas fa-times"></i> Batal</span>
+                            @endif
+                        </div>
 
-                            <td class="px-6 py-4">
-                                <p class="font-bold text-slate-800 text-sm">{{ $jadwal->judul }}</p>
-                                <p class="text-[11px] font-semibold text-slate-400 mt-0.5 truncate max-w-[200px]">{{ $jadwal->deskripsi ?? 'Tidak ada deskripsi tambahan' }}</p>
-                            </td>
+                        {{-- Bagian Tengah: Kalender & Info --}}
+                        <div class="flex items-start gap-4 mb-4 relative z-10">
+                            <div class="w-[60px] h-[64px] rounded-[16px] bg-indigo-50/80 border border-indigo-100 flex flex-col items-center justify-center text-indigo-600 shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors shadow-inner">
+                                <span class="text-[10px] font-bold uppercase tracking-widest mb-0.5">{{ \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('M') }}</span>
+                                <span class="text-[22px] font-black font-poppins leading-none">{{ \Carbon\Carbon::parse($jadwal->tanggal)->format('d') }}</span>
+                            </div>
+                            
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-[16px] font-black text-slate-800 font-poppins leading-tight truncate mb-1 group-hover:text-indigo-700 transition-colors" title="{{ $jadwal->judul }}">{{ $jadwal->judul }}</h3>
+                                <p class="text-[11px] font-bold text-slate-500 mb-1 flex items-center gap-1.5"><i class="far fa-clock text-indigo-400 w-3 text-center"></i> {{ \Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WIB</p>
+                                <p class="text-[11px] font-bold text-slate-500 truncate flex items-center gap-1.5"><i class="fas fa-map-marker-alt text-rose-400 w-3 text-center"></i> {{ $jadwal->lokasi }}</p>
+                            </div>
+                        </div>
 
-                            <td class="px-6 py-4">
-                                <span class="inline-block px-2 py-1 bg-slate-100 text-slate-600 text-[10px] font-black uppercase rounded-md mb-1">{{ str_replace('_', ' ', $jadwal->target_peserta) }}</span>
-                                <p class="text-xs font-bold text-slate-500"><i class="fas fa-map-marker-alt text-rose-400 mr-1"></i> {{ $jadwal->lokasi }}</p>
-                            </td>
+                        {{-- SMART WARNING LOGIC --}}
+                        @php 
+                            $isPast = \Carbon\Carbon::parse($jadwal->tanggal)->isPast() && !\Carbon\Carbon::parse($jadwal->tanggal)->isToday();
+                        @endphp
+                        @if($isPast && $jadwal->status == 'aktif')
+                            <div class="mb-4 bg-rose-50/80 border border-rose-100 text-rose-600 text-[10px] font-bold px-3 py-2 rounded-xl flex items-start gap-2 relative z-10">
+                                <i class="fas fa-exclamation-circle mt-0.5 text-rose-500"></i> 
+                                <span>Waktu terlewat! Klik "Edit" dan ubah status menjadi Selesai.</span>
+                            </div>
+                        @endif
 
-                            <td class="px-6 py-4 text-center">
-                                @if($jadwal->status == 'aktif')
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-[11px] font-extrabold border border-violet-200">
-                                        <i class="fas fa-bullhorn animate-pulse"></i> Aktif
-                                    </span>
-                                @elseif($jadwal->status == 'selesai')
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-extrabold border border-emerald-200">
-                                        <i class="fas fa-check-circle"></i> Selesai
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-[11px] font-extrabold border border-rose-200">
-                                        <i class="fas fa-times-circle"></i> Batal
-                                    </span>
-                                @endif
-                            </td>
+                        {{-- Bagian Bawah: Aksi --}}
+                        <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between relative z-10">
+                            <span class="text-[11px] font-bold text-slate-400 capitalize"><i class="fas fa-tag mr-1 text-slate-300"></i> {{ str_replace('_', ' ', $jadwal->kategori) }}</span>
+                            
+                            <div class="flex gap-2">
+                                <a href="{{ route('kader.jadwal.show', $jadwal->id) }}" class="loader-trigger w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-600 hover:text-white transition-colors shadow-sm" title="Lihat Detail">
+                                    <i class="fas fa-eye text-[13px]"></i>
+                                </a>
+                                <a href="{{ route('kader.jadwal.edit', $jadwal->id) }}" class="loader-trigger w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-amber-500 hover:text-white transition-colors shadow-sm" title="Edit">
+                                    <i class="fas fa-pen text-[13px]"></i>
+                                </a>
+                                <form action="{{ route('kader.jadwal.destroy', $jadwal->id) }}" method="POST" class="m-0">
+                                    @csrf @method('DELETE')
+                                    <button type="button" onclick="confirmDelete('{{ $jadwal->id }}')" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-rose-500 hover:text-white transition-colors shadow-sm" title="Hapus">
+                                        <i class="fas fa-trash text-[13px]"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                
+                {{-- Pagination --}}
+                <div id="paginationArea" class="mt-8">
+                    @if(isset($jadwals) && $jadwals->hasPages()) {{ $jadwals->links() }} @endif
+                </div>
 
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex items-center justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                    <a href="{{ route('kader.jadwal.show', $jadwal->id) }}" class="inline-flex w-9 h-9 rounded-xl bg-white border border-slate-200 items-center justify-center text-slate-500 hover:text-violet-600 hover:border-violet-300 hover:bg-violet-50 shadow-sm transition-all" title="Detail & Broadcast">
-                                        <i class="fas fa-paper-plane"></i>
-                                    </a>
-                                    <a href="{{ route('kader.jadwal.edit', $jadwal->id) }}" class="inline-flex w-9 h-9 rounded-xl bg-white border border-slate-200 items-center justify-center text-slate-500 hover:text-amber-600 hover:border-amber-300 hover:bg-amber-50 shadow-sm transition-all" title="Edit Jadwal">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('kader.jadwal.destroy', $jadwal->id) }}" method="POST" onsubmit="return confirm('Hapus jadwal ini?');" class="inline-block">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="inline-flex w-9 h-9 rounded-xl bg-white border border-slate-200 items-center justify-center text-slate-500 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 shadow-sm transition-all">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="px-6 py-16 text-center">
-                                <div class="w-20 h-20 bg-slate-50 rounded-[20px] flex items-center justify-center text-slate-300 mx-auto mb-4 text-3xl shadow-inner border border-slate-100">
-                                    <i class="fas fa-calendar-times"></i>
-                                </div>
-                                <h3 class="font-black text-slate-800 text-lg">Belum Ada Jadwal</h3>
-                                <p class="text-sm text-slate-500 mt-1">Buat jadwal kegiatan posyandu agar warga mendapat notifikasi.</p>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            
-            @if($jadwals->hasPages())
-            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 pagination-wrapper">
-                {{ $jadwals->links() }}
-            </div>
+            @else
+                {{-- EMPTY STATE --}}
+                <div class="py-20 text-center bg-white border border-slate-100 rounded-[32px] shadow-sm">
+                    <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-5 border border-slate-100 transform rotate-3">
+                        <i class="far fa-calendar-times text-4xl text-slate-300"></i>
+                    </div>
+                    <h3 class="font-black text-slate-800 text-xl font-poppins mb-2">Tidak Ada Data</h3>
+                    <p class="text-[13px] text-slate-500 font-medium max-w-md mx-auto leading-relaxed">Sistem tidak menemukan jadwal kegiatan untuk kriteria pencarian ini. Pastikan filter status Anda sudah benar.</p>
+                </div>
             @endif
         </div>
     </div>
 </div>
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Copy-paste script SPA Javascript dari halaman sebelumnya (Ubah '.kategori-btn' jadi '.status-btn')
-    document.addEventListener('DOMContentLoaded', function() {
-        let typingTimer;
-        const searchInput = document.getElementById('searchInput');
-        const tableContainer = document.getElementById('table-container');
-        const spinner = document.getElementById('searchSpinner');
+document.addEventListener('DOMContentLoaded', function() {
+    let typingTimer;
+    const searchInput = document.getElementById('liveSearchInput');
+    const tableWrapper = document.getElementById('data-wrapper');
+    const spinner = document.getElementById('searchSpinner');
+    const form = document.getElementById('filterForm');
 
-        async function fetchRealTimeData(url) {
-            tableContainer.classList.add('table-loading');
-            if(spinner) spinner.classList.remove('hidden');
-
-            try {
-                const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                tableContainer.innerHTML = doc.getElementById('table-container').innerHTML;
-                window.history.pushState({}, '', url);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            } finally {
-                tableContainer.classList.remove('table-loading');
-                if(spinner) spinner.classList.add('hidden');
+    // 1. AJAX FETCH DOM PARSER (Anti-Bug Layout Berlapis)
+    async function fetchRealTimeData(url, isSearch = false) {
+        if(isSearch && spinner) spinner.classList.remove('hidden');
+        tableWrapper.classList.add('loading-state');
+        
+        try {
+            const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+            const html = await response.text();
+            
+            // Ambil HANYA bagian data-wrapper untuk menghindari tumpang tindih Layout
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newContent = doc.getElementById('data-wrapper');
+            
+            if(newContent) {
+                tableWrapper.innerHTML = newContent.innerHTML;
             }
+            
+            window.history.pushState({}, '', url);
+            bindPagination();
+        } catch (error) { console.error("Koneksi gagal"); } 
+        finally {
+            if(spinner) spinner.classList.add('hidden');
+            tableWrapper.classList.remove('loading-state');
         }
+    }
 
-        if (searchInput) {
-            searchInput.addEventListener('input', function(e) {
-                clearTimeout(typingTimer);
-                typingTimer = setTimeout(() => {
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('search', e.target.value);
-                    url.searchParams.set('page', 1);
-                    fetchRealTimeData(url.toString());
-                }, 400);
-            });
-        }
-
-        const statusButtons = document.querySelectorAll('.status-btn');
-        statusButtons.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                statusButtons.forEach(b => {
-                    b.classList.remove('bg-violet-600', 'text-white', 'border-violet-600', 'shadow-md');
-                    b.classList.add('bg-slate-50', 'text-slate-500', 'border-slate-200');
-                });
-                this.classList.remove('bg-slate-50', 'text-slate-500', 'border-slate-200');
-                this.classList.add('bg-violet-600', 'text-white', 'border-violet-600', 'shadow-md');
-
-                const url = new URL(this.href);
-                if(searchInput && searchInput.value) url.searchParams.set('search', searchInput.value);
-                fetchRealTimeData(url.toString());
-            });
+    // 2. LIVE SEARCH
+    if(searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            clearTimeout(typingTimer);
+            document.getElementById('hiddenSearch').value = e.target.value;
+            typingTimer = setTimeout(() => {
+                const url = new URL(form.action);
+                url.searchParams.set('search', e.target.value);
+                url.searchParams.set('status', document.getElementById('hiddenStatus').value);
+                fetchRealTimeData(url.toString(), true);
+            }, 400); 
         });
+    }
 
-        document.addEventListener('click', function(e) {
-            const pageLink = e.target.closest('.pagination-wrapper a');
-            if (pageLink) {
-                e.preventDefault();
-                fetchRealTimeData(pageLink.href);
-            }
-        });
+    // 3. TAB STATUS FILTER
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('bg-white', 'text-indigo-600', 'border-slate-200', 'shadow-sm', 'active-tab');
+                b.classList.add('bg-transparent', 'text-slate-500', 'border-transparent');
+                const icon = b.querySelector('i');
+                if(icon) { icon.classList.remove('text-indigo-500'); icon.classList.add('text-slate-400'); }
+            });
+            
+            this.classList.remove('bg-transparent', 'text-slate-500', 'border-transparent');
+            this.classList.add('bg-white', 'text-indigo-600', 'border-slate-200', 'shadow-sm', 'active-tab');
+            const myIcon = this.querySelector('i');
+            if(myIcon) { myIcon.classList.remove('text-slate-400'); myIcon.classList.add('text-indigo-500'); }
 
-        window.addEventListener('popstate', function() {
-            fetchRealTimeData(window.location.href);
+            const status = this.dataset.status;
+            document.getElementById('hiddenStatus').value = status;
+            
+            const url = new URL(form.action);
+            url.searchParams.set('status', status);
+            url.searchParams.set('search', document.getElementById('hiddenSearch').value);
+            fetchRealTimeData(url.toString(), false);
         });
     });
+
+    // 4. BINDING PAGINATION
+    function bindPagination() {
+        document.querySelectorAll('#paginationArea a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault(); e.stopPropagation();
+                fetchRealTimeData(this.href, false);
+            });
+        });
+    }
+    
+    window.addEventListener('popstate', function() { fetchRealTimeData(window.location.href, false); });
+    bindPagination();
+});
+
+// FUNGSI HAPUS MENGGUNAKAN SWEETALERT
+function confirmDelete(id) {
+    Swal.fire({
+        title: 'Hapus Agenda?', text: "Jadwal ini akan dihapus secara permanen.",
+        icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal', reverseButtons: true,
+        customClass: { popup: 'rounded-[24px] font-poppins' }
+    }).then((result) => {
+        if (result.isConfirmed) event.target.closest('form').submit();
+    });
+}
 </script>
 @endpush
 @endsection

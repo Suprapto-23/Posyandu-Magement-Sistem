@@ -1,149 +1,178 @@
 @extends('layouts.bidan')
-@section('title', 'Input Imunisasi Baru')
-@section('page-name', 'Tambah Imunisasi')
+
+@section('title', 'Tambah Imunisasi')
+@section('page-name', 'Input Vaksinasi')
 
 @push('styles')
 <style>
     .animate-slide-up { opacity: 0; animation: slideUpFade 0.4s ease-out forwards; }
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .med-input { 
+        width: 100%; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; 
+        padding: 14px 18px; color: #0f172a; font-weight: 600; font-size: 13px; 
+        transition: all 0.3s ease; outline: none;
+    }
+    .med-input:focus { background: #ffffff; border-color: #06b6d4; box-shadow: 0 0 0 4px rgba(6,182,212,0.1); }
+    .med-label { display: block; font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    
+    .tab-kategori { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 2px solid transparent; }
+    .tab-kategori.active-balita { background: #ecfeff; color: #0891b2; border-color: #a5f3fc; box-shadow: 0 4px 15px rgba(6,182,212,0.15); transform: translateY(-2px); }
+    .tab-kategori.active-bumil { background: #fdf2f8; color: #db2777; border-color: #fbcfe8; box-shadow: 0 4px 15px rgba(219,39,119,0.15); transform: translateY(-2px); }
+    .tab-kategori.inactive { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; }
+    .tab-kategori.inactive:hover { background: #f1f5f9; color: #64748b; }
+    
+    [x-cloak] { display: none !important; }
 </style>
 @endpush
 
 @section('content')
-<div id="smoothLoader" class="fixed inset-0 bg-slate-50/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-300 opacity-100">
-    <div class="relative w-20 h-20 flex items-center justify-center mb-4">
-        <div class="absolute inset-0 border-4 border-cyan-100 rounded-full"></div>
-        <div class="absolute inset-0 border-4 border-cyan-500 rounded-full border-t-transparent animate-spin"></div>
-        <i class="fas fa-syringe text-cyan-500 text-2xl animate-pulse"></i>
-    </div>
-    <p class="text-cyan-800 font-black font-poppins tracking-widest text-[11px] animate-pulse uppercase" id="loaderText">MEMUAT FORMULIR...</p>
-</div>
 
-<div class="max-w-4xl mx-auto animate-slide-up">
+@php
+    $dataBalita = $balitas->map(fn($p) => ['id' => $p->id, 'nama' => $p->nama_lengkap, 'tipe' => 'Balita', 'model' => 'App\\Models\\Balita'])->values()->toArray();
+    $dataBumil  = $ibuHamils->map(fn($p) => ['id' => $p->id, 'nama' => $p->nama_lengkap, 'tipe' => 'Ibu Hamil', 'model' => 'App\\Models\\IbuHamil'])->values()->toArray();
+@endphp
 
-    <div class="mb-6">
-        <a href="{{ route('bidan.imunisasi.index') }}" class="smooth-route inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 font-bold text-[13px] rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-            <i class="fas fa-arrow-left"></i> Kembali ke Register
-        </a>
-    </div>
+<div class="max-w-4xl mx-auto space-y-6 animate-slide-up pb-20" x-data="formImunisasiApp()">
+    
+    <a href="{{ route('bidan.imunisasi.index') }}" class="inline-flex items-center gap-2 text-[12px] font-bold text-slate-400 hover:text-cyan-600 transition-colors mb-2">
+        <i class="fas fa-arrow-left"></i> Kembali ke Register
+    </a>
 
-    <div class="bg-gradient-to-br from-cyan-500 to-sky-500 rounded-[32px] p-8 md:p-10 mb-8 relative overflow-hidden shadow-lg border border-cyan-400 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 24px 24px;"></div>
-        <div class="relative z-10 w-full md:w-auto text-center md:text-left">
-            <h2 class="text-2xl md:text-3xl font-black text-white font-poppins tracking-tight mb-2">Form Vaksinasi Baru</h2>
-            <p class="text-cyan-50 text-sm font-medium max-w-md mx-auto md:mx-0">Catat pemberian imunisasi kepada pasien (Balita & Remaja). Data akan terintegrasi ke buku rekam medis warga secara langsung.</p>
-        </div>
-        <div class="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur border border-white/30 text-white flex items-center justify-center text-4xl shrink-0 shadow-sm relative z-10">
-            <i class="fas fa-syringe"></i>
-        </div>
-    </div>
-
-    <form action="{{ route('bidan.imunisasi.store') }}" method="POST" id="imunisasiForm">
+    <form id="formImunisasi" action="{{ route('bidan.imunisasi.store') }}" method="POST" class="bg-white rounded-[28px] border border-slate-200 shadow-[0_10px_30px_rgb(0,0,0,0.03)] relative z-10">
         @csrf
-        <div class="bg-white rounded-[32px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden mb-8">
-            
-            <div class="px-8 py-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center"><i class="fas fa-file-medical-alt"></i></div>
-                <h3 class="font-black text-slate-800 text-[15px]">Detail Injeksi Medis</h3>
+        
+        {{-- TRIK AMAN: Hidden Input Dosis agar sistem tidak error --}}
+        <input type="hidden" name="dosis" value="Sesuai Vaksin">
+
+        <div class="p-6 md:p-8 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 flex flex-col sm:flex-row sm:items-center gap-4 rounded-t-[28px]">
+            <div class="w-14 h-14 rounded-[16px] bg-cyan-100 text-cyan-600 flex items-center justify-center text-2xl shadow-inner shrink-0">
+                <i class="fas fa-shield-virus"></i>
             </div>
+            <div>
+                <h2 class="text-xl sm:text-2xl font-black text-slate-800 tracking-tight font-poppins">Pencatatan Imunisasi Baru</h2>
+                <p class="text-[12px] font-medium text-slate-500 mt-1">Pilih kategori layanan KIA, lalu cari identitas penerima vaksin.</p>
+            </div>
+        </div>
+
+        <div class="p-6 md:p-8 space-y-8">
             
-            <div class="p-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    
-                    <div class="col-span-1 md:col-span-2">
-                        <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">Pilih Pasien Kunjungan <span class="text-rose-500">*</span></label>
-                        <select name="kunjungan_id" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-[13px] font-bold text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all cursor-pointer">
-                            <option value="">-- Pilih Antrian Pasien --</option>
-                            @foreach($kunjungans as $k)
-                                <option value="{{ $k->id }}">
-                                    {{ \Carbon\Carbon::parse($k->tanggal_kunjungan)->format('d M') }} — {{ $k->pasien->nama_lengkap ?? 'Unknown' }} ({{ class_basename($k->pasien_type) }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">Nama Vaksin <span class="text-rose-500">*</span></label>
-                        <div class="relative">
-                            <i class="fas fa-vial absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" name="vaksin" required placeholder="Contoh: BCG / Polio 1 / MR" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3.5 text-[13px] font-medium text-slate-800 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">Kategori Imunisasi <span class="text-rose-500">*</span></label>
-                        <select name="jenis_imunisasi" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-[13px] font-bold text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all cursor-pointer">
-                            <option value="Dasar">🟢 Imunisasi Dasar</option>
-                            <option value="Lanjutan">🔵 Imunisasi Lanjutan</option>
-                            <option value="Tambahan">🟣 Imunisasi Tambahan (Booster)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">Dosis Vaksin <span class="text-rose-500">*</span></label>
-                        <div class="relative">
-                            <i class="fas fa-eye-dropper absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" name="dosis" required placeholder="Contoh: 0.5 ml atau 2 Tetes" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3.5 text-[13px] font-medium text-slate-800 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">Tanggal Eksekusi <span class="text-rose-500">*</span></label>
-                        <div class="relative">
-                            <input type="date" name="tanggal_imunisasi" value="{{ date('Y-m-d') }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-[13px] font-bold text-slate-800 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 outline-none transition-all cursor-pointer">
-                        </div>
-                    </div>
-
+            {{-- 1. Pilih Kategori --}}
+            <div>
+                <label class="med-label text-cyan-600"><i class="fas fa-layer-group mr-1"></i> 1. Pilih Kategori Penerima Vaksin</label>
+                <div class="flex flex-col sm:flex-row gap-4 mt-3">
+                    <button type="button" @click="setKategori('balita')" class="tab-kategori flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl text-[13px] font-black uppercase tracking-widest outline-none" :class="kategori === 'balita' ? 'active-balita' : 'inactive'">
+                        <i class="fas fa-baby text-xl"></i> Bayi & Balita
+                    </button>
+                    <button type="button" @click="setKategori('ibu_hamil')" class="tab-kategori flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl text-[13px] font-black uppercase tracking-widest outline-none" :class="kategori === 'ibu_hamil' ? 'active-bumil' : 'inactive'">
+                        <i class="fas fa-female text-xl"></i> Ibu Hamil (TT)
+                    </button>
                 </div>
             </div>
-        </div>
 
-        <div class="flex flex-col sm:flex-row items-center justify-end gap-4 pb-10">
-            <button type="submit" id="btnSubmit" class="w-full sm:w-auto px-8 py-4 rounded-xl font-black text-white bg-cyan-600 hover:bg-cyan-700 shadow-[0_8px_20px_rgba(6,182,212,0.3)] hover:-translate-y-0.5 transition-all duration-300 uppercase tracking-wide flex items-center justify-center gap-2">
-                <i class="fas fa-save"></i> Simpan Data Vaksin
-            </button>
+            {{-- 2. Cari Pasien --}}
+            <div x-show="kategori !== ''" x-transition.opacity x-cloak class="relative w-full" @click.away="dropdownOpen = false">
+                <label class="med-label text-cyan-600"><i class="fas fa-search mr-1"></i> 2. Cari Identitas <span x-text="kategori === 'balita' ? 'Balita' : 'Ibu Hamil'"></span></label>
+                <input type="hidden" name="pasien_id" x-model="pasienId" required>
+                <input type="hidden" name="pasien_type" x-model="pasienModel" required>
+                <div class="relative mt-2">
+                    <input type="text" x-model="searchQuery" @focus="dropdownOpen = true" @input="dropdownOpen = true" :placeholder="'Ketik nama ' + (kategori === 'balita' ? 'balita' : 'ibu hamil') + '...'" class="w-full bg-slate-50 border-2 border-slate-200 rounded-[16px] pl-5 pr-12 py-4 text-sm font-bold text-slate-800 focus:bg-white focus:border-cyan-500 focus:ring-4 focus:ring-cyan-50 outline-none transition-all shadow-sm">
+                    <button type="button" x-show="pasienId !== ''" @click="resetSelection()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-rose-400 hover:text-rose-600 outline-none" x-cloak><i class="fas fa-times-circle text-xl"></i></button>
+                </div>
+                <div x-show="dropdownOpen" x-transition x-cloak class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.12)] border border-slate-100 max-h-64 overflow-y-auto custom-scrollbar">
+                    <template x-for="k in filteredData()" :key="k.id">
+                        <div @click="selectPasien(k)" class="p-4 border-b border-slate-50 cursor-pointer flex items-center gap-4 transition-colors" :class="kategori === 'balita' ? 'hover:bg-cyan-50' : 'hover:bg-pink-50'">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 border" :class="kategori === 'balita' ? 'bg-cyan-100 text-cyan-600 border-cyan-200' : 'bg-pink-100 text-pink-600 border-pink-200'"><i class="fas" :class="kategori === 'balita' ? 'fa-baby' : 'fa-female'"></i></div>
+                            <div>
+                                <p class="text-[13px] font-bold text-slate-800 font-poppins" x-text="k.nama"></p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5" x-text="k.tipe"></p>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="filteredData().length === 0" class="p-8 text-center text-[12px] font-bold text-slate-400 bg-slate-50/50">
+                        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-slate-100"><i class="fas fa-search-minus text-2xl text-slate-300"></i></div>
+                        Tidak ada kecocokan data.
+                    </div>
+                </div>
+            </div>
+
+            {{-- 3. Form Medis Dinamis --}}
+            <div x-show="pasienId !== ''" x-transition.opacity x-cloak class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8 border-t border-slate-100">
+                <div class="col-span-1 md:col-span-2 flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center text-sm font-black">3</div>
+                    <label class="text-[12px] font-black text-slate-800 uppercase tracking-widest font-poppins">Detail Injeksi Medis</label>
+                </div>
+                
+                <div>
+                    <label class="med-label">Kategori Program <span class="text-rose-500">*</span></label>
+                    <select name="jenis_imunisasi" class="med-input cursor-pointer focus:ring-4 focus:ring-cyan-50" required>
+                        <option value="">-- Pilih Program --</option>
+                        <option value="Imunisasi Dasar" x-show="kategori === 'balita'">Imunisasi Dasar (0-11 Bulan)</option>
+                        <option value="Imunisasi Lanjutan" x-show="kategori === 'balita'">Imunisasi Lanjutan (Baduta)</option>
+                        <option value="Imunisasi TT" x-show="kategori === 'ibu_hamil'">Imunisasi TT (Ibu Hamil)</option>
+                        <option value="Lainnya">Tambahan / Lainnya</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="med-label">Tanggal Pelaksanaan <span class="text-rose-500">*</span></label>
+                    <input type="date" name="tanggal_imunisasi" value="{{ date('Y-m-d') }}" class="med-input cursor-pointer focus:ring-4 focus:ring-cyan-50" required>
+                </div>
+
+                <div class="col-span-1 md:col-span-2">
+                    <label class="med-label">Nama Vaksin (Termasuk Dosis) <span class="text-rose-500">*</span></label>
+                    <input type="text" name="vaksin" required placeholder="Contoh: Polio 1, DPT-HB-Hib 2, TT 1, Campak..." class="med-input text-[14px] py-4 focus:ring-4 focus:ring-cyan-50">
+                    <p class="text-[10px] font-bold text-slate-400 mt-2"><i class="fas fa-info-circle"></i> Tuliskan nama vaksin beserta urutan dosisnya secara langsung.</p>
+                </div>
+
+                <div class="col-span-1 md:col-span-2 mt-2">
+                    <div class="p-5 rounded-2xl border-2 border-amber-200 bg-amber-50/50">
+                        <label class="med-label text-amber-600 flex items-center gap-2"><i class="fas fa-exclamation-triangle"></i> Kejadian Ikutan Pasca Imunisasi (KIPI)</label>
+                        <textarea name="keterangan" rows="2" placeholder="Kosongkan jika kondisi pasien aman. Catat jika ada keluhan (demam, bengkak)..." class="w-full bg-white border border-amber-200 rounded-xl p-4 text-sm font-medium text-slate-700 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100 transition-all resize-none"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Submit --}}
+            <div x-show="pasienId !== ''" x-transition x-cloak class="pt-8 border-t border-slate-100 flex justify-end">
+                <button type="submit" id="btnSubmit" class="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black text-[13px] uppercase tracking-widest rounded-2xl hover:shadow-[0_10px_20px_rgba(6,182,212,0.3)] hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                    <i class="fas fa-save text-lg"></i> Simpan Catatan Vaksin
+                </button>
+            </div>
+
         </div>
     </form>
 </div>
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const showLoader = (text = 'MEMUAT SISTEM...') => {
-        const loader = document.getElementById('smoothLoader');
-        if(loader) {
-            document.getElementById('loaderText').innerText = text;
-            loader.style.display = 'flex';
-            loader.offsetHeight; 
-            loader.classList.remove('opacity-0', 'pointer-events-none');
-            loader.classList.add('opacity-100');
-        }
-    };
-
-    window.addEventListener('pageshow', () => {
-        const loader = document.getElementById('smoothLoader');
-        if(loader) {
-            loader.classList.remove('opacity-100');
-            loader.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => loader.style.display = 'none', 300);
-        }
-        const btn = document.getElementById('btnSubmit');
-        if(btn) {
-            btn.innerHTML = '<i class="fas fa-save"></i> Simpan Data Vaksin';
-            btn.classList.remove('opacity-75', 'cursor-wait');
-        }
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('formImunisasiApp', () => ({
+            dbRaw: { balita: {!! json_encode($dataBalita) !!}, ibu_hamil: {!! json_encode($dataBumil) !!} },
+            kategori: '', searchQuery: '', pasienId: '', pasienModel: '', dropdownOpen: false,
+            
+            setKategori(kat) { this.kategori = kat; this.resetSelection(); },
+            filteredData() {
+                if (this.kategori === '') return [];
+                const data = this.dbRaw[this.kategori];
+                if (this.searchQuery === '' || this.pasienId !== '') return data;
+                return data.filter(k => k.nama.toLowerCase().includes(this.searchQuery.toLowerCase()));
+            },
+            selectPasien(k) { this.pasienId = k.id; this.pasienModel = k.model; this.searchQuery = k.nama; this.dropdownOpen = false; },
+            resetSelection() { this.pasienId = ''; this.pasienModel = ''; this.searchQuery = ''; this.dropdownOpen = false; }
+        }))
     });
 
-    document.querySelectorAll('.smooth-route').forEach(link => {
-        link.addEventListener('click', function(e) {
-            if(this.target !== '_blank' && !e.ctrlKey) showLoader('MEMUAT HALAMAN...');
-        });
-    });
-
-    document.getElementById('imunisasiForm').addEventListener('submit', function() {
+    document.getElementById('formImunisasi').addEventListener('submit', function(e) {
+        if(!document.querySelector('input[name="pasien_id"]').value) {
+            e.preventDefault();
+            Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap', text: 'Silakan cari dan pilih identitas warga terlebih dahulu.', confirmButtonColor: '#06b6d4', customClass: { popup: 'rounded-[24px]' } });
+            return;
+        }
         const btn = document.getElementById('btnSubmit');
-        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Menyimpan...';
-        btn.classList.add('opacity-75', 'cursor-wait');
-        showLoader('MENYIMPAN DATA KE SERVER...');
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-lg"></i> Menyimpan...';
+        btn.classList.add('opacity-80', 'cursor-wait', 'scale-95');
     });
 </script>
 @endpush

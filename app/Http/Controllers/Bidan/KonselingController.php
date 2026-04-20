@@ -3,96 +3,65 @@
 namespace App\Http\Controllers\Bidan;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Konseling;
-use App\Models\User;
+use App\Models\Balita;
+use App\Models\IbuHamil;
+use App\Models\Remaja;
+use App\Models\Lansia;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class KonselingController extends Controller
 {
-    public function index() 
-    { 
-        return view('bidan.konseling.index'); 
-    }
-
-    /**
-     * API: Mengambil daftar kontak Warga yang pernah chat
-     */
-    public function fetchList() 
+    public function index(Request $request)
     {
-        $userIds = Konseling::select('user_id')->distinct()->pluck('user_id');
-        $contacts = [];
+        $search = $request->get('search');
         
-        foreach($userIds as $uid) {
-            $latest = Konseling::where('user_id', $uid)->orderBy('created_at', 'desc')->first();
-            $user = User::with('profile')->find($uid);
-            
-            if($user && $latest) {
-                $unread = Konseling::where('user_id', $uid)
-                                 ->where('pengirim', 'warga')
-                                 ->where('is_read', false)
-                                 ->count();
-                
-                $contacts[] = [
-                    'user_id'      => $user->id,
-                    'name'         => $user->profile->full_name ?? $user->name ?? 'Warga',
-                    'last_message' => $latest->pesan,
-                    'time'         => $latest->created_at->format('H:i'),
-                    'timestamp'    => $latest->created_at->timestamp,
-                    'unread'       => $unread,
-                    'avatar_text'  => strtoupper(substr($user->profile->full_name ?? $user->name ?? 'W', 0, 1))
-                ];
-            }
+        // Menarik semua data konseling diurutkan dari yang terbaru
+        $konselings = Konseling::latest('tanggal')->latest('waktu')->get();
+
+        // Fitur Pencarian Nama Pasien (Search Filter)
+        if ($search) {
+            $konselings = $konselings->filter(function($k) use ($search) {
+                return stripos(strtolower($k->pasien->nama_lengkap ?? ''), strtolower($search)) !== false;
+            });
         }
+
+        // Menyiapkan data pasien untuk dropdown di form 'Tambah Baru'
+        $dataBalita = Balita::select('id', 'nama_lengkap')->get()->map(fn($p) => ['id' => $p->id, 'nama' => $p->nama_lengkap, 'type' => 'balita', 'label' => 'Anak & Balita']);
+        $dataBumil  = IbuHamil::select('id', 'nama_lengkap')->get()->map(fn($p) => ['id' => $p->id, 'nama' => $p->nama_lengkap, 'type' => 'ibu_hamil', 'label' => 'Ibu Hamil']);
+        $dataRemaja = Remaja::select('id', 'nama_lengkap')->get()->map(fn($p) => ['id' => $p->id, 'nama' => $p->nama_lengkap, 'type' => 'remaja', 'label' => 'Usia Remaja']);
+        $dataLansia = Lansia::select('id', 'nama_lengkap')->get()->map(fn($p) => ['id' => $p->id, 'nama' => $p->nama_lengkap, 'type' => 'lansia', 'label' => 'Lansia (Manula)']);
         
-        // Urutkan berdasarkan chat terbaru (teratas)
-        usort($contacts, fn($a, $b) => $b['timestamp'] <=> $a['timestamp']);
+        // Gabungkan semua data pasien ke dalam satu variabel untuk dropdown
+        $allPatients = $dataBalita->merge($dataBumil)->merge($dataRemaja)->merge($dataLansia);
 
-        return response()->json($contacts);
+        return view('bidan.konseling.index', compact('konselings', 'search', 'allPatients'));
     }
 
-    /**
-     * API: Mengambil isi chat dengan Warga tertentu
-     */
-    public function fetchChat($user_id) 
+    public function store(Request $request)
     {
-        // Tandai semua pesan dari warga ini sebagai "Sudah Dibaca"
-        Konseling::where('user_id', $user_id)->where('pengirim', 'warga')->update(['is_read' => true]);
-
-        $chats = Konseling::where('user_id', $user_id)->orderBy('created_at', 'asc')->get()->map(function($chat) {
-            return [
-                'id'       => $chat->id,
-                'pengirim' => $chat->pengirim, // 'warga' atau 'bidan'
-                'topik'    => $chat->topik,
-                'pesan'    => $chat->pesan,
-                'time'     => $chat->created_at->format('H:i')
-            ];
-        });
-
-        $user = User::with('profile')->find($user_id);
-        $userName = $user->profile->full_name ?? $user->name ?? 'Warga';
-
-        return response()->json([
-            'chats' => $chats,
-            'user'  => ['id' => $user_id, 'name' => $userName]
+        // Menyimpan data konseling (rekap chat WA) ke database
+        $request->validate([
+            'pasien_data' => 'required|string', // Formatnya nanti: type|id (misal: balita|5)
+            'tanggal'     => 'required|date',
+            'keluhan'     => 'required|string',
+            'tindakan'    => 'required|string',
         ]);
-    }
 
-    /**
-     * API: Mengirim balasan Bidan
-     */
-    public function reply(Request $request, $user_id) 
-    {
-        $request->validate(['pesan' => 'required|string']);
+        // Pecah data "type|id" yang dikirim dari form select
+        $pasienInfo = explode('|', $request->pasien_data);
 
         Konseling::create([
-            'user_id'  => $user_id,
-            'bidan_id' => Auth::id(),
-            'pengirim' => 'bidan',
-            'pesan'    => $request->pesan,
-            'is_read'  => false
+            'pasien_type' => $pasienInfo[0],
+            'pasien_id'   => $pasienInfo[1],
+            'tanggal'     => $request->tanggal,
+            'waktu'       => date('H:i'), // Jam saat ini
+            'keluhan'     => $request->keluhan,
+            'tindakan'    => $request->tindakan,
+            'bidan_id'    => Auth::id() ?? 1,
         ]);
 
-        return response()->json(['success' => true]);
+        return redirect()->back()->with('success', 'Catatan edukasi telemedisin berhasil diarsipkan ke sistem EMR.');
     }
 }

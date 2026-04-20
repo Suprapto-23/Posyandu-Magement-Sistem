@@ -11,15 +11,17 @@ class Pemeriksaan extends Model
 
     protected $table = 'pemeriksaans';
 
-    // Menggunakan guarded agar kita tidak perlu repot menulis fillable yang sangat panjang
+    // Menggunakan guarded ['id'] agar otomatis menerima kolom baru 
+    // (seperti indikasi_stunting, tfu, djj, posisi_janin) tanpa perlu update fillable manual.
     protected $guarded = ['id'];
 
+    // Memastikan tipe data (casting) aman saat ditarik ke View atau JSON
     protected $casts = [
         'tanggal_periksa' => 'date',
         'verified_at'     => 'datetime',
         'berat_badan'     => 'float',
         'tinggi_badan'    => 'float',
-        'imt'             => 'float',   // Tambahan: Casting ke desimal
+        'imt'             => 'float',
         'suhu_tubuh'      => 'float',
         'lingkar_kepala'  => 'float',
         'lingkar_lengan'  => 'float',
@@ -27,113 +29,83 @@ class Pemeriksaan extends Model
         'hemoglobin'      => 'float',
         'asam_urat'       => 'float',
         'kolesterol'      => 'integer',
-        // gula_darah dan kemandirian sengaja tidak di-cast karena varchar/enum
+        // Kolom teks seperti tfu, djj, kemandirian, indikasi_stunting otomatis dibaca sebagai string
     ];
 
     // =========================================================
-    // RELASI DATABASE
+    // RELASI DATABASE (UNIFIED / POLYMORPHIC APPROACH)
     // =========================================================
 
+    /** Relasi ke Pasien: Balita */
     public function balita()
     {
         return $this->belongsTo(Balita::class, 'pasien_id');
     }
 
+    /** Relasi ke Pasien: Remaja */
     public function remaja()
     {
         return $this->belongsTo(Remaja::class, 'pasien_id');
     }
 
+    /** Relasi ke Pasien: Lansia */
     public function lansia()
     {
         return $this->belongsTo(Lansia::class, 'pasien_id');
     }
 
-    // Tambahan: Relasi ke tabel Ibu Hamil
+    /** * [BARU] Relasi ke Pasien: Ibu Hamil 
+     * Menggantikan fungsi tabel/model terpisah
+     */
     public function ibuHamil()
     {
         return $this->belongsTo(IbuHamil::class, 'pasien_id');
     }
 
-    public function kunjungan()
-    {
-        return $this->belongsTo(Kunjungan::class, 'kunjungan_id');
-    }
-
-    /** Kader/Bidan yang menginput data */
+    /** Relasi ke Petugas: Kader (Meja 1-4) */
     public function pemeriksa()
     {
         return $this->belongsTo(User::class, 'pemeriksa_id');
     }
 
-    /** Bidan yang memverifikasi */
+    /** Relasi ke Petugas: Bidan (Meja 5 / Validasi) */
     public function verifikator()
     {
         return $this->belongsTo(User::class, 'verified_by');
     }
 
     // =========================================================
-    // ACCESSORS (Logika Cerdas Pengolah Data Otomatis)
+    // ACCESSORS (Membantu Format Tampilan di Blade)
     // =========================================================
 
-    /** Nama pasien otomatis mendeteksi dari berbagai tabel (Termasuk Bayi & Bumil) */
-    public function getNamaPasienAttribute(): string
-    {
-        return match($this->kategori_pasien) {
-            'bayi', 'balita' => $this->balita?->nama_lengkap ?? 'Anak/Balita Tidak Ditemukan',
-            'remaja'         => $this->remaja?->nama_lengkap ?? 'Remaja Tidak Ditemukan',
-            'lansia'         => $this->lansia?->nama_lengkap ?? 'Lansia Tidak Ditemukan',
-            'ibu_hamil'      => $this->ibuHamil?->nama_lengkap ?? 'Ibu Hamil Tidak Ditemukan',
-            default          => 'Pasien Tidak Ditemukan',
-        };
-    }
-
-    /** * Mengambil IMT dari Database. 
-     * Tapi jika di Database terlanjur kosong (0), sistem akan menghitungnya secara instan (Fallback)
-     */
-    public function getImtAttribute(): float
-    {
-        if (!empty($this->attributes['imt'])) {
-            return (float) $this->attributes['imt'];
-        }
-
-        // Rumus Fallback IMT: Berat (kg) / (Tinggi (m) x Tinggi (m))
-        if ($this->berat_badan > 0 && $this->tinggi_badan > 0) {
-            $tb_m = $this->tinggi_badan / 100; // Konversi cm ke meter
-            return round($this->berat_badan / ($tb_m * $tb_m), 2);
-        }
-        
-        return 0;
-    }
-
-    /** Label teks status verifikasi */
+    /** Label bahasa manusia untuk status verifikasi */
     public function getStatusVerifikasiLabelAttribute(): string
     {
         return match($this->status_verifikasi ?? 'pending') {
-            'verified' => 'Terverifikasi',
-            'rejected' => 'Ditolak',
+            'verified' => 'Terverifikasi (Selesai)',
+            'ditolak'  => 'Ditolak (Kembali ke Kader)',
             default    => 'Menunggu Validasi',
         };
     }
 
-    /** Warna badge Bootstrap untuk status verifikasi */
+    /** Warna badge Tailwind/Bootstrap untuk status verifikasi */
     public function getStatusVerifikasiBadgeAttribute(): string
     {
         return match($this->status_verifikasi ?? 'pending') {
-            'verified' => 'success',
-            'rejected' => 'danger',
-            default    => 'warning',
+            'verified' => 'emerald', // Hijau
+            'ditolak'  => 'rose',    // Merah
+            default    => 'amber',   // Kuning/Oranye
         };
     }
 
-    /** True jika data masih menunggu validasi bidan */
+    /** Mengecek apakah ini data mentah dari Kader */
     public function getFromKaderAttribute(): bool
     {
         return ($this->status_verifikasi ?? 'pending') === 'pending';
     }
 
     // =========================================================
-    // SCOPES (Pencarian Cepat)
+    // SCOPES (Mempercepat Penulisan Query di Controller)
     // =========================================================
 
     public function scopePending($query)
@@ -146,9 +118,9 @@ class Pemeriksaan extends Model
         return $query->where('status_verifikasi', 'verified');
     }
 
-    public function scopeRejected($query)
+    public function scopeDitolak($query)
     {
-        return $query->where('status_verifikasi', 'rejected');
+        return $query->where('status_verifikasi', 'ditolak');
     }
 
     public function scopeBulanIni($query)

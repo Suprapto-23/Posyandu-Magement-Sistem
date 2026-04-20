@@ -8,11 +8,29 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class JadwalController extends Controller
 {
     public function index(Request $request)
     {
+        // 1. ENGINE "LAZY UPDATE" (Otomatis Selesai jika waktu terlewat)
+        // Mengecek jadwal aktif yang sudah melewati tanggal dan waktu selesai
+        $now = Carbon::now('Asia/Jakarta');
+        
+        JadwalPosyandu::where('status', 'aktif')
+            ->where(function ($query) use ($now) {
+                // Skenario A: Jika tanggal kegiatan adalah kemarin atau lebih lama
+                $query->whereDate('tanggal', '<', $now->toDateString())
+                      // Skenario B: Jika tanggal adalah hari ini, TAPI jam selesai sudah lewat
+                      ->orWhere(function ($q) use ($now) {
+                          $q->whereDate('tanggal', '=', $now->toDateString())
+                            ->whereTime('waktu_selesai', '<', $now->toTimeString());
+                      });
+            })->update(['status' => 'selesai']);
+
+
+        // 2. QUERY GET DATA (Dengan Filter & Search)
         $search = $request->get('search');
         $status = $request->get('status', 'semua');
 
@@ -31,7 +49,7 @@ class JadwalController extends Controller
 
         $jadwals = $query->paginate(12)->withQueryString();
 
-        // AJAX Live Search
+        // AJAX Live Search Output
         if ($request->ajax()) {
             return view('kader.jadwal.index', compact('jadwals', 'search', 'status'))->render();
         }
@@ -54,6 +72,7 @@ class JadwalController extends Controller
             'waktu_mulai'    => 'required',
             'waktu_selesai'  => 'required',
             'lokasi'         => 'required|string|max:255',
+            'deskripsi'      => 'nullable|string'
         ]);
 
         try {
@@ -111,7 +130,8 @@ class JadwalController extends Controller
             'waktu_mulai'    => 'required',
             'waktu_selesai'  => 'required',
             'lokasi'         => 'required|string|max:255',
-            'status'         => 'required|in:aktif,selesai,batal',
+            'status'         => 'required|in:aktif,selesai,dibatalkan', // Tepat sesuai database
+            'deskripsi'      => 'nullable|string'
         ]);
 
         try {
@@ -134,7 +154,7 @@ class JadwalController extends Controller
     public function destroy($id)
     {
         JadwalPosyandu::findOrFail($id)->delete();
-        return redirect()->route('kader.jadwal.index')->with('success', 'Jadwal berhasil dihapus.');
+        return redirect()->route('kader.jadwal.index')->with('success', 'Jadwal berhasil dihapus secara permanen.');
     }
 
     /**
@@ -145,14 +165,19 @@ class JadwalController extends Controller
         try {
             $jadwal = JadwalPosyandu::findOrFail($id);
             if ($jadwal->status !== 'aktif') {
-                throw new \Exception("Hanya jadwal aktif yang bisa di-broadcast.");
+                throw new \Exception("Hanya jadwal aktif yang bisa disiarkan ke warga.");
             }
 
             DB::transaction(function() use ($jadwal) {
-                // Logika pencarian target user ID (seperti di kode Anda sebelumnya)
+                // Logika pencarian target user ID yang sangat spesifik
                 $userIds = [];
                 if ($jadwal->target_peserta === 'semua') {
-                    $userIds = User::where('role', 'warga')->pluck('id')->toArray();
+                    // Ambil user yang ber-role 'user' atau 'warga'
+                    if (\Schema::hasColumn('users', 'role')) {
+                        $userIds = User::whereIn('role', ['user', 'warga'])->pluck('id')->toArray();
+                    } else {
+                        $userIds = User::pluck('id')->toArray(); // Sesuaikan dengan Permission Spatie jika perlu
+                    }
                 } else {
                     $table = match($jadwal->target_peserta) {
                         'balita' => 'balitas',
@@ -161,16 +186,16 @@ class JadwalController extends Controller
                         'ibu_hamil' => 'ibu_hamils',
                         default => null
                     };
-                    if ($table) {
+                    if ($table && \Schema::hasTable($table)) {
                         $userIds = DB::table($table)->whereNotNull('user_id')->pluck('user_id')->toArray();
                     }
                 }
 
                 $userIds = array_unique($userIds);
                 $notifikasiData = [];
-                $waktuSekarang = now();
-                $tgl = \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('d M Y');
-                $pesan = "Pengumuman Posyandu! Terdapat agenda: *{$jadwal->judul}* pada {$tgl}, pukul {$jadwal->waktu_mulai} di {$jadwal->lokasi}. Mohon kehadirannya.";
+                $waktuSekarang = Carbon::now('Asia/Jakarta');
+                $tgl = Carbon::parse($jadwal->tanggal)->translatedFormat('d M Y');
+                $pesan = "Panggilan Pelayanan! Agenda: *{$jadwal->judul}* pada {$tgl}, pukul {$jadwal->waktu_mulai} di {$jadwal->lokasi}. Diharapkan kehadirannya.";
 
                 foreach ($userIds as $userId) {
                     $notifikasiData[] = [
