@@ -92,14 +92,30 @@
                 <tbody>
                     @forelse($pemeriksaans as $pem)
                     @php
-                        // Deteksi Kategori & Pewarnaan (ILP System)
-                        $namaPasien = $pem->balita->nama_lengkap ?? $pem->remaja->nama_lengkap ?? $pem->lansia->nama_lengkap ?? $pem->ibuHamil->nama_lengkap ?? 'Anonim';
+                        // Deteksi Kategori & Pewarnaan per Klaster
+                        $namaPasien = $pem->balita->nama_lengkap 
+                                   ?? $pem->remaja->nama_lengkap 
+                                   ?? $pem->lansia->nama_lengkap 
+                                   ?? $pem->ibuHamil->nama_lengkap 
+                                   ?? 'Anonim';
                         $kategoriRaw = strtolower(class_basename($pem->kategori_pasien ?? $pem->pasien_type));
                         
-                        if($kategoriRaw == 'balita') { $nCol = 'sky'; $nIco = 'baby'; $kategori = 'Balita'; }
-                        elseif($kategoriRaw == 'remaja') { $nCol = 'indigo'; $nIco = 'user-graduate'; $kategori = 'Remaja'; }
-                        elseif(in_array($kategoriRaw, ['ibu_hamil','ibuhamil','bumil'])) { $nCol = 'pink'; $nIco = 'female'; $kategori = 'Ibu Hamil'; }
-                        else { $nCol = 'emerald'; $nIco = 'user-clock'; $kategori = 'Lansia';}
+                        if ($kategoriRaw == 'bayi')       { $nCol = 'cyan';   $nIco = 'baby';          $kategori = 'Bayi';       $kategoriSub = '0–12 bln'; }
+                        elseif ($kategoriRaw == 'balita') { $nCol = 'sky';    $nIco = 'child';         $kategori = 'Balita';     $kategoriSub = '1–5 thn'; }
+                        elseif ($kategoriRaw == 'remaja') { $nCol = 'violet'; $nIco = 'user-graduate'; $kategori = 'Remaja';     $kategoriSub = '10–18 thn'; }
+                        elseif (in_array($kategoriRaw, ['ibu_hamil','ibuhamil','bumil'])) 
+                                                          { $nCol = 'pink';   $nIco = 'female';        $kategori = 'Ibu Hamil';  $kategoriSub = 'Bumil'; }
+                        else                              { $nCol = 'emerald';$nIco = 'user-clock';    $kategori = 'Lansia';     $kategoriSub = '≥60 thn'; }
+                        
+                        // Ambil field utama sesuai kategori untuk ditampilkan di tabel
+                        $bb  = $pem->berat_badan ? $pem->berat_badan.' kg' : '-';
+                        $tb  = $pem->tinggi_badan ? $pem->tinggi_badan.' cm' : '-';
+                        $extra = '';
+                        if (in_array($kategoriRaw, ['remaja','lansia','ibu_hamil','ibuhamil','bumil']) && $pem->tekanan_darah) {
+                            $extra = 'Tensi: '.$pem->tekanan_darah.' mmHg';
+                        } elseif (in_array($kategoriRaw, ['balita','bayi']) && $pem->lingkar_kepala) {
+                            $extra = 'LK: '.$pem->lingkar_kepala.' cm';
+                        }
                     @endphp
                     
                     <tr class="table-row-hover transition-all duration-200 group border-b border-slate-50 last:border-0">
@@ -107,24 +123,46 @@
                         {{-- Identitas --}}
                         <td class="py-4 px-6 align-middle">
                             <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-[14px] bg-{{$nCol}}-50 text-{{$nCol}}-600 flex items-center justify-center shrink-0 border border-{{$nCol}}-100 shadow-inner group-hover:scale-110 transition-transform">
+                                <div class="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0 border shadow-inner group-hover:scale-110 transition-transform
+                                            {{ $nCol == 'sky' ? 'bg-sky-50 text-sky-600 border-sky-100' : '' }}
+                                            {{ $nCol == 'cyan' ? 'bg-cyan-50 text-cyan-600 border-cyan-100' : '' }}
+                                            {{ $nCol == 'violet' ? 'bg-violet-50 text-violet-600 border-violet-100' : '' }}
+                                            {{ $nCol == 'pink' ? 'bg-pink-50 text-pink-600 border-pink-100' : '' }}
+                                            {{ $nCol == 'emerald' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : '' }}">
                                     <i class="fas fa-{{$nIco}} text-lg"></i>
                                 </div>
                                 <div>
-                                    <p class="font-black text-slate-800 text-[14px] mb-1 group-hover:text-cyan-600 transition-colors">{{ $namaPasien }}</p>
-                                    <span class="text-[9px] font-black text-{{$nCol}}-600 uppercase tracking-widest bg-white border border-{{$nCol}}-200 px-2 py-0.5 rounded shadow-sm">{{ $kategori }}</span>
+                                    <p class="font-black text-slate-800 text-[14px] mb-0.5 group-hover:text-cyan-600 transition-colors">{{ $namaPasien }}</p>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border shadow-sm
+                                                     {{ $nCol == 'sky' ? 'text-sky-600 bg-white border-sky-200' : '' }}
+                                                     {{ $nCol == 'cyan' ? 'text-cyan-600 bg-white border-cyan-200' : '' }}
+                                                     {{ $nCol == 'violet' ? 'text-violet-600 bg-white border-violet-200' : '' }}
+                                                     {{ $nCol == 'pink' ? 'text-pink-600 bg-white border-pink-200' : '' }}
+                                                     {{ $nCol == 'emerald' ? 'text-emerald-600 bg-white border-emerald-200' : '' }}">
+                                            {{ $kategori }}
+                                        </span>
+                                        <span class="text-[9px] font-medium text-slate-400">{{ $kategoriSub }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </td>
 
-                        {{-- Fisik Awal --}}
+                        {{-- Fisik Awal (dari Kader) --}}
                         <td class="py-4 px-6 align-middle">
-                            <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[11px] font-bold rounded-lg shadow-sm">BB: {{ $pem->berat_badan ?? '-' }}kg</span>
-                                <span class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[11px] font-bold rounded-lg shadow-sm">TB: {{ $pem->tinggi_badan ?? '-' }}cm</span>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[11px] font-bold rounded-lg shadow-sm">BB: {{ $bb }}</span>
+                                <span class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[11px] font-bold rounded-lg shadow-sm">TB: {{ $tb }}</span>
                             </div>
-                            @if(in_array($kategoriRaw, ['remaja', 'lansia', 'ibu_hamil']) && $pem->tekanan_darah)
-                                <p class="text-[10px] font-bold text-rose-500 mt-2"><i class="fas fa-heartbeat"></i> Tensi: {{ $pem->tekanan_darah }}</p>
+                            @if($extra)
+                                <p class="text-[10px] font-bold text-slate-500 mt-1.5">
+                                    <i class="fas fa-heartbeat text-rose-400"></i> {{ $extra }}
+                                </p>
+                            @endif
+                            @if($pem->lila ?? $pem->lingkar_lengan)
+                                <p class="text-[10px] font-medium text-slate-400 mt-0.5">
+                                    LiLA: {{ $pem->lila ?? $pem->lingkar_lengan }} cm
+                                </p>
                             @endif
                         </td>
 

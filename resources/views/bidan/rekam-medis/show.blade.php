@@ -1,189 +1,266 @@
 @extends('layouts.bidan')
 
-@section('title', 'Detail Rekam Medis')
-@section('page-name', 'Buku KIA / Riwayat Medis')
+@section('title', 'Electronic Medical Record')
+@section('page-name', 'Detail Rekam Medis')
 
-@section('content')
+@push('styles')
 <style>
-    .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-slide-up { opacity: 0; animation: slideUpFade 0.4s ease-out forwards; }
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     
-    .timeline-line { position: absolute; left: 35px; top: 20px; bottom: -20px; width: 2px; background: #e2e8f0; z-index: 0; }
-    @media (max-width: 640px) { .timeline-line { left: 24px; } }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 </style>
+@endpush
 
-<div class="max-w-[1200px] mx-auto animate-slide-up pb-10">
+@section('content')
+@php
+    $nama = $pasien->nama_lengkap ?? 'Pasien Anonim';
+    $nik = $pasien->nik ?? '-';
+    $tglLahir = $pasien->tanggal_lahir ? \Carbon\Carbon::parse($pasien->tanggal_lahir) : null;
+    $umur = $tglLahir ? $tglLahir->age : 0;
+    
+    $themeColor = match($pasien_type) {
+        'balita' => 'cyan',
+        'ibu_hamil' => 'pink',
+        'remaja' => 'indigo',
+        default => 'emerald'
+    };
+@endphp
 
-    <div class="mb-6">
-        <a href="{{ route('bidan.rekam-medis.index', ['type' => $pasien_type]) }}" class="smooth-route inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 font-bold text-[13px] rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-            <i class="fas fa-arrow-left"></i> Kembali ke Pencarian
+<div class="max-w-6xl mx-auto space-y-6 animate-slide-up pb-10">
+
+    {{-- 1. NAVIGASI ATAS (Tombol Cetak Dihapus Sesuai Konsep RAD Laporan Terpusat) --}}
+    <div class="flex items-center justify-between mb-2">
+        <a href="{{ route('bidan.rekam-medis.index', ['type' => $pasien_type]) }}" class="inline-flex items-center gap-2 text-[12px] font-black text-slate-400 hover:text-cyan-600 transition-colors uppercase tracking-widest">
+            <i class="fas fa-arrow-left"></i> Kembali ke Buku Induk
         </a>
     </div>
 
-    @php
-        // Tema warna dinamis berdasarkan kategori
-        if($pasien_type == 'balita') { $bCol='rose'; $bBg='from-rose-500 to-pink-600'; $icn='fa-baby'; }
-        elseif($pasien_type == 'remaja') { $bCol='indigo'; $bBg='from-indigo-500 to-violet-600'; $icn='fa-user-graduate'; }
-        elseif($pasien_type == 'ibu_hamil') { $bCol='pink'; $bBg='from-pink-500 to-rose-500'; $icn='fa-female'; }
-        else { $bCol='emerald'; $bBg='from-emerald-500 to-teal-600'; $icn='fa-wheelchair'; }
-    @endphp
-
-    {{-- KOP REKAM MEDIS (IDENTITAS) --}}
-    <div class="bg-gradient-to-br {{ $bBg }} rounded-[32px] shadow-[0_12px_30px_rgba(0,0,0,0.1)] mb-10 overflow-hidden relative p-8 md:p-10 border border-{{$bCol}}-400">
-        <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 20px 20px;"></div>
-        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8 text-white text-center md:text-left">
-            <div class="w-32 h-32 rounded-[28px] bg-white/20 backdrop-blur-md border border-white/30 text-white flex items-center justify-center text-6xl font-black shadow-xl shrink-0 transform -rotate-3 hover:rotate-0 transition-transform">
-                <i class="fas {{ $icn }}"></i>
+    {{-- 2. HEADER KARTU IDENTITAS --}}
+    <div class="bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden relative">
+        <div class="absolute right-0 top-0 w-48 h-48 bg-{{ $themeColor }}-50 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
+        
+        <div class="p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 relative z-10">
+            <div class="w-24 h-24 rounded-[20px] bg-gradient-to-br from-{{ $themeColor }}-500 to-{{ $themeColor }}-600 text-white flex items-center justify-center text-4xl shadow-lg border-4 border-white shrink-0">
+                <i class="fas fa-{{ $pasien_type == 'balita' ? 'baby' : ($pasien_type == 'ibu_hamil' ? 'female' : 'user') }}"></i>
             </div>
             
-            <div class="flex-1 w-full">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur rounded-lg text-[10px] font-black uppercase tracking-widest mb-3 border border-white/30 shadow-sm">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Kategori {{ ucfirst(str_replace('_', ' ', $pasien_type)) }}
+            <div class="flex-1 text-center md:text-left">
+                <div class="flex flex-col md:flex-row md:items-center gap-2 mb-2 justify-center md:justify-start">
+                    <h1 class="text-2xl font-black text-slate-800 font-poppins">{{ $nama }}</h1>
+                    <span class="px-2.5 py-0.5 bg-{{ $themeColor }}-50 text-{{ $themeColor }}-600 text-[10px] font-black uppercase tracking-widest rounded-md border border-{{ $themeColor }}-100">{{ str_replace('_', ' ', $pasien_type) }}</span>
                 </div>
-                
-                <h2 class="text-3xl md:text-[42px] font-black tracking-tight mb-5 font-poppins drop-shadow-md leading-none">{{ $pasien->nama_lengkap }}</h2>
-                
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-black/15 p-4 rounded-2xl backdrop-blur-sm border border-white/10">
-                    <div><p class="text-white/70 text-[10px] font-black uppercase tracking-widest mb-0.5">NIK KTP</p><p class="font-bold text-[13px] tracking-wider">{{ $pasien->nik ?? '-' }}</p></div>
-                    <div><p class="text-white/70 text-[10px] font-black uppercase tracking-widest mb-0.5">Usia Sistem</p><p class="font-bold text-[13px]">{{ \Carbon\Carbon::parse($pasien->tanggal_lahir)->age }} Tahun</p></div>
-                    <div><p class="text-white/70 text-[10px] font-black uppercase tracking-widest mb-0.5">Tanggal Lahir</p><p class="font-bold text-[13px]">{{ \Carbon\Carbon::parse($pasien->tanggal_lahir)->format('d M Y') }}</p></div>
-                    <div><p class="text-white/70 text-[10px] font-black uppercase tracking-widest mb-0.5">Riwayat Kunjungan</p><p class="font-bold text-[13px]">{{ count($kunjungans) }} Kali Periksa</p></div>
+                <div class="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 text-slate-500 text-[12px] font-bold">
+                    <span><i class="fas fa-fingerprint mr-1.5 text-slate-300"></i> NIK: {{ $nik }}</span>
+                    <span><i class="fas fa-birthday-cake mr-1.5 text-slate-300"></i> {{ $tglLahir ? $tglLahir->translatedFormat('d M Y') : '-' }} ({{ $umur }} Thn)</span>
+                    <span class="hidden sm:inline"><i class="fas fa-map-marker-alt mr-1.5 text-slate-300"></i> {{ $pasien->alamat ?? 'Alamat tidak tercatat' }}</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 shrink-0">
+                <div class="bg-slate-900 text-white p-4 rounded-2xl text-center min-w-[110px] shadow-md">
+                    <p class="text-[9px] font-black text-white/50 uppercase tracking-widest mb-1">Total Periksa</p>
+                    <p class="text-xl font-black">{{ $riwayatMedis->count() }} <span class="text-[10px] font-medium opacity-60">Kali</span></p>
+                </div>
+                <div class="bg-cyan-600 text-white p-4 rounded-2xl text-center min-w-[110px] shadow-md">
+                    <p class="text-[9px] font-black text-white/50 uppercase tracking-widest mb-1">Imunisasi</p>
+                    <p class="text-xl font-black">{{ $riwayatImunisasi->count() }} <span class="text-[10px] font-medium opacity-60">Log</span></p>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- TIMELINE REKAM MEDIS --}}
-    <div class="flex items-center gap-3 mb-8 px-2">
-        <div class="w-10 h-10 bg-white border border-slate-200 text-cyan-600 rounded-xl flex items-center justify-center shadow-sm"><i class="fas fa-notes-medical text-lg"></i></div>
-        <h3 class="text-xl font-black text-slate-800 tracking-tight font-poppins">Riwayat Medis Longitudinal</h3>
-    </div>
-
-    <div class="relative bg-white rounded-[32px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-6 sm:p-10 overflow-hidden">
+    {{-- 3. ANALITIK: GRAFIK & LOG VAKSIN --}}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        @if(count($kunjungans) > 0)
-            <div class="timeline-line"></div>
-        @endif
-
-        @forelse($kunjungans as $pem)
-            <div class="relative pl-14 sm:pl-20 mb-10 last:mb-0 group">
-                
-                {{-- Titik Timeline --}}
-                <div class="absolute left-[18px] sm:left-[18px] top-0 w-9 h-9 rounded-full bg-white border-[3px] border-cyan-500 shadow-md flex items-center justify-center text-cyan-600 z-10 transition-transform duration-300 group-hover:scale-125 group-hover:bg-cyan-50">
-                    <i class="fas fa-stethoscope text-[12px]"></i>
-                </div>
-
-                {{-- Kartu Riwayat (Per Tanggal) --}}
-                <div class="bg-slate-50/50 border border-slate-100 rounded-[24px] p-6 sm:p-8 transition-all duration-300 hover:bg-white hover:shadow-[0_15px_40px_rgba(0,0,0,0.06)] hover:border-cyan-200">
-                    
-                    {{-- Header Kunjungan --}}
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-5 border-b border-slate-200/80">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 bg-white border border-slate-200 rounded-xl flex flex-col items-center justify-center shadow-sm shrink-0">
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">{{ \Carbon\Carbon::parse($pem->tanggal_periksa)->translatedFormat('M') }}</span>
-                                <span class="text-[20px] font-black text-slate-800 leading-none">{{ \Carbon\Carbon::parse($pem->tanggal_periksa)->format('d') }}</span>
-                            </div>
-                            <div>
-                                <h4 class="font-black text-slate-800 text-[16px]">{{ \Carbon\Carbon::parse($pem->tanggal_periksa)->translatedFormat('l, Y') }}</h4>
-                                <span class="text-[11px] font-bold text-slate-400 mt-1 flex items-center gap-1.5"><i class="far fa-clock"></i> Pukul {{ $pem->created_at->format('H:i') }} WIB</span>
-                            </div>
-                        </div>
-
-                        @if($pem->keluhan)
-                        <div class="inline-flex items-start gap-2.5 bg-rose-50 border border-rose-100 px-5 py-3 rounded-xl max-w-sm">
-                            <i class="fas fa-comment-medical text-rose-500 mt-0.5 text-lg"></i>
-                            <div>
-                                <span class="text-[9px] font-black text-rose-400 uppercase tracking-widest block mb-0.5">Keluhan Pasien:</span>
-                                <span class="text-[12px] font-bold text-rose-700 leading-tight italic">"{{ $pem->keluhan }}"</span>
-                            </div>
-                        </div>
-                        @endif
-                    </div>
-
-                    {{-- Split View Data (Kader vs Bidan) --}}
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                        
-                        {{-- Data Antropometri (Diukur Kader) --}}
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2 flex items-center gap-2"><i class="fas fa-ruler-combined text-slate-300 text-sm"></i> Antropometri (Meja 2)</p>
-                            
-                            <div class="grid grid-cols-2 gap-y-5 gap-x-4">
-                                <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm"><span class="block text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1">Berat Badan</span><strong class="text-slate-800 text-[15px] font-black">{{ $pem->berat_badan ?? '-' }} <span class="text-xs font-bold text-slate-400">kg</span></strong></div>
-                                <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm"><span class="block text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1">Tinggi Badan</span><strong class="text-slate-800 text-[15px] font-black">{{ $pem->tinggi_badan ?? '-' }} <span class="text-xs font-bold text-slate-400">cm</span></strong></div>
-                                
-                                @if($pem->lingkar_kepala || $pem->lingkar_lengan)
-                                    <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-sm"><span class="block text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-1">LiKA / LiLA</span><strong class="text-slate-800 text-[15px] font-black">{{ $pem->lingkar_kepala ?? $pem->lingkar_lengan }} <span class="text-xs font-bold text-slate-400">cm</span></strong></div>
-                                @endif
-                                
-                                @if($pem->tekanan_darah)
-                                    <div class="bg-rose-50 p-3 rounded-xl border border-rose-100 shadow-sm"><span class="block text-rose-400 font-bold text-[10px] uppercase tracking-widest mb-1">Tensi Darah</span><strong class="text-rose-600 text-[15px] font-black">{{ $pem->tekanan_darah }} <span class="text-[10px]">mmHg</span></strong></div>
-                                @endif
-                            </div>
-
-                            @if($pasien_type == 'ibu_hamil')
-                                <div class="mt-4 bg-pink-50 p-4 rounded-xl border border-pink-100">
-                                    <p class="text-[10px] font-black text-pink-400 uppercase tracking-widest mb-2">Pemeriksaan Kandungan</p>
-                                    <div class="flex gap-4 text-[12px] font-bold text-pink-800">
-                                        <span>TFU: {{ $pem->tfu ?? '-' }} cm</span>
-                                        <span>DJJ: {{ $pem->djj ?? '-' }} /m</span>
-                                        <span>Pos: {{ $pem->posisi_janin ?? '-' }}</span>
-                                    </div>
-                                </div>
-                            @endif
-
-                            <p class="text-[10px] font-bold text-slate-400 mt-4 flex items-center gap-1.5"><i class="fas fa-user-edit"></i> Diukur oleh: {{ $pem->pemeriksa->name ?? 'Kader (Sistem)' }}</p>
-                        </div>
-
-                        {{-- Data Klinis (Didiagnosa Bidan) --}}
-                        <div class="bg-cyan-50/50 border border-cyan-100/60 rounded-[20px] p-6 relative overflow-hidden">
-                            <div class="absolute -right-4 -bottom-4 text-[80px] text-cyan-500/5 pointer-events-none"><i class="fas fa-stethoscope"></i></div>
-                            
-                            <p class="text-[10px] font-black text-cyan-600 uppercase tracking-widest mb-4 border-b border-cyan-100 pb-2 relative z-10 flex items-center gap-2"><i class="fas fa-notes-medical text-sm"></i> Keputusan Medis (Meja 5)</p>
-                            
-                            @if($pem->status_verifikasi == 'verified')
-                                <div class="relative z-10 space-y-4">
-                                    <div>
-                                        <span class="text-[10px] font-bold text-cyan-700/70 uppercase tracking-widest block mb-1">Hasil Diagnosa</span>
-                                        <p class="text-[14px] font-black text-cyan-900 leading-relaxed">"{{ $pem->diagnosa }}"</p>
-                                    </div>
-                                    
-                                    @if($pem->tindakan)
-                                        <div class="bg-white p-4 rounded-xl border border-cyan-100 shadow-sm">
-                                            <span class="text-[10px] font-black text-cyan-600 uppercase tracking-widest block mb-1.5"><i class="fas fa-pills mr-1"></i> Tindakan & Resep Medis</span> 
-                                            <p class="text-[13px] font-bold text-slate-700 leading-relaxed">{{ $pem->tindakan }}</p>
-                                        </div>
-                                    @endif
-
-                                    <div class="pt-2 border-t border-cyan-100 flex items-center gap-2">
-                                        <div class="w-6 h-6 rounded-full bg-cyan-600 text-white flex items-center justify-center text-[9px] font-bold shadow-inner">
-                                            {{ strtoupper(substr($pem->verifikator->name ?? 'B', 0, 1)) }}
-                                        </div>
-                                        <span class="text-[10px] font-bold text-cyan-700 uppercase tracking-widest">Divalidasi Oleh: {{ $pem->verifikator->name ?? 'Bidan' }}</span>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="flex flex-col items-center justify-center py-6 relative z-10 text-center">
-                                    <div class="w-12 h-12 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-xl mb-3"><i class="fas fa-hourglass-half"></i></div>
-                                    <p class="text-[13px] font-bold text-amber-600">Menunggu Validasi</p>
-                                    <p class="text-[11px] font-medium text-amber-600/70 mt-1 max-w-[200px]">Data ini belum diperiksa oleh Bidan di Meja 5.</p>
-                                </div>
-                            @endif
-                        </div>
-
-                    </div>
-                </div>
-
+        {{-- Grafik Tren Medis --}}
+        <div class="lg:col-span-8 bg-white rounded-[24px] p-6 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-[14px] font-black text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-chart-line text-cyan-500"></i> Grafik Pertumbuhan
+                </h3>
+                <span class="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">7 Sesi Terakhir</span>
             </div>
-        @empty
-            <div class="text-center py-20">
-                <div class="w-24 h-24 bg-slate-50 rounded-[24px] flex items-center justify-center text-slate-300 mx-auto mb-5 text-5xl shadow-inner border border-slate-100"><i class="fas fa-folder-open"></i></div>
-                <h4 class="font-black text-slate-800 text-[22px] font-poppins tracking-tight mb-2">Belum Ada Rekam Jejak</h4>
-                <p class="text-[14px] font-medium text-slate-500 max-w-md mx-auto">Pasien ini baru terdaftar di database dan belum pernah melakukan kunjungan fisik ke Posyandu.</p>
+            
+            {{-- Fallback jika belum ada data pemeriksaan --}}
+            @if($riwayatMedis->isEmpty())
+                <div class="h-[280px] flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    <i class="fas fa-chart-area text-4xl mb-3 opacity-50"></i>
+                    <p class="text-[12px] font-bold">Grafik belum tersedia.</p>
+                    <p class="text-[10px] font-medium">Lakukan pemeriksaan medis (Meja 5) terlebih dahulu.</p>
+                </div>
+            @else
+                <div class="h-[280px]">
+                    <canvas id="emrChart"></canvas>
+                </div>
+            @endif
+        </div>
+
+        {{-- Log Imunisasi --}}
+        <div class="lg:col-span-4 bg-white rounded-[24px] p-6 border border-slate-100 shadow-sm flex flex-col">
+            <h3 class="text-[14px] font-black text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-syringe text-teal-500"></i> Riwayat Imunisasi
+            </h3>
+            <div class="space-y-3 flex-1 overflow-y-auto pr-1 custom-scrollbar max-h-[280px]">
+                @forelse($riwayatImunisasi as $imu)
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center group hover:border-teal-200 transition-colors">
+                    <div>
+                        <p class="text-[12px] font-black text-slate-800">{{ $imu->vaksin }}</p>
+                        <p class="text-[10px] font-bold text-slate-400 italic">{{ \Carbon\Carbon::parse($imu->tanggal_imunisasi)->translatedFormat('d M Y') }}</p>
+                    </div>
+                    <span class="text-[9px] font-black px-2 py-1 bg-white border border-slate-200 text-teal-600 rounded-lg uppercase shadow-sm">{{ $imu->dosis }}</span>
+                </div>
+                @empty
+                <div class="h-full flex flex-col items-center justify-center text-center py-10 opacity-40">
+                    <i class="fas fa-shield-virus text-3xl mb-2"></i>
+                    <p class="text-[11px] font-bold">Belum ada riwayat vaksinasi.</p>
+                </div>
+                @endforelse
             </div>
-        @endforelse
+        </div>
     </div>
 
+    {{-- 4. TIMELINE PEMERIKSAAN --}}
+    <div class="bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+            <h3 class="text-[14px] font-black text-slate-800 font-poppins">Timeline Pemeriksaan Klinis</h3>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Diurutkan dari Terbaru</span>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
+                        <th class="py-4 px-8">Waktu & Tanggal</th>
+                        <th class="py-4 px-8">Metrik Fisik</th>
+                        <th class="py-4 px-8">Diagnosa & Tindakan</th>
+                        <th class="py-4 px-8 text-right">Verifikator</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    @forelse($riwayatMedis as $med)
+                    <tr class="hover:bg-slate-50/50 transition-all text-[13px] group">
+                        <td class="py-5 px-8">
+                            <p class="font-black text-slate-800">{{ \Carbon\Carbon::parse($med->tanggal_periksa)->translatedFormat('d F Y') }}</p>
+                            <p class="text-[11px] font-bold text-slate-400 mt-0.5">EMR ID: #{{ $med->id }}</p>
+                        </td>
+                        <td class="py-5 px-8">
+                            <div class="flex items-center gap-3">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Berat</span>
+                                    <span class="font-bold text-slate-700">{{ $med->berat_badan ?? 0 }} kg</span>
+                                </div>
+                                <div class="w-px h-6 bg-slate-200"></div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Tinggi</span>
+                                    <span class="font-bold text-slate-700">{{ $med->tinggi_badan ?? 0 }} cm</span>
+                                </div>
+                                <div class="w-px h-6 bg-slate-200"></div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">IMT</span>
+                                    <span class="font-black text-cyan-600">{{ $med->imt ?? '-' }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-5 px-8">
+                            <p class="font-bold text-slate-800 mb-1 line-clamp-1">{{ $med->diagnosa ?: 'Tidak ada diagnosa spesifik' }}</p>
+                            <p class="text-[11px] text-slate-500 leading-relaxed italic line-clamp-2">{{ $med->tindakan ?: 'Hanya pemeriksaan rutin.' }}</p>
+                        </td>
+                        <td class="py-5 px-8 text-right">
+                            <div class="flex flex-col items-end">
+                                <span class="text-[11px] font-black text-slate-800">{{ Str::words($med->verifikator->name ?? 'Bidan Desa', 1, '') }}</span>
+                                <span class="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1"><i class="fas fa-check-double text-[8px]"></i> Verified</span>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="py-24 text-center">
+                            <i class="fas fa-clipboard-list text-5xl text-slate-100 mb-4"></i>
+                            <h3 class="text-slate-400 font-bold">Belum ada riwayat medis.</h3>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chartData = {!! json_encode($chartData) !!};
+    
+    // Hanya inisialisasi grafik jika data tersedia
+    if(chartData && chartData.length > 0) {
+        const ctx = document.getElementById('emrChart').getContext('2d');
+        
+        const labels = chartData.map(item => {
+            const date = new Date(item.tanggal_periksa);
+            return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        });
+        
+        // Proteksi nilai null menjadi 0
+        const bbData = chartData.map(item => item.berat_badan || 0);
+        const tbData = chartData.map(item => item.tinggi_badan || 0);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Berat Badan (kg)',
+                        data: bbData,
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.05)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#06b6d4',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Tinggi Badan (cm)',
+                        data: tbData,
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, padding: 20, font: { size: 11, weight: 'bold', family: 'Poppins' } }
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: false,
+                        grid: { color: '#f8fafc' },
+                        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+@endpush
 @endsection

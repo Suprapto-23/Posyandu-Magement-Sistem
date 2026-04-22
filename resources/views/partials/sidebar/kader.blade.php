@@ -1,141 +1,168 @@
-@php 
-    $route = request()->route()->getName() ?? '';
+@php
+    $userAuth = auth()->user();
+    $nikAuth = $userAuth->nik ?? ($userAuth->profile->nik ?? null);
     
-    // GAYA PREMIUM SAAS (Menggunakan basis font Poppins)
-    $menuAktif = 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md shadow-indigo-200/50 rounded-[14px] font-semibold tracking-wide scale-[1.02] transition-all duration-300';
-    $menuPasif = 'text-slate-500 hover:bg-indigo-50/50 hover:text-indigo-600 rounded-[14px] font-medium transition-all duration-300';
-    $iconAktif = 'text-white drop-shadow-sm';
-    $iconPasif = 'text-slate-400 group-hover:text-indigo-500 transition-colors duration-300';
+    // Deteksi Peran Dinamis Warga
+    $isOrangTua = false; $isRemaja = false; $isLansia = false;
 
-    $isBukuInduk = in_array($route, [
-        'kader.data.balita.index', 
-        'kader.data.remaja.index', 
-        'kader.data.lansia.index', 
-        'kader.data.ibu-hamil.index'
-    ]);
+    if ($nikAuth) {
+        $isOrangTua = \App\Models\Balita::where('nik_ibu', $nikAuth)->orWhere('nik_ayah', $nikAuth)->exists();
+        $isRemaja = \App\Models\Remaja::where('nik', $nikAuth)->exists();
+        $isLansia = \App\Models\Lansia::where('nik', $nikAuth)->exists();
+    }
+
+    // Fungsi Render CSS Menu Aktif yang Elegan
+    if (!function_exists('user_nav_active')) {
+        function user_nav_active($route) {
+            return request()->routeIs($route) 
+                ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold shadow-lg shadow-teal-200/50 scale-[1.02] rounded-[14px]' 
+                : 'text-slate-500 font-medium hover:bg-teal-50 hover:text-teal-600 rounded-[14px] transition-all duration-300';
+        }
+    }
+    
+    if (!function_exists('user_nav_icon')) {
+        function user_nav_icon($route) {
+            return request()->routeIs($route) 
+                ? 'text-white drop-shadow-sm' 
+                : 'text-slate-400 group-hover:text-teal-500 transition-colors duration-300';
+        }
+    }
 @endphp
 
-<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-[280px] bg-white/95 backdrop-blur-xl border-r border-slate-100 transform -translate-x-full xl:translate-x-0 transition-transform duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex flex-col shadow-[10px_0_40px_rgba(0,0,0,0.03)] xl:shadow-none" style="font-family: 'Poppins', sans-serif;">
+<div class="flex flex-col h-full bg-white/95 backdrop-blur-xl border-r border-slate-100 shadow-[10px_0_40px_rgba(0,0,0,0.02)]" style="font-family: 'Poppins', sans-serif;">
     
-    <div class="h-[80px] flex items-center px-6 shrink-0 border-b border-slate-50/80">
-        <a href="{{ route('kader.dashboard') }}" class="flex items-center gap-3.5 group w-full">
-            <div class="w-10 h-10 rounded-[12px] bg-gradient-to-br from-indigo-600 to-indigo-800 flex items-center justify-center text-white shadow-lg shadow-indigo-200/50 group-hover:rotate-[10deg] group-hover:scale-105 transition-all duration-300">
-                <i class="fas fa-heartbeat text-[18px]"></i>
+    {{-- 1. LOGO & BRANDING --}}
+    <div class="h-[80px] flex items-center px-6 shrink-0 border-b border-slate-50">
+        <a href="{{ route('user.dashboard') }}" class="flex items-center gap-3 w-full group">
+            <div class="w-10 h-10 rounded-[12px] bg-gradient-to-br from-teal-500 to-emerald-600 text-white flex items-center justify-center shadow-md shadow-teal-200/50 group-hover:rotate-6 group-hover:scale-105 transition-all duration-300">
+                <i class="fas fa-leaf text-[18px]"></i>
             </div>
-            <div class="flex flex-col">
-                <h1 class="font-bold text-[19px] text-slate-800 tracking-tight leading-none mb-1">Posyandu<span class="text-indigo-600">Care</span></h1>
-                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest leading-none">Panel Kader</p>
+            <div>
+                <h2 class="text-[19px] font-black text-slate-800 tracking-tight leading-none mb-1">Posyandu<span class="text-teal-600">Care</span></h2>
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Portal Warga</p>
             </div>
         </a>
     </div>
 
-    <div class="flex-1 overflow-y-auto custom-scrollbar px-4 py-6">
-        
-        <div class="mb-8">
-            <a href="{{ route('kader.dashboard') }}" class="group flex items-center gap-3.5 px-4 py-3.5 {{ $route === 'kader.dashboard' ? $menuAktif : $menuPasif }}">
-                <div class="w-5 flex justify-center"><i class="fas fa-grid-2 text-[16px] {{ $route === 'kader.dashboard' ? $iconAktif : $iconPasif }}"></i></div>
-                <span class="text-[13.5px]">Beranda Utama</span>
-            </a>
-        </div>
-
-        <div class="mb-8">
-            <p class="px-4 text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-3">Pelayanan Aktif</p>
-            <div class="space-y-1.5">
-                <a href="{{ route('kader.jadwal.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ Str::startsWith($route, 'kader.jadwal') ? $menuAktif : $menuPasif }}">
-                    <div class="w-5 flex justify-center"><i class="fas fa-calendar-day text-[16px] {{ Str::startsWith($route, 'kader.jadwal') ? $iconAktif : $iconPasif }}"></i></div>
-                    <span class="text-[13.5px]">Jadwal Posyandu</span>
-                </a>
-
-                <a href="{{ route('kader.absensi.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ Str::startsWith($route, 'kader.absensi') ? $menuAktif : $menuPasif }}">
-                    <div class="w-5 flex justify-center"><i class="fas fa-user-check text-[16px] {{ Str::startsWith($route, 'kader.absensi') ? $iconAktif : $iconPasif }}"></i></div>
-                    <span class="text-[13.5px]">Absensi Kehadiran</span>
-                </a>
-
-                <a href="{{ route('kader.pemeriksaan.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ Str::startsWith($route, 'kader.pemeriksaan') ? $menuAktif : $menuPasif }}">
-                    <div class="w-5 flex justify-center"><i class="fas fa-weight text-[16px] {{ Str::startsWith($route, 'kader.pemeriksaan') ? $iconAktif : $iconPasif }}"></i></div>
-                    <span class="text-[13.5px]">Pengukuran Fisik</span>
-                </a>
+    {{-- 2. MINI PROFILE CARD (Identitas Pengguna) --}}
+    <div class="px-5 pt-6 pb-3 shrink-0">
+        <div class="p-3 bg-white border border-slate-100 rounded-[16px] flex items-center gap-3 shadow-sm hover:border-teal-200 transition-colors duration-300 group">
+            <div class="w-11 h-11 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center text-lg font-black shrink-0 border border-teal-100 group-hover:bg-teal-500 group-hover:text-white transition-colors duration-300">
+                {{ strtoupper(substr($userAuth->name ?? 'U', 0, 1)) }}
             </div>
-        </div>
-
-        <div class="mb-8">
-            <p class="px-4 text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-3">Administrasi Pasien</p>
-            <div class="space-y-1.5">
-                
-                {{-- NATIVE DROPDOWN MURNI --}}
-                <button id="btnBukuInduk" type="button" class="w-full group flex items-center justify-between px-4 py-3 {{ $isBukuInduk ? 'bg-indigo-50/80 text-indigo-700 font-semibold rounded-[14px]' : $menuPasif }}">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-5 flex justify-center"><i class="fas fa-folder-open text-[16px] {{ $isBukuInduk ? 'text-indigo-600' : $iconPasif }}"></i></div>
-                        <span class="text-[13.5px]">Buku Induk Data</span>
-                    </div>
-                    <i id="iconBukuInduk" class="fas fa-chevron-right text-[11px] transition-transform duration-300 {{ $isBukuInduk ? 'rotate-90 text-indigo-600' : 'text-slate-400' }}"></i>
-                </button>
-                
-                <div id="menuBukuInduk" class="overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]" style="max-height: {{ $isBukuInduk ? '500px' : '0px' }}; opacity: {{ $isBukuInduk ? '1' : '0' }};">
-                    <div class="pl-12 mt-1 space-y-1 border-l-2 border-indigo-50 ml-[26px] py-2">
-                        <a href="{{ route('kader.data.balita.index') }}" class="block px-4 py-2 rounded-xl text-[13px] transition-colors {{ Str::startsWith($route, 'kader.data.balita') ? 'text-indigo-600 font-bold bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50' }}">Database Balita</a>
-                        <a href="{{ route('kader.data.ibu-hamil.index') }}" class="block px-4 py-2 rounded-xl text-[13px] transition-colors {{ Str::startsWith($route, 'kader.data.ibu-hamil') ? 'text-indigo-600 font-bold bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50' }}">Database Ibu Hamil</a>
-                        <a href="{{ route('kader.data.remaja.index') }}" class="block px-4 py-2 rounded-xl text-[13px] transition-colors {{ Str::startsWith($route, 'kader.data.remaja') ? 'text-indigo-600 font-bold bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50' }}">Database Remaja</a>
-                        <a href="{{ route('kader.data.lansia.index') }}" class="block px-4 py-2 rounded-xl text-[13px] transition-colors {{ Str::startsWith($route, 'kader.data.lansia') ? 'text-indigo-600 font-bold bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50' }}">Database Lansia</a>
-                    </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-[13px] font-bold text-slate-800 truncate">{{ $userAuth->name ?? 'Pengguna Warga' }}</p>
+                <div class="flex items-center gap-1.5 mt-1">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Akses Publik</p>
                 </div>
-
-            </div>
-        </div>
-
-        <div class="mb-4">
-            <p class="px-4 text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-3">Laporan & Sistem</p>
-            <div class="space-y-1.5">
-                <a href="{{ route('kader.kunjungan.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ Str::startsWith($route, 'kader.kunjungan') ? $menuAktif : $menuPasif }}">
-                    <div class="w-5 flex justify-center"><i class="fas fa-history text-[16px] {{ Str::startsWith($route, 'kader.kunjungan') ? $iconAktif : $iconPasif }}"></i></div>
-                    <span class="text-[13.5px]">Riwayat Kunjungan</span>
-                </a>
-
-                <a href="{{ route('kader.laporan.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ Str::startsWith($route, 'kader.laporan') ? $menuAktif : $menuPasif }}">
-                    <div class="w-5 flex justify-center"><i class="fas fa-print text-[16px] {{ Str::startsWith($route, 'kader.laporan') ? $iconAktif : $iconPasif }}"></i></div>
-                    <span class="text-[13.5px]">Ekspor Laporan</span>
-                </a>
-
-                <a href="{{ route('kader.import.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ Str::startsWith($route, 'kader.import') ? $menuAktif : $menuPasif }}">
-                    <div class="w-5 flex justify-center"><i class="fas fa-file-excel text-[16px] {{ Str::startsWith($route, 'kader.import') ? $iconAktif : $iconPasif }}"></i></div>
-                    <span class="text-[13.5px]">Import Data Warga</span>
-                </a>
             </div>
         </div>
     </div>
-</aside>
 
-<script>
-    // Logika Dropdown Akordion Murni (Sangat Ringan & Bebas Bug)
-    document.addEventListener('DOMContentLoaded', function () {
-        const btnBuku = document.getElementById('btnBukuInduk');
-        const menuBuku = document.getElementById('menuBukuInduk');
-        const iconBuku = document.getElementById('iconBukuInduk');
+    {{-- 3. NAVIGASI UTAMA (Menu Berdasarkan Controller) --}}
+    <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-6 custom-scrollbar">
+        
+        {{-- BLOK 1: Layanan Utama --}}
+        <div>
+            <p class="px-3 text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-3">Layanan Utama</p>
+            <div class="space-y-1.5">
+                <a href="{{ route('user.dashboard') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.dashboard') }}">
+                    <div class="w-5 flex justify-center"><i class="fas fa-home text-[16px] {{ user_nav_icon('user.dashboard') }}"></i></div>
+                    <span class="text-[13.5px]">Beranda Saya</span>
+                </a>
+                <a href="{{ route('user.jadwal.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.jadwal.*') }}">
+                    <div class="w-5 flex justify-center"><i class="fas fa-calendar-check text-[16px] {{ user_nav_icon('user.jadwal.*') }}"></i></div>
+                    <span class="text-[13.5px]">Agenda Posyandu</span>
+                </a>
+                <a href="{{ route('user.notifikasi.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.notifikasi.*') }}">
+                    <div class="w-5 flex justify-center"><i class="fas fa-bell text-[16px] {{ user_nav_icon('user.notifikasi.*') }}"></i></div>
+                    <span class="text-[13.5px] flex-1">Pesan & Notifikasi</span>
+                    {{-- Opsional: Badge Notifikasi Unread bisa ditaruh di sini --}}
+                </a>
+            </div>
+        </div>
 
-        if(btnBuku && menuBuku && iconBuku) {
-            btnBuku.addEventListener('click', function () {
-                const isClosed = menuBuku.style.maxHeight === '0px' || menuBuku.style.maxHeight === '';
-                
-                if (isClosed) {
-                    menuBuku.style.maxHeight = menuBuku.scrollHeight + 'px';
-                    menuBuku.style.opacity = '1';
-                    iconBuku.classList.add('rotate-90', 'text-indigo-600');
-                    iconBuku.classList.remove('text-slate-400');
-                    btnBuku.classList.add('bg-indigo-50/80', 'text-indigo-700', 'font-semibold', 'rounded-[14px]');
-                    btnBuku.classList.remove('text-slate-500');
-                } else {
-                    menuBuku.style.maxHeight = '0px';
-                    menuBuku.style.opacity = '0';
-                    iconBuku.classList.remove('rotate-90', 'text-indigo-600');
-                    iconBuku.classList.add('text-slate-400');
+        {{-- BLOK 2: Kesehatan Keluarga (Muncul Dinamis Berdasarkan NIK) --}}
+        @if($isOrangTua || $isRemaja || $isLansia)
+            <div>
+                <p class="px-3 text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-3">Kesehatan Keluarga</p>
+                <div class="space-y-1.5">
                     
-                    // Jangan hapus background jika URL saat ini memang berada di dalam menu buku induk
-                    if (!{{ $isBukuInduk ? 'true' : 'false' }}) {
-                        btnBuku.classList.remove('bg-indigo-50/80', 'text-indigo-700', 'font-semibold', 'rounded-[14px]');
-                        btnBuku.classList.add('text-slate-500');
-                    }
-                }
-            });
-        }
-    });
-</script>
+                    @if($isOrangTua)
+                        <a href="{{ route('user.balita.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.balita.*') }}">
+                            <div class="w-5 flex justify-center"><i class="fas fa-baby text-[16px] {{ user_nav_icon('user.balita.*') }}"></i></div>
+                            <span class="text-[13.5px]">KMS Anak & Balita</span>
+                        </a>
+                        <a href="{{ route('user.imunisasi.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.imunisasi.*') }}">
+                            <div class="w-5 flex justify-center"><i class="fas fa-shield-virus text-[16px] {{ user_nav_icon('user.imunisasi.*') }}"></i></div>
+                            <span class="text-[13.5px]">Riwayat Imunisasi</span>
+                        </a>
+                    @endif
+                    
+                    @if($isRemaja)
+                        <a href="{{ route('user.remaja.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.remaja.*') }}">
+                            <div class="w-5 flex justify-center"><i class="fas fa-user-graduate text-[16px] {{ user_nav_icon('user.remaja.*') }}"></i></div>
+                            <span class="text-[13.5px]">Kesehatan Remaja</span>
+                        </a>
+                        <a href="{{ route('user.konseling.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.konseling.*') }}">
+                            <div class="w-5 flex justify-center"><i class="fas fa-comments-medical text-[16px] {{ user_nav_icon('user.konseling.*') }}"></i></div>
+                            <span class="text-[13.5px]">Ruang Konsultasi</span>
+                        </a>
+                    @endif
+                    
+                    @if($isLansia)
+                        <a href="{{ route('user.lansia.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.lansia.*') }}">
+                            <div class="w-5 flex justify-center"><i class="fas fa-wheelchair text-[16px] {{ user_nav_icon('user.lansia.*') }}"></i></div>
+                            <span class="text-[13.5px]">Pemantauan Lansia</span>
+                        </a>
+                    @endif
+
+                </div>
+            </div>
+        @else
+            {{-- BLOK PERINGATAN: Jika warga belum sync NIK dengan Database Posyandu --}}
+            <div class="mx-4 mt-2 mb-4 p-5 bg-gradient-to-br from-rose-50 to-orange-50 border border-rose-100 rounded-[20px] shadow-sm relative overflow-hidden">
+                <i class="fas fa-id-card-clip absolute -right-3 -bottom-3 text-5xl text-rose-500/10"></i>
+                <div class="flex items-center gap-2 mb-3 relative z-10">
+                    <div class="w-6 h-6 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-xs"><i class="fas fa-lock"></i></div>
+                    <h4 class="text-[11px] font-black text-rose-700 uppercase tracking-widest">Akses Terkunci</h4>
+                </div>
+                <p class="text-[11px] font-medium text-rose-600/90 leading-relaxed mb-4 relative z-10">Rekam medis (KMS/Imunisasi) akan otomatis terbuka setelah NIK Anda sinkron dengan database Posyandu.</p>
+                <a href="{{ route('user.profile.edit') }}" class="block w-full text-center py-2.5 bg-rose-500 text-white text-[11px] font-bold rounded-xl hover:bg-rose-600 transition-colors shadow-sm relative z-10">
+                    Lengkapi NIK Sekarang
+                </a>
+            </div>
+        @endif
+
+        {{-- BLOK 3: Pengaturan Akun --}}
+        <div>
+            <p class="px-3 text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-3 mt-2">Personal</p>
+            <div class="space-y-1.5">
+                <a href="{{ route('user.riwayat.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.riwayat.*') }}">
+                    <div class="w-5 flex justify-center"><i class="fas fa-notes-medical text-[16px] {{ user_nav_icon('user.riwayat.*') }}"></i></div>
+                    <span class="text-[13.5px]">Buku Rekam Medis</span>
+                </a>
+                <a href="{{ route('user.profile.edit') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.profile.*') }}">
+                    <div class="w-5 flex justify-center"><i class="fas fa-user-cog text-[16px] {{ user_nav_icon('user.profile.*') }}"></i></div>
+                    <span class="text-[13.5px]">Data Profil Warga</span>
+                </a>
+            </div>
+        </div>
+
+    </nav>
+    
+    {{-- 4. TOMBOL LOGOUT --}}
+    <div class="p-5 border-t border-slate-50 shrink-0 bg-slate-50/50">
+        <form action="{{ route('logout') }}" method="POST" class="m-0 p-0">
+            @csrf
+            <button type="submit" onclick="showGlobalLoader()" class="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 bg-white border border-slate-200 rounded-[14px] text-rose-500 font-bold hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all shadow-sm">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="text-[13px]">Keluar Aplikasi</span>
+            </button>
+        </form>
+    </div>
+</div>

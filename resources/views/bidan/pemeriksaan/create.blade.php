@@ -87,22 +87,34 @@
         <input type="hidden" name="pasien_type" :value="getModelType()">
 
         {{-- ================================================================= --}}
-        {{-- LANGKAH 1: PILIH KATEGORI (TABS TANPA RELOAD)                     --}}
+        {{-- LANGKAH 1: PILIH KATEGORI                                         --}}
         {{-- ================================================================= --}}
         <div>
-            <h3 class="text-[14px] font-black text-slate-800 font-poppins mb-4 flex items-center gap-2"><i class="fas fa-layer-group text-cyan-500"></i> 1. Pilih Klaster Layanan</h3>
-            <div class="flex overflow-x-auto pb-4 gap-4 hide-scrollbar">
+            <h3 class="text-[14px] font-black text-slate-800 font-poppins mb-4 flex items-center gap-2">
+                <i class="fas fa-layer-group text-cyan-500"></i> 1. Pilih Klaster Layanan
+            </h3>
+            <div class="flex overflow-x-auto pb-4 gap-3 hide-scrollbar">
                 <button type="button" @click="setKategori('balita')" class="kat-tab" :class="kategori === 'balita' ? 'active-balita' : ''">
-                    <i class="fas fa-baby"></i> <span>Balita</span>
+                    <i class="fas fa-child"></i> <span>Balita</span>
+                    <span style="font-size:9px;font-weight:700;opacity:0.7">1–5 tahun</span>
+                </button>
+                {{-- DITAMBAHKAN: Kategori Bayi (0-12 bulan) --}}
+                {{-- Catatan: Bayi menggunakan tabel balitas, dibedakan dari balita di sisi view saja --}}
+                <button type="button" @click="setKategori('bayi')" class="kat-tab" :class="kategori === 'bayi' ? 'active-balita' : ''">
+                    <i class="fas fa-baby"></i> <span>Bayi</span>
+                    <span style="font-size:9px;font-weight:700;opacity:0.7">0–12 bulan</span>
                 </button>
                 <button type="button" @click="setKategori('ibu_hamil')" class="kat-tab" :class="kategori === 'ibu_hamil' ? 'active-ibu_hamil' : ''">
                     <i class="fas fa-female"></i> <span>Ibu Hamil</span>
+                    <span style="font-size:9px;font-weight:700;opacity:0.7">Bumil</span>
                 </button>
                 <button type="button" @click="setKategori('remaja')" class="kat-tab" :class="kategori === 'remaja' ? 'active-remaja' : ''">
                     <i class="fas fa-user-graduate"></i> <span>Remaja</span>
+                    <span style="font-size:9px;font-weight:700;opacity:0.7">10–18 tahun</span>
                 </button>
                 <button type="button" @click="setKategori('lansia')" class="kat-tab" :class="kategori === 'lansia' ? 'active-lansia' : ''">
                     <i class="fas fa-user-clock"></i> <span>Lansia</span>
+                    <span style="font-size:9px;font-weight:700;opacity:0.7">≥ 60 tahun</span>
                 </button>
             </div>
         </div>
@@ -162,30 +174,47 @@
         {{-- ================================================================= --}}
         <div x-show="pasienId !== ''" x-transition.opacity.duration.500ms x-cloak class="space-y-6">
             
-            {{-- BLOK 3A: PENGUKURAN FISIK --}}
+            {{-- BLOK 3A: PENGUKURAN FISIK KADER (Anthropometri) --}}
             <div class="bg-white rounded-[32px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-8">
                 <h3 class="text-[14px] font-black text-slate-800 font-poppins mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
                     <i class="fas fa-weight text-emerald-500"></i> 3A. Pengukuran Fisik (Antropometri)
+                    <span class="ml-auto text-[9px] font-black text-slate-400 uppercase tracking-widest">Meja 2 — Kader</span>
                 </h3>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    
+                    {{-- BB & TB (semua kategori) --}}
                     <div>
-                        <label class="med-label text-emerald-600">Berat Badan <span class="text-rose-500">*</span></label>
+                        <label class="med-label text-emerald-600">
+                            Berat Badan <span class="text-rose-500">*</span>
+                        </label>
                         <div class="input-group">
                             <input type="number" step="0.01" name="berat_badan" x-model="fisik.bb" required placeholder="0.0" class="med-input focus:border-emerald-400">
                             <span class="unit">kg</span>
                         </div>
                     </div>
                     <div>
-                        <label class="med-label text-emerald-600">Tinggi / Panjang Badan <span class="text-rose-500">*</span></label>
+                        <label class="med-label text-emerald-600">
+                            <span x-text="['balita','bayi'].includes(kategori) ? 'Panjang Badan (Telentang)' : 'Tinggi Badan'"></span>
+                            <span class="text-rose-500"> *</span>
+                        </label>
                         <div class="input-group">
                             <input type="number" step="0.1" name="tinggi_badan" x-model="fisik.tb" required placeholder="0.0" class="med-input focus:border-emerald-400">
                             <span class="unit">cm</span>
                         </div>
                     </div>
 
-                    {{-- Form Tensi (Bukan Balita) --}}
-                    <div x-show="kategori !== 'balita'">
+                    {{-- Suhu Tubuh (semua kategori) --}}
+                    <div>
+                        <label class="med-label">Suhu Tubuh</label>
+                        <div class="input-group">
+                            <input type="number" step="0.1" name="suhu_tubuh" placeholder="36.5" class="med-input" min="35" max="42">
+                            <span class="unit">°C</span>
+                        </div>
+                    </div>
+
+                    {{-- Tekanan Darah (bukan balita/bayi) --}}
+                    <div x-show="!['balita','bayi'].includes(kategori)" x-cloak>
                         <label class="med-label text-rose-500">Tekanan Darah (Tensi)</label>
                         <div class="input-group">
                             <input type="text" name="tekanan_darah" placeholder="120/80" class="med-input border-rose-100 focus:border-rose-400 font-mono">
@@ -193,8 +222,8 @@
                         </div>
                     </div>
 
-                    {{-- Form Balita Khusus --}}
-                    <div x-show="kategori === 'balita'">
+                    {{-- Lingkar Kepala (balita & bayi) --}}
+                    <div x-show="['balita','bayi'].includes(kategori)" x-cloak>
                         <label class="med-label text-sky-500">Lingkar Kepala</label>
                         <div class="input-group">
                             <input type="number" step="0.1" name="lingkar_kepala" placeholder="0.0" class="med-input border-sky-100 focus:border-sky-400">
@@ -202,19 +231,38 @@
                         </div>
                     </div>
                     
-                    {{-- Form LILA Cerdas (Ibu Hamil, Remaja, Balita) --}}
-                    <div x-show="['balita', 'ibu_hamil', 'remaja'].includes(kategori)">
-                        <label class="med-label text-pink-600">Lingkar Lengan (LiLA)</label>
+                    {{-- LiLA (semua kecuali lansia sudah masuk LP) --}}
+                    <div x-show="kategori !== ''">
+                        <label class="med-label text-pink-600">LiLA (Lingkar Lengan Atas)</label>
                         <div class="input-group">
                             <input type="number" step="0.1" name="lila" x-model="fisik.lila" placeholder="0.0" class="med-input border-pink-100 focus:border-pink-400">
                             <span class="unit">cm</span>
                         </div>
-                        {{-- Warning KEK Otomatis --}}
+                        {{-- Warning KEK — hanya indikator visual, bukan diagnosis --}}
                         <div x-show="isKEK()" x-transition class="mt-2 flex items-center gap-2 px-3 py-2 bg-rose-50 border border-rose-200 rounded-lg danger-pulse">
-                            <i class="fas fa-exclamation-circle text-rose-500 text-lg"></i>
-                            <p class="text-[10px] font-bold text-rose-700">Waspada KEK. LiLA di bawah 23.5 cm.</p>
+                            <i class="fas fa-exclamation-circle text-rose-500"></i>
+                            <p class="text-[10px] font-bold text-rose-700">Indikator LiLA &lt; 23,5 cm. Bidan yang menentukan status KEK.</p>
                         </div>
                     </div>
+
+                    {{-- Lingkar Perut / LP (lansia & bumil) --}}
+                    <div x-show="['lansia','ibu_hamil'].includes(kategori)" x-cloak>
+                        <label class="med-label text-emerald-600">Lingkar Perut (LP)</label>
+                        <div class="input-group">
+                            <input type="number" step="0.1" name="lingkar_perut" placeholder="0.0" class="med-input border-emerald-100 focus:border-emerald-400">
+                            <span class="unit">cm</span>
+                        </div>
+                    </div>
+
+                    {{-- TFU (ibu hamil) --}}
+                    <div x-show="kategori === 'ibu_hamil'" x-cloak>
+                        <label class="med-label text-pink-600">TFU (Tinggi Fundus Uteri)</label>
+                        <div class="input-group">
+                            <input type="text" name="tfu" placeholder="28" class="med-input border-pink-100 focus:border-pink-400">
+                            <span class="unit">cm</span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -241,43 +289,123 @@
                         </div>
                     </div>
 
-                    {{-- Form Khusus Balita --}}
-                    <div x-show="kategori === 'balita'" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 bg-white border border-slate-200 rounded-[20px]">
+                    {{-- BLOK DIAGNOSA: PENILAIAN KLINIS BIDAN --}}
+                    {{-- PENTING: Semua field di bawah diisi MANUAL oleh Bidan, bukan deteksi sistem --}}
+                    
+                    {{-- Form Penilaian Balita / Bayi --}}
+                    <div x-show="['balita','bayi'].includes(kategori)" class="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-white border border-slate-200 rounded-[20px]">
+                        <p class="col-span-full text-[9px] font-black text-sky-500 uppercase tracking-widest">Status Gizi Balita (Standar WHO/Kemenkes)</p>
                         <div>
-                            <label class="med-label text-sky-600">Status Gizi (IMT/U)</label>
+                            <label class="med-label text-sky-600">Status BB/U</label>
+                            <select name="status_gizi_bb_u" class="med-input border-sky-100 cursor-pointer">
+                                <option value="">-- BB/Umur --</option>
+                                <option value="BB Sangat Kurang">BB Sangat Kurang (&lt;-3 SD)</option>
+                                <option value="BB Kurang">BB Kurang (-3 s/d &lt;-2 SD)</option>
+                                <option value="BB Normal">BB Normal (-2 s/d +1 SD)</option>
+                                <option value="Risiko BB Lebih">Risiko BB Lebih (&gt;+1 SD)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="med-label text-rose-500">Status TB/U (Stunting)</label>
+                            <select name="indikasi_stunting" class="med-input border-rose-200 cursor-pointer bg-rose-50/30">
+                                <option value="Normal">Normal (-2 s/d +3 SD)</option>
+                                <option value="Pendek">Pendek / Stunted (-3 s/d &lt;-2 SD)</option>
+                                <option value="Sangat Pendek">Sangat Pendek (&lt;-3 SD)</option>
+                                <option value="Tinggi">Tinggi (&gt;+3 SD)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="med-label text-sky-600">Status BB/TB (Wasting)</label>
                             <select name="status_gizi" class="med-input border-sky-100 cursor-pointer">
-                                <option value="">-- Analisis Gizi --</option>
-                                <option value="Gizi Baik">Gizi Baik (Normal)</option>
-                                <option value="Gizi Kurang">Gizi Kurang (Underweight)</option>
-                                <option value="Gizi Buruk">Gizi Buruk (Severe)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="med-label text-rose-500">Indikasi Stunting (TB/U)</label>
-                            <select name="indikasi_stunting" class="med-input border-rose-200 cursor-pointer bg-rose-50">
-                                <option value="Normal">Normal (Tidak Stunting)</option>
-                                <option value="Berisiko">Terindikasi Stunting / Pendek</option>
-                                <option value="Stunting">Sangat Stunting (Parah)</option>
+                                <option value="">-- BB/Tinggi --</option>
+                                <option value="Gizi Buruk">Gizi Buruk / Sangat Kurus</option>
+                                <option value="Gizi Kurang">Gizi Kurang / Kurus</option>
+                                <option value="Gizi Baik">Gizi Baik / Normal</option>
+                                <option value="Risiko Lebih">Risiko Berat Lebih</option>
+                                <option value="Gizi Lebih">Gizi Lebih / Obesitas</option>
                             </select>
                         </div>
                     </div>
 
-                    {{-- Form Khusus Bumil --}}
-                    <div x-show="kategori === 'ibu_hamil'" class="grid grid-cols-1 sm:grid-cols-3 gap-6 p-5 bg-pink-50 border border-pink-100 rounded-[20px]">
-                        <div><label class="med-label text-pink-600">TFU (cm)</label><input type="text" name="tfu" class="med-input border-white" placeholder="Tinggi Fundus"></div>
-                        <div><label class="med-label text-pink-600">DJJ (bpm)</label><input type="text" name="djj" class="med-input border-white" placeholder="Detak Jantung"></div>
-                        <div><label class="med-label text-pink-600">Posisi Janin</label><input type="text" name="posisi_janin" class="med-input border-white" placeholder="Cth: Kepala"></div>
+                    {{-- Form Penilaian Ibu Hamil --}}
+                    <div x-show="kategori === 'ibu_hamil'" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-5 bg-pink-50/50 border border-pink-100 rounded-[20px]">
+                        <p class="col-span-full text-[9px] font-black text-pink-600 uppercase tracking-widest">Penilaian Kebidanan & Risiko Kehamilan</p>
+                        <div><label class="med-label text-pink-600">HB (Hemoglobin)</label>
+                            <div class="input-group"><input type="number" step="0.1" name="hb" class="med-input border-white" placeholder="11.0"><span class="unit">g/dL</span></div></div>
+                        <div><label class="med-label text-pink-600">Status Anemia (dari HB)</label>
+                            <select name="status_anemia" class="med-input cursor-pointer">
+                                <option value="">-- Pilih Status --</option>
+                                <option value="Tidak Anemia">Tidak Anemia (HB ≥ 11)</option>
+                                <option value="Anemia Ringan">Anemia Ringan (8–10.9)</option>
+                                <option value="Anemia Sedang">Anemia Sedang (6–7.9)</option>
+                                <option value="Anemia Berat">Anemia Berat (&lt;6)</option>
+                            </select></div>
+                        <div><label class="med-label text-pink-600">Status KEK (dari LiLA)</label>
+                            <select name="status_kek" class="med-input cursor-pointer">
+                                <option value="Tidak KEK">Tidak KEK (LiLA ≥ 23.5)</option>
+                                <option value="KEK">KEK (LiLA &lt; 23.5 cm)</option>
+                            </select></div>
+                        <div><label class="med-label text-pink-600">DJJ (Detak Jantung Janin)</label>
+                            <div class="input-group"><input type="text" name="djj" class="med-input border-white" placeholder="140"><span class="unit">bpm</span></div></div>
+                        <div><label class="med-label text-pink-600">Usia Kehamilan</label>
+                            <div class="input-group"><input type="number" step="1" name="usia_kehamilan" class="med-input border-white" placeholder="20"><span class="unit">mgg</span></div></div>
+                        <div><label class="med-label text-pink-600">Kategori Risiko</label>
+                            <select name="status_risiko" class="med-input cursor-pointer">
+                                <option value="">-- Pilih Risiko --</option>
+                                <option value="Risiko Rendah">Risiko Rendah</option>
+                                <option value="Risiko Sedang">Risiko Sedang</option>
+                                <option value="Risiko Tinggi">Risiko Tinggi (Rujuk)</option>
+                            </select></div>
                     </div>
 
-                    {{-- Form Khusus Lansia --}}
-                    <div x-show="kategori === 'lansia'" class="p-5 bg-emerald-50 border border-emerald-100 rounded-[20px]">
-                        <label class="med-label text-emerald-600">Skala Kemandirian (Kategori ABC)</label>
-                        <select name="tingkat_kemandirian" class="med-input border-white cursor-pointer">
-                            <option value="">-- Pilih Skala --</option>
-                            <option value="A">A (Mandiri Penuh)</option>
-                            <option value="B">B (Bantuan Sebagian)</option>
-                            <option value="C">C (Ketergantungan Total / Stroke)</option>
-                        </select>
+                    {{-- Form Penilaian Remaja --}}
+                    <div x-show="kategori === 'remaja'" class="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-violet-50/50 border border-violet-100 rounded-[20px]">
+                        <p class="col-span-full text-[9px] font-black text-violet-600 uppercase tracking-widest">Penilaian Gizi & Anemia Remaja</p>
+                        <div><label class="med-label text-violet-600">HB (Hemoglobin)</label>
+                            <div class="input-group"><input type="number" step="0.1" name="hb" class="med-input border-white" placeholder="12.0"><span class="unit">g/dL</span></div></div>
+                        <div><label class="med-label text-violet-600">Status Anemia (dari HB)</label>
+                            <select name="status_anemia" class="med-input cursor-pointer">
+                                <option value="">-- Pilih Status --</option>
+                                <option value="Tidak Anemia">Tidak Anemia (HB ≥ 12)</option>
+                                <option value="Anemia Ringan">Anemia Ringan (10–11.9)</option>
+                                <option value="Anemia Sedang">Anemia Sedang (8–9.9)</option>
+                                <option value="Anemia Berat">Anemia Berat (&lt;8)</option>
+                            </select></div>
+                        <div><label class="med-label text-violet-600">Status IMT Remaja</label>
+                            <select name="status_imt" class="med-input cursor-pointer">
+                                <option value="">-- Pilih IMT --</option>
+                                <option value="Sangat Kurus">Sangat Kurus</option>
+                                <option value="Kurus">Kurus</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Gemuk">Gemuk</option>
+                                <option value="Obesitas">Obesitas</option>
+                            </select></div>
+                    </div>
+
+                    {{-- Form Penilaian Lansia --}}
+                    <div x-show="kategori === 'lansia'" class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 bg-emerald-50/50 border border-emerald-100 rounded-[20px]">
+                        <p class="col-span-full text-[9px] font-black text-emerald-600 uppercase tracking-widest">Penilaian Biomedis Lansia</p>
+                        <div><label class="med-label text-emerald-600">Gula Darah Sewaktu (GDS) <span class="text-[9px] font-medium text-slate-400 normal-case">jika tersedia alat</span></label>
+                            <div class="input-group"><input type="number" step="1" name="gula_darah" class="med-input border-white" placeholder="120"><span class="unit">mg/dL</span></div></div>
+                        <div><label class="med-label text-emerald-600">Kolesterol <span class="text-[9px] font-medium text-slate-400 normal-case">jika tersedia alat</span></label>
+                            <div class="input-group"><input type="number" step="1" name="kolesterol" class="med-input border-white" placeholder="200"><span class="unit">mg/dL</span></div></div>
+                        <div><label class="med-label text-emerald-600">Asam Urat <span class="text-[9px] font-medium text-slate-400 normal-case">jika tersedia alat</span></label>
+                            <div class="input-group"><input type="number" step="0.1" name="asam_urat" class="med-input border-white" placeholder="5.5"><span class="unit">mg/dL</span></div></div>
+                        <div><label class="med-label text-emerald-600">Skala Kemandirian (Barthel/ABC)</label>
+                            <select name="tingkat_kemandirian" class="med-input border-white cursor-pointer">
+                                <option value="">-- Pilih Skala --</option>
+                                <option value="A">A — Mandiri Sepenuhnya</option>
+                                <option value="B">B — Bantuan Sebagian</option>
+                                <option value="C">C — Ketergantungan Total</option>
+                            </select></div>
+                        <div class="md:col-span-2"><label class="med-label text-emerald-600">Status Gizi / IMT Lansia</label>
+                            <select name="status_gizi" class="med-input border-white cursor-pointer">
+                                <option value="">-- Pilih Status --</option>
+                                <option value="Kurus">Kurus (IMT &lt; 18.5)</option>
+                                <option value="Normal">Normal (IMT 18.5–24.9)</option>
+                                <option value="Gemuk">Gemuk (IMT 25–26.9)</option>
+                                <option value="Obesitas">Obesitas (IMT ≥ 27)</option>
+                            </select></div>
                     </div>
 
                     {{-- Diagnosa & Tindakan Umum --}}
@@ -358,13 +486,14 @@
                 return data.filter(p => p.nama.toLowerCase().includes(q) || (p.nik && p.nik.includes(q)));
             },
 
-            // Mapping Model untuk Database
+    // Mapping Model Laravel untuk Backend
             getModelType() {
                 const map = {
-                    'balita': 'App\\Models\\Balita',
-                    'ibu_hamil': 'App\\Models\\IbuHamil',
-                    'remaja': 'App\\Models\\Remaja',
-                    'lansia': 'App\\Models\\Lansia'
+                    'balita'    : 'App\\Models\\Balita',
+                    'bayi'      : 'App\\Models\\Balita',   // Bayi menggunakan tabel balitas
+                    'ibu_hamil' : 'App\\Models\\IbuHamil',
+                    'remaja'    : 'App\\Models\\Remaja',
+                    'lansia'    : 'App\\Models\\Lansia'
                 };
                 return map[this.kategori] || '';
             },

@@ -1,9 +1,9 @@
-@extends('layouts.kader')
 
-@section('title', 'Absensi Posyandu')
-@section('page-name', 'Presensi Warga')
 
-@push('styles')
+<?php $__env->startSection('title', 'Absensi Posyandu'); ?>
+<?php $__env->startSection('page-name', 'Presensi Warga'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
     /* Animasi Halus */
@@ -38,39 +38,40 @@
 
     [x-cloak] { display: none !important; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="max-w-5xl mx-auto pb-40 animate-fade-in" x-data="{ searchQuery: '' }">
     
-    {{-- 1. HEADER --}}
+    
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
             <h1 class="text-3xl font-black text-slate-800 font-poppins tracking-tight mb-1">Presensi Warga</h1>
             <p class="text-sm font-medium text-slate-500 flex items-center gap-2">
-                <i class="far fa-calendar-check text-indigo-500"></i> Pertemuan: <b class="text-indigo-600">{{ \Carbon\Carbon::parse($tanggal ?? now())->translatedFormat('d F Y') }}</b>
+                <i class="far fa-calendar-check text-indigo-500"></i> Pertemuan: <b class="text-indigo-600"><?php echo e(\Carbon\Carbon::parse($tanggal ?? now())->translatedFormat('d F Y')); ?></b>
             </p>
         </div>
         <div class="bg-white px-5 py-2.5 rounded-full border border-slate-200 shadow-sm text-center">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">Sesi Posyandu Ke</span>
-            <span class="text-lg font-black text-indigo-600">#{{ $pertemuanBerikutnya ?? 1 }}</span>
+            <span class="text-lg font-black text-indigo-600">#<?php echo e($pertemuanBerikutnya ?? 1); ?></span>
         </div>
     </div>
 
-    {{-- 2. NAVIGASI TAB KATEGORI --}}
+    
     <div class="flex gap-2 overflow-x-auto no-scrollbar mb-8 pb-2">
-        @php $tabs = ['bayi'=>'Bayi (0-11 Bln)', 'balita'=>'Balita (1-5 Thn)', 'remaja'=>'Remaja', 'ibu_hamil'=>'Ibu Hamil', 'lansia'=>'Lansia']; @endphp
-        @foreach($tabs as $k => $label)
-            <a href="{{ route('kader.absensi.index', ['kategori' => $k]) }}" 
-               class="kat-tab {{ $kategori == $k ? 'active' : 'bg-white border-slate-200 shadow-sm' }}">
-               {{ $label }}
+        <?php $tabs = ['bayi'=>'Bayi (0-11 Bln)', 'balita'=>'Balita (1-5 Thn)', 'remaja'=>'Remaja', 'ibu_hamil'=>'Ibu Hamil', 'lansia'=>'Lansia']; ?>
+        <?php $__currentLoopData = $tabs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $k => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <a href="<?php echo e(route('kader.absensi.index', ['kategori' => $k])); ?>" 
+               class="kat-tab <?php echo e($kategori == $k ? 'active' : 'bg-white border-slate-200 shadow-sm'); ?>">
+               <?php echo e($label); ?>
+
             </a>
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 
-    @if(isset($pasiens) && count($pasiens) > 0)
+    <?php if(isset($pasiens) && count($pasiens) > 0): ?>
         
-        {{-- 3. PENCARIAN REALTIME --}}
+        
         <div class="mb-6 relative max-w-md ml-auto">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <i class="fas fa-search text-slate-400"></i>
@@ -84,58 +85,59 @@
             </button>
         </div>
 
-        {{-- 4. DAFTAR WARGA (SATU KOTAK BESAR YANG RAPI) --}}
-        <form action="{{ route('kader.absensi.store') }}" method="POST" id="formAbsensi">
-            @csrf
-            <input type="hidden" name="kategori" value="{{ $kategori }}">
-            <input type="hidden" name="tanggal_posyandu" value="{{ $tanggal ?? date('Y-m-d') }}">
-            <input type="hidden" name="pertemuan_ke" value="{{ $pertemuanBerikutnya ?? 1 }}">
+        
+        <form action="<?php echo e(route('kader.absensi.store')); ?>" method="POST" id="formAbsensi">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="kategori" value="<?php echo e($kategori); ?>">
+            <input type="hidden" name="tanggal_posyandu" value="<?php echo e($tanggal ?? date('Y-m-d')); ?>">
+            <input type="hidden" name="pertemuan_ke" value="<?php echo e($pertemuanBerikutnya ?? 1); ?>">
             
             <div class="bg-white rounded-[24px] border border-slate-200 shadow-sm overflow-hidden mb-10">
                 <div class="divide-y divide-slate-100">
-                    @foreach($pasiens as $p)
-                    @php
+                    <?php $__currentLoopData = $pasiens; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php
                         $pasienId = $p->id;
                         $pasienType = get_class($p);
                         $hadirCheck = isset($absensiData[$pasienId]) && $absensiData[$pasienId]['status_kehadiran'] == 'hadir' ? 'checked' : '';
                         $absenCheck = isset($absensiData[$pasienId]) && $absensiData[$pasienId]['status_kehadiran'] == 'absen' ? 'checked' : '';
                         $keterangan = isset($absensiData[$pasienId]) ? $absensiData[$pasienId]['keterangan'] : '';
-                    @endphp
+                    ?>
                     
-                    {{-- Row Warga --}}
-                    <div class="p-5 md:p-6 hover:bg-slate-50/50 transition-colors" x-show="'{{ strtolower($p->nama_lengkap) }}'.includes(searchQuery.toLowerCase())">
+                    
+                    <div class="p-5 md:p-6 hover:bg-slate-50/50 transition-colors" x-show="'<?php echo e(strtolower($p->nama_lengkap)); ?>'.includes(searchQuery.toLowerCase())">
                         
-                        <input type="hidden" name="absensi[{{ $loop->index }}][pasien_id]" value="{{ $pasienId }}">
-                        <input type="hidden" name="absensi[{{ $loop->index }}][pasien_type]" value="{{ $pasienType }}">
+                        <input type="hidden" name="absensi[<?php echo e($loop->index); ?>][pasien_id]" value="<?php echo e($pasienId); ?>">
+                        <input type="hidden" name="absensi[<?php echo e($loop->index); ?>][pasien_type]" value="<?php echo e($pasienType); ?>">
                         
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
                             
-                            {{-- Identitas (Kiri) --}}
+                            
                             <div class="flex items-center gap-4">
                                 <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200 font-black text-sm">
-                                    {{ $loop->iteration }}
+                                    <?php echo e($loop->iteration); ?>
+
                                 </div>
                                 <div>
-                                    <p class="text-[15px] font-black text-slate-800 leading-tight mb-0.5">{{ $p->nama_lengkap }}</p>
-                                    <p class="text-[11px] font-bold text-slate-400 tracking-widest uppercase">NIK: {{ $p->nik ?? '-' }}</p>
+                                    <p class="text-[15px] font-black text-slate-800 leading-tight mb-0.5"><?php echo e($p->nama_lengkap); ?></p>
+                                    <p class="text-[11px] font-bold text-slate-400 tracking-widest uppercase">NIK: <?php echo e($p->nik ?? '-'); ?></p>
                                 </div>
                             </div>
                             
-                            {{-- Kontrol Hadir/Absen (Kanan) --}}
+                            
                             <div class="flex flex-col md:items-end gap-3 shrink-0">
                                 <div class="flex items-center gap-2 w-full md:w-auto">
                                     
-                                    {{-- Tombol Hadir --}}
+                                    
                                     <label class="cursor-pointer flex-1 md:flex-none">
-                                        <input type="radio" name="absensi[{{ $loop->index }}][status_kehadiran]" value="hadir" class="peer sr-only radio-hadir" id="hadir_{{ $loop->index }}" {{ $hadirCheck }} onchange="toggleKet({{ $loop->index }})">
+                                        <input type="radio" name="absensi[<?php echo e($loop->index); ?>][status_kehadiran]" value="hadir" class="peer sr-only radio-hadir" id="hadir_<?php echo e($loop->index); ?>" <?php echo e($hadirCheck); ?> onchange="toggleKet(<?php echo e($loop->index); ?>)">
                                         <div class="text-center px-6 py-3 rounded-full border-2 border-slate-100 text-slate-400 font-black text-[11px] uppercase tracking-widest hover:border-indigo-200 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-all">
                                             Hadir
                                         </div>
                                     </label>
                                     
-                                    {{-- Tombol Absen --}}
+                                    
                                     <label class="cursor-pointer flex-1 md:flex-none">
-                                        <input type="radio" name="absensi[{{ $loop->index }}][status_kehadiran]" value="absen" class="peer sr-only radio-absen" id="absen_{{ $loop->index }}" {{ $absenCheck }} onchange="toggleKet({{ $loop->index }})">
+                                        <input type="radio" name="absensi[<?php echo e($loop->index); ?>][status_kehadiran]" value="absen" class="peer sr-only radio-absen" id="absen_<?php echo e($loop->index); ?>" <?php echo e($absenCheck); ?> onchange="toggleKet(<?php echo e($loop->index); ?>)">
                                         <div class="text-center px-6 py-3 rounded-full border-2 border-slate-100 text-slate-400 font-black text-[11px] uppercase tracking-widest hover:border-rose-200 peer-checked:bg-rose-500 peer-checked:text-white peer-checked:border-rose-500 transition-all">
                                             Absen
                                         </div>
@@ -143,23 +145,23 @@
 
                                 </div>
 
-                                {{-- Input Keterangan Absen --}}
-                                <div class="w-full md:w-64 {{ $absenCheck ? '' : 'hidden' }}" id="ketBox_{{ $loop->index }}">
-                                    <input type="text" name="absensi[{{ $loop->index }}][keterangan]" id="keterangan_{{ $loop->index }}" value="{{ $keterangan }}" placeholder="Tulis alasan absen..." class="w-full bg-rose-50 border border-rose-200 rounded-xl px-4 py-2.5 text-[11px] font-bold text-rose-700 placeholder-rose-300 outline-none focus:ring-2 focus:ring-rose-200 transition-all">
+                                
+                                <div class="w-full md:w-64 <?php echo e($absenCheck ? '' : 'hidden'); ?>" id="ketBox_<?php echo e($loop->index); ?>">
+                                    <input type="text" name="absensi[<?php echo e($loop->index); ?>][keterangan]" id="keterangan_<?php echo e($loop->index); ?>" value="<?php echo e($keterangan); ?>" placeholder="Tulis alasan absen..." class="w-full bg-rose-50 border border-rose-200 rounded-xl px-4 py-2.5 text-[11px] font-bold text-rose-700 placeholder-rose-300 outline-none focus:ring-2 focus:ring-rose-200 transition-all">
                                 </div>
                             </div>
 
                         </div>
                     </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
             </div>
 
-            {{-- 5. FLOATING DOCK (RATA TENGAH SEMPURNA) --}}
+            
             <div class="floating-dock-wrapper">
                 <div class="floating-dock flex-col sm:flex-row gap-4 sm:gap-0">
                     
-                    {{-- Statistik Ringkas --}}
+                    
                     <div class="flex items-center justify-center gap-6 sm:gap-10 w-full sm:w-auto px-4">
                         <div class="text-center">
                             <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Sudah Diisi</p>
@@ -172,7 +174,7 @@
                         </div>
                     </div>
                     
-                    {{-- Tombol Simpan --}}
+                    
                     <button type="submit" id="btnSimpan" class="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 text-white rounded-full text-[12px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-[0_8px_20px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 flex items-center justify-center gap-2">
                         <i class="fas fa-save text-base"></i> Simpan Presensi Hari Ini
                     </button>
@@ -181,8 +183,8 @@
             </div>
 
         </form>
-    @else
-        {{-- Empty State --}}
+    <?php else: ?>
+        
         <div class="bg-white rounded-[32px] border border-slate-200 py-24 text-center shadow-sm">
             <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-5 text-slate-300 text-4xl border border-slate-100">
                 <i class="fas fa-folder-open"></i>
@@ -190,13 +192,13 @@
             <h3 class="text-xl font-black text-slate-800 font-poppins mb-2">Belum Ada Warga</h3>
             <p class="text-[13px] text-slate-500 max-w-sm mx-auto leading-relaxed">Sistem tidak menemukan daftar warga untuk kategori layanan ini. Silakan daftarkan warga terlebih dahulu.</p>
         </div>
-    @endif
+    <?php endif; ?>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const totalWarga = {{ isset($pasiens) ? count($pasiens) : 0 }};
+    const totalWarga = <?php echo e(isset($pasiens) ? count($pasiens) : 0); ?>;
     
     // Fungsi untuk memunculkan kotak alasan jika "Absen" diklik
     function toggleKet(index) {
@@ -246,5 +248,6 @@
         btn.classList.add('opacity-75', 'cursor-wait');
     });
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.kader', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/kader/absensi/index.blade.php ENDPATH**/ ?>

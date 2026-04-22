@@ -119,11 +119,27 @@
                     <input type="date" name="tanggal_imunisasi" value="{{ date('Y-m-d') }}" class="med-input cursor-pointer focus:ring-4 focus:ring-cyan-50" required>
                 </div>
 
-                <div class="col-span-1 md:col-span-2">
-                    <label class="med-label">Nama Vaksin (Termasuk Dosis) <span class="text-rose-500">*</span></label>
-                    <input type="text" name="vaksin" required placeholder="Contoh: Polio 1, DPT-HB-Hib 2, TT 1, Campak..." class="med-input text-[14px] py-4 focus:ring-4 focus:ring-cyan-50">
-                    <p class="text-[10px] font-bold text-slate-400 mt-2"><i class="fas fa-info-circle"></i> Tuliskan nama vaksin beserta urutan dosisnya secara langsung.</p>
-                </div>
+<div class="col-span-1 md:col-span-2">
+    <label class="med-label">Nama Vaksin <span class="text-rose-500">*</span></label>
+    <input list="list-vaksin" name="vaksin" required placeholder="Pilih atau ketik jenis vaksin..." 
+           class="med-input text-[14px] py-4 focus:ring-4 focus:ring-cyan-50">
+    
+    <datalist id="list-vaksin">
+        <option value="Hepatitis B (HB0)">
+        <option value="BCG">
+        <option value="Polio 1 (Tetes)">
+        <option value="DPT-HB-Hib 1">
+        <option value="PCV 1">
+        <option value="Campak Rubella (MR)">
+        <option value="IPV (Suntik Polio)">
+        <option value="Tetanus Toxoid (TT) 1">
+        <option value="Tetanus Toxoid (TT) 2">
+        <option value="Tetanus Toxoid (TT) 3">
+    </datalist>
+    <p class="text-[10px] font-bold text-slate-400 mt-2">
+        <i class="fas fa-info-circle mr-1"></i> Gunakan nama standar untuk memudahkan rekapitulasi bulanan.
+    </p>
+</div>
 
                 <div class="col-span-1 md:col-span-2 mt-2">
                     <div class="p-5 rounded-2xl border-2 border-amber-200 bg-amber-50/50">

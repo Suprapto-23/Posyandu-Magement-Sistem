@@ -10,9 +10,6 @@ use App\Models\Pemeriksaan;
 
 class PemeriksaanController extends Controller
 {
-    /**
-     * 1. Menampilkan Antrian (Pending) & Riwayat (Verified)
-     */
     public function index(Request $request)
     {
         $tab = $request->get('tab', 'pending');
@@ -35,12 +32,9 @@ class PemeriksaanController extends Controller
 
         return view('bidan.pemeriksaan.index', compact('pemeriksaans', 'tab', 'pendingCount', 'search'));
     }
-/**
-     * 2. Menampilkan Form Input Mandiri (Bidan Bypass)
-     */
+
     public function create()
     {
-        // Mengambil data warga untuk pilihan dropdown
         $balitas = \App\Models\Balita::orderBy('nama_lengkap')->get();
         $remajas = \App\Models\Remaja::orderBy('nama_lengkap')->get();
         $lansias = \App\Models\Lansia::orderBy('nama_lengkap')->get();
@@ -49,20 +43,14 @@ class PemeriksaanController extends Controller
         return view('bidan.pemeriksaan.create', compact('balitas', 'remajas', 'lansias', 'ibuHamils'));
     }
 
-    /**
-     * 3. Menyimpan Data Input Mandiri
-     */
     public function store(Request $request)
     {
-        // Bidan melakukan input mandiri, jadi status langsung 'verified'
         try {
             DB::beginTransaction();
 
             $pemeriksaan = new Pemeriksaan($request->except(['_token']));
-            
-            // Set default kredensial karena Bidan yang input sendiri
             $pemeriksaan->tanggal_periksa = now();
-            $pemeriksaan->pemeriksa_id = Auth::id(); // Dianggap Bidan yang mengukur
+            $pemeriksaan->pemeriksa_id = Auth::id(); 
             $pemeriksaan->status_verifikasi = 'verified'; 
             $pemeriksaan->verified_by = Auth::id();
             $pemeriksaan->verified_at = now();
@@ -78,25 +66,20 @@ class PemeriksaanController extends Controller
             return redirect()->back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
     }
-    /**
-     * 2. Halaman Split-View: Menampilkan Data (Verified) ATAU Form Validasi (Pending)
-     */
+
     public function show($id) 
     {
         $pemeriksaan = Pemeriksaan::with(['balita', 'remaja', 'lansia', 'ibuHamil', 'pemeriksa', 'verifikator'])->findOrFail($id);
         return view('bidan.pemeriksaan.show', compact('pemeriksaan'));
     }
 
-    /**
-     * 3. Eksekusi Validasi Medis (Terima ACC, Tolak, atau Reset Ulang)
-     */
     public function verifikasi(Request $request, $id)
     {
         DB::beginTransaction();
         try {
             $pemeriksaan = Pemeriksaan::findOrFail($id);
 
-            // Jika Bidan menekan tombol "Buka Kunci / Ralat"
+            // Jika Bidan mereset validasi
             if ($request->status_verifikasi === 'pending') {
                 $pemeriksaan->update([
                     'status_verifikasi' => 'pending',
@@ -113,7 +96,6 @@ class PemeriksaanController extends Controller
                     ->with('success', 'Validasi dibatalkan. Silakan berikan diagnosa ulang.');
             }
 
-            // Validasi Input dari Bidan
             $request->validate([
                 'status_verifikasi' => 'required|in:verified,rejected',
                 'diagnosa'          => 'required_if:status_verifikasi,verified',
@@ -126,7 +108,6 @@ class PemeriksaanController extends Controller
                 'posisi_janin'      => 'nullable|string',
             ]);
 
-            // Ambil semua data yang diinput
             $dataUpdate = $request->only([
                 'diagnosa', 'tindakan', 'catatan_bidan', 
                 'status_gizi', 'indikasi_stunting', 
@@ -135,10 +116,18 @@ class PemeriksaanController extends Controller
 
             $dataUpdate['status_verifikasi'] = $request->status_verifikasi;
 
-            // Logika Waktu dan Verifikator
             if ($request->status_verifikasi === 'verified') {
                 $dataUpdate['verified_by'] = Auth::id();
                 $dataUpdate['verified_at'] = now();
+                
+                // KALKULATOR IMT DIGITAL (Murni Matematika, Bukan Sistem Pakar)
+                if (in_array($pemeriksaan->kategori_pasien, ['remaja', 'lansia', 'ibu_hamil'])) {
+                    if ($pemeriksaan->berat_badan > 0 && $pemeriksaan->tinggi_badan > 0) {
+                        $tb_m = $pemeriksaan->tinggi_badan / 100;
+                        $dataUpdate['imt'] = round($pemeriksaan->berat_badan / ($tb_m * $tb_m), 2);
+                    }
+                }
+
                 $pesan = 'Validasi klinis dan diagnosa medis berhasil disimpan!';
             } else {
                 $dataUpdate['verified_by'] = null;
@@ -157,7 +146,6 @@ class PemeriksaanController extends Controller
         }
     }
 
-    // Fungsi bawaan lainnya...
     public function edit($id) { return redirect()->route('bidan.pemeriksaan.show', $id); }
     public function update(Request $request, $id) { return $this->verifikasi($request, $id); }
     public function destroy($id) {

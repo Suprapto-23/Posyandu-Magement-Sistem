@@ -1,9 +1,9 @@
-@extends('layouts.bidan')
 
-@section('title', 'Validasi & Pemeriksaan Lanjutan')
-@section('page-name', 'Workspace Bidan')
 
-@push('styles')
+<?php $__env->startSection('title', 'Validasi & Pemeriksaan Lanjutan'); ?>
+<?php $__env->startSection('page-name', 'Workspace Bidan'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
     .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -71,11 +71,11 @@
     /* Blok pembagi antar seksi */
     .divider { height: 1px; background: linear-gradient(to right, transparent, #e2e8f0, transparent); margin: 24px 0; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
-@php
+<?php
     // ── Deteksi Kategori Pasien ─────────────────────────────────────────
     $namaPasien  = $pemeriksaan->balita->nama_lengkap 
                 ?? $pemeriksaan->remaja->nama_lengkap 
@@ -115,61 +115,67 @@
     // LiLA < 23.5 cm = risiko KEK (ini hanya INDIKATOR, bukan diagnosis — bidan yang memutuskan)
     $lilaKader = floatval($pemeriksaan->lingkar_lengan ?? $pemeriksaan->lila ?? 0);
     $isRisikoKEK = ($lilaKader > 0 && $lilaKader < 23.5) && ($isBumil || $isRemaja);
-@endphp
+?>
 
 <div class="max-w-5xl mx-auto space-y-6 animate-slide-up pb-12">
 
-    {{-- ── Navigasi Kembali ─────────────────────────────────────────── --}}
+    
     <div class="flex items-center justify-between">
-        <a href="{{ route('bidan.pemeriksaan.index') }}" 
+        <a href="<?php echo e(route('bidan.pemeriksaan.index')); ?>" 
            class="inline-flex items-center gap-2 text-[12px] font-bold text-slate-400 hover:text-cyan-600 transition-colors">
             <i class="fas fa-arrow-left"></i> Kembali ke Antrian
         </a>
         <span class="text-[11px] font-bold text-slate-400">
-            Kode: {{ $pemeriksaan->kunjungan->kode_kunjungan ?? '#'.$pemeriksaan->id }}
+            Kode: <?php echo e($pemeriksaan->kunjungan->kode_kunjungan ?? '#'.$pemeriksaan->id); ?>
+
         </span>
     </div>
 
-    {{-- ══════════════════════════════════════════════════════════════
-         KARTU 1: IDENTITAS PASIEN
-         ══════════════════════════════════════════════════════════════ --}}
+    
     <div class="bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
         
         <div class="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative overflow-hidden">
-            {{-- Background dekoratif --}}
+            
             <div class="absolute -right-16 -bottom-16 w-56 h-56 rounded-full opacity-10 pointer-events-none"
-                 style="background: radial-gradient(circle, var(--color-{{ $nCol }}-400, #0ea5e9), transparent)"></div>
+                 style="background: radial-gradient(circle, var(--color-<?php echo e($nCol); ?>-400, #0ea5e9), transparent)"></div>
 
-            {{-- Info pasien --}}
+            
             <div class="flex items-center gap-5 relative z-10">
                 <div class="w-[70px] h-[70px] rounded-[18px] flex items-center justify-center text-3xl shrink-0 shadow-md
-                            {{ $nCol == 'sky' ? 'bg-sky-100 text-sky-500' : '' }}
-                            {{ $nCol == 'cyan' ? 'bg-cyan-100 text-cyan-500' : '' }}
-                            {{ $nCol == 'violet' ? 'bg-violet-100 text-violet-500' : '' }}
-                            {{ $nCol == 'emerald' ? 'bg-emerald-100 text-emerald-500' : '' }}
-                            {{ $nCol == 'pink' ? 'bg-pink-100 text-pink-500' : '' }}">
-                    <i class="fas fa-{{ $nIco }}"></i>
+                            <?php echo e($nCol == 'sky' ? 'bg-sky-100 text-sky-500' : ''); ?>
+
+                            <?php echo e($nCol == 'cyan' ? 'bg-cyan-100 text-cyan-500' : ''); ?>
+
+                            <?php echo e($nCol == 'violet' ? 'bg-violet-100 text-violet-500' : ''); ?>
+
+                            <?php echo e($nCol == 'emerald' ? 'bg-emerald-100 text-emerald-500' : ''); ?>
+
+                            <?php echo e($nCol == 'pink' ? 'bg-pink-100 text-pink-500' : ''); ?>">
+                    <i class="fas fa-<?php echo e($nIco); ?>"></i>
                 </div>
                 <div>
-                    <span class="inline-block px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg mb-2 {{ $badgeClass }}">
-                        {{ $kategoriLabel }}
+                    <span class="inline-block px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg mb-2 <?php echo e($badgeClass); ?>">
+                        <?php echo e($kategoriLabel); ?>
+
                     </span>
                     <h2 class="text-2xl font-black text-slate-800 tracking-tight leading-none mb-1">
-                        {{ $namaPasien }}
+                        <?php echo e($namaPasien); ?>
+
                     </h2>
                     <div class="flex items-center gap-3 text-[11px] font-medium text-slate-500">
                         <span><i class="far fa-calendar-alt mr-1 text-slate-400"></i>
-                            {{ \Carbon\Carbon::parse($pemeriksaan->tanggal_periksa ?? $pemeriksaan->created_at)->translatedFormat('d F Y') }}
+                            <?php echo e(\Carbon\Carbon::parse($pemeriksaan->tanggal_periksa ?? $pemeriksaan->created_at)->translatedFormat('d F Y')); ?>
+
                         </span>
                         <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                        <span>Diukur Kader: {{ Str::words($pemeriksaan->pemeriksa->name ?? 'Sistem', 2, '') }}</span>
+                        <span>Diukur Kader: <?php echo e(Str::words($pemeriksaan->pemeriksa->name ?? 'Sistem', 2, '')); ?></span>
                     </div>
                 </div>
             </div>
 
-            {{-- Badge status verifikasi --}}
+            
             <div class="relative z-10 shrink-0">
-                @if($isVerified)
+                <?php if($isVerified): ?>
                     <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-100 px-4 py-3 rounded-2xl">
                         <div class="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center">
                             <i class="fas fa-check text-sm"></i>
@@ -179,7 +185,7 @@
                             <p class="text-[13px] font-black text-slate-800">Tervalidasi</p>
                         </div>
                     </div>
-                @else
+                <?php else: ?>
                     <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 px-4 py-3 rounded-2xl">
                         <div class="w-9 h-9 rounded-full bg-amber-400 text-white flex items-center justify-center animate-pulse">
                             <i class="fas fa-clock text-sm"></i>
@@ -189,30 +195,28 @@
                             <p class="text-[13px] font-black text-slate-800">Perlu Validasi</p>
                         </div>
                     </div>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
 
-        {{-- Alert KEK dari data kader --}}
-        @if($isRisikoKEK)
+        
+        <?php if($isRisikoKEK): ?>
         <div class="mx-6 mb-4 flex items-center gap-3 px-4 py-3 bg-rose-50 border border-rose-200 rounded-2xl kek-alert">
             <i class="fas fa-exclamation-triangle text-rose-500 text-lg"></i>
             <div>
                 <p class="text-[11px] font-black text-rose-700">
-                    Indikator Risiko KEK — LiLA: {{ $lilaKader }} cm (di bawah ambang 23,5 cm)
+                    Indikator Risiko KEK — LiLA: <?php echo e($lilaKader); ?> cm (di bawah ambang 23,5 cm)
                 </p>
                 <p class="text-[10px] font-medium text-rose-500 mt-0.5">
                     Ini adalah indikator otomatis dari data kader. Keputusan final ada pada bidan.
                 </p>
             </div>
         </div>
-        @endif
+        <?php endif; ?>
 
     </div>
 
-    {{-- ══════════════════════════════════════════════════════════════
-         KARTU 2: HASIL PENGUKURAN FISIK (DARI KADER — READ ONLY)
-         ══════════════════════════════════════════════════════════════ --}}
+    
     <div class="bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-8">
         
         <div class="form-section-header">
@@ -220,93 +224,97 @@
             Hasil Pengukuran Fisik Kader (Meja 2 — Baca Saja)
         </div>
 
-        {{-- GRID UMUM (Semua Kategori) --}}
+        
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
             <div class="kader-card highlight">
                 <p class="kd-label">Berat Badan</p>
-                <p class="kd-val">{{ $pemeriksaan->berat_badan ?? '-' }}<span class="kd-unit">kg</span></p>
+                <p class="kd-val"><?php echo e($pemeriksaan->berat_badan ?? '-'); ?><span class="kd-unit">kg</span></p>
             </div>
             <div class="kader-card highlight">
-                <p class="kd-label">{{ ($isBalita||$isBayi) ? 'Panjang Badan' : 'Tinggi Badan' }}</p>
-                <p class="kd-val">{{ $pemeriksaan->tinggi_badan ?? '-' }}<span class="kd-unit">cm</span></p>
+                <p class="kd-label"><?php echo e(($isBalita||$isBayi) ? 'Panjang Badan' : 'Tinggi Badan'); ?></p>
+                <p class="kd-val"><?php echo e($pemeriksaan->tinggi_badan ?? '-'); ?><span class="kd-unit">cm</span></p>
             </div>
             <div class="kader-card">
                 <p class="kd-label">LiLA (Lingkar Lengan)</p>
-                <p class="kd-val {{ ($lilaKader > 0 && $lilaKader < 23.5) ? 'text-rose-500' : '' }}">
-                    {{ $pemeriksaan->lingkar_lengan ?? $pemeriksaan->lila ?? '-' }}<span class="kd-unit">cm</span>
+                <p class="kd-val <?php echo e(($lilaKader > 0 && $lilaKader < 23.5) ? 'text-rose-500' : ''); ?>">
+                    <?php echo e($pemeriksaan->lingkar_lengan ?? $pemeriksaan->lila ?? '-'); ?><span class="kd-unit">cm</span>
                 </p>
             </div>
-            @if($pemeriksaan->suhu_tubuh)
-            <div class="kader-card {{ floatval($pemeriksaan->suhu_tubuh) > 37.5 ? 'warn' : '' }}">
+            <?php if($pemeriksaan->suhu_tubuh): ?>
+            <div class="kader-card <?php echo e(floatval($pemeriksaan->suhu_tubuh) > 37.5 ? 'warn' : ''); ?>">
                 <p class="kd-label">Suhu Tubuh</p>
-                <p class="kd-val {{ floatval($pemeriksaan->suhu_tubuh) > 37.5 ? 'text-rose-500' : '' }}">
-                    {{ $pemeriksaan->suhu_tubuh }}<span class="kd-unit">°C</span>
-                    @if(floatval($pemeriksaan->suhu_tubuh) > 37.5)
+                <p class="kd-val <?php echo e(floatval($pemeriksaan->suhu_tubuh) > 37.5 ? 'text-rose-500' : ''); ?>">
+                    <?php echo e($pemeriksaan->suhu_tubuh); ?><span class="kd-unit">°C</span>
+                    <?php if(floatval($pemeriksaan->suhu_tubuh) > 37.5): ?>
                         <span class="text-[9px] block text-rose-500 font-black">DEMAM</span>
-                    @endif
+                    <?php endif; ?>
                 </p>
             </div>
-            @endif
+            <?php endif; ?>
         </div>
 
-        {{-- GRID SPESIFIK BALITA / BAYI --}}
-        @if($isBalita || $isBayi)
+        
+        <?php if($isBalita || $isBayi): ?>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-sky-50/50 rounded-2xl border border-sky-100">
             <p class="col-span-full text-[9px] font-black text-sky-500 uppercase tracking-widest mb-1">Data Khusus Balita</p>
             <div class="kader-card">
                 <p class="kd-label text-sky-500">Lingkar Kepala</p>
-                <p class="kd-val">{{ $pemeriksaan->lingkar_kepala ?? '-' }}<span class="kd-unit">cm</span></p>
+                <p class="kd-val"><?php echo e($pemeriksaan->lingkar_kepala ?? '-'); ?><span class="kd-unit">cm</span></p>
             </div>
             <div class="kader-card">
                 <p class="kd-label text-sky-500">Lingkar Perut</p>
-                <p class="kd-val">{{ $pemeriksaan->lingkar_perut ?? '-' }}<span class="kd-unit">cm</span></p>
+                <p class="kd-val"><?php echo e($pemeriksaan->lingkar_perut ?? '-'); ?><span class="kd-unit">cm</span></p>
             </div>
         </div>
-        @endif
+        <?php endif; ?>
 
-        {{-- GRID SPESIFIK REMAJA / LANSIA / BUMIL --}}
-        @if($isRemaja || $isLansia || $isBumil)
+        
+        <?php if($isRemaja || $isLansia || $isBumil): ?>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-4 
-                    {{ $isRemaja ? 'bg-violet-50/50 border-violet-100' : '' }}
-                    {{ $isLansia ? 'bg-emerald-50/50 border-emerald-100' : '' }}
-                    {{ $isBumil ? 'bg-pink-50/50 border-pink-100' : '' }}
+                    <?php echo e($isRemaja ? 'bg-violet-50/50 border-violet-100' : ''); ?>
+
+                    <?php echo e($isLansia ? 'bg-emerald-50/50 border-emerald-100' : ''); ?>
+
+                    <?php echo e($isBumil ? 'bg-pink-50/50 border-pink-100' : ''); ?>
+
                     rounded-2xl border">
             <p class="col-span-full text-[9px] font-black uppercase tracking-widest mb-1
-                       {{ $isRemaja ? 'text-violet-500' : '' }}
-                       {{ $isLansia ? 'text-emerald-600' : '' }}
-                       {{ $isBumil ? 'text-pink-500' : '' }}">
-                Data Khusus {{ $kategoriLabel }}
+                       <?php echo e($isRemaja ? 'text-violet-500' : ''); ?>
+
+                       <?php echo e($isLansia ? 'text-emerald-600' : ''); ?>
+
+                       <?php echo e($isBumil ? 'text-pink-500' : ''); ?>">
+                Data Khusus <?php echo e($kategoriLabel); ?>
+
             </p>
-            <div class="kader-card {{ floatval($pemeriksaan->tekanan_darah) > 0 && intval($pemeriksaan->tekanan_darah) >= 140 ? 'warn' : '' }}">
+            <div class="kader-card <?php echo e(floatval($pemeriksaan->tekanan_darah) > 0 && intval($pemeriksaan->tekanan_darah) >= 140 ? 'warn' : ''); ?>">
                 <p class="kd-label">Tekanan Darah</p>
-                <p class="kd-val text-sm">{{ $pemeriksaan->tekanan_darah ?? '-' }}<span class="kd-unit">mmHg</span></p>
-                @if(intval($pemeriksaan->tekanan_darah) >= 140)
+                <p class="kd-val text-sm"><?php echo e($pemeriksaan->tekanan_darah ?? '-'); ?><span class="kd-unit">mmHg</span></p>
+                <?php if(intval($pemeriksaan->tekanan_darah) >= 140): ?>
                     <p class="text-[9px] font-black text-rose-500 mt-1">HIPERTENSI</p>
-                @endif
+                <?php endif; ?>
             </div>
-            @if($isLansia)
+            <?php if($isLansia): ?>
             <div class="kader-card">
                 <p class="kd-label">Lingkar Perut (LP)</p>
-                <p class="kd-val">{{ $pemeriksaan->lingkar_perut ?? '-' }}<span class="kd-unit">cm</span></p>
+                <p class="kd-val"><?php echo e($pemeriksaan->lingkar_perut ?? '-'); ?><span class="kd-unit">cm</span></p>
             </div>
-            @endif
-            @if($isBumil)
+            <?php endif; ?>
+            <?php if($isBumil): ?>
             <div class="kader-card">
                 <p class="kd-label">TFU (Tinggi Fundus)</p>
-                <p class="kd-val">{{ $pemeriksaan->tfu ?? '-' }}<span class="kd-unit">cm</span></p>
+                <p class="kd-val"><?php echo e($pemeriksaan->tfu ?? '-'); ?><span class="kd-unit">cm</span></p>
             </div>
-            @endif
+            <?php endif; ?>
         </div>
-        @endif
+        <?php endif; ?>
 
     </div>
 
-    {{-- ══════════════════════════════════════════════════════════════
-         KARTU 3: FORM PEMERIKSAAN LANJUTAN BIDAN + VALIDASI
-         ══════════════════════════════════════════════════════════════ --}}
+    
     <div class="bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
         
-        {{-- Header form --}}
+        
         <div class="px-8 py-5 bg-gradient-to-r from-cyan-600 to-blue-600 flex items-center justify-between">
             <div>
                 <p class="text-[9px] font-black text-cyan-200 uppercase tracking-widest mb-0.5">Meja 5 — Bidan</p>
@@ -315,16 +323,17 @@
                 </h3>
             </div>
             <span class="px-3 py-1.5 bg-white/20 text-white text-[10px] font-black rounded-lg uppercase tracking-widest backdrop-blur-sm">
-                {{ $kategoriLabel }}
+                <?php echo e($kategoriLabel); ?>
+
             </span>
         </div>
         
         <div class="p-6 md:p-8">
-            <form id="formPemeriksaan" action="{{ route('bidan.pemeriksaan.update', $pemeriksaan->id) }}" method="POST">
-                @csrf
-                @method('PUT')
+            <form id="formPemeriksaan" action="<?php echo e(route('bidan.pemeriksaan.update', $pemeriksaan->id)); ?>" method="POST">
+                <?php echo csrf_field(); ?>
+                <?php echo method_field('PUT'); ?>
 
-                {{-- ── A. KEPUTUSAN BIDAN ──────────────────────────────────── --}}
+                
                 <div class="mb-8">
                     <div class="form-section-header">
                         <i class="fas fa-gavel"></i>
@@ -332,15 +341,12 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         
-                        {{-- Validasi --}}
+                        
                         <label class="cursor-pointer">
-                            {{-- 
-                                PERBAIKAN BUG: Sebelumnya ditulis '{{ $isVerified ? 'checked' : 'checked' }}'
-                                yang membuat tombol SELALU checked. Sudah diperbaiki.
-                            --}}
+                            
                             <input type="radio" name="status_verifikasi" value="verified" 
                                    class="sr-only keputusan-radio"
-                                   {{ $isVerified ? 'checked' : '' }}>
+                                   <?php echo e($isVerified ? 'checked' : ''); ?>>
                             <div class="flex items-center gap-4 p-4 border-2 border-slate-200 rounded-[18px] transition-all bg-white hover:border-cyan-200">
                                 <div class="icon-box w-11 h-11 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-lg transition-colors">
                                     <i class="fas fa-check-double"></i>
@@ -352,11 +358,11 @@
                             </div>
                         </label>
 
-                        {{-- Tolak --}}
+                        
                         <label class="cursor-pointer">
                             <input type="radio" name="status_verifikasi" value="ditolak"
                                    class="sr-only keputusan-radio-tolak"
-                                   {{ ($pemeriksaan->status_verifikasi === 'ditolak') ? 'checked' : '' }}>
+                                   <?php echo e(($pemeriksaan->status_verifikasi === 'ditolak') ? 'checked' : ''); ?>>
                             <div class="flex items-center gap-4 p-4 border-2 border-slate-200 rounded-[18px] transition-all bg-white hover:border-rose-200">
                                 <div class="icon-box w-11 h-11 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-lg transition-colors">
                                     <i class="fas fa-undo-alt"></i>
@@ -372,16 +378,16 @@
 
                 <div class="divider"></div>
 
-                {{-- ── B. PENGUKURAN TAMBAHAN BIDAN ───────────────────────── --}}
-                {{-- Ini adalah pengukuran yang dilakukan bidan sendiri, bukan dari kader --}}
+                
+                
                 <div class="mb-8">
                     <div class="form-section-header">
                         <i class="fas fa-thermometer-half"></i>
                         B. Pengukuran Tambahan oleh Bidan
                     </div>
 
-                    {{-- ══ SEKSI KHUSUS BALITA / BAYI ══ --}}
-                    @if($isBalita || $isBayi)
+                    
+                    <?php if($isBalita || $isBayi): ?>
                     <div class="space-y-4 p-5 bg-sky-50/50 border border-sky-100 rounded-[20px]">
                         <p class="text-[10px] font-black text-sky-600 uppercase tracking-widest">Pengukuran Fisik Balita / Bayi</p>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -390,7 +396,7 @@
                                 <div class="input-unit">
                                     <input type="number" step="0.1" name="suhu_tubuh" 
                                            class="med-input" placeholder="36.5"
-                                           value="{{ $pemeriksaan->suhu_tubuh }}">
+                                           value="<?php echo e($pemeriksaan->suhu_tubuh); ?>">
                                     <span class="unit">°C</span>
                                 </div>
                             </div>
@@ -399,7 +405,7 @@
                                 <div class="input-unit">
                                     <input type="number" step="0.1" name="lingkar_kepala" 
                                            class="med-input" placeholder="0.0"
-                                           value="{{ $pemeriksaan->lingkar_kepala }}">
+                                           value="<?php echo e($pemeriksaan->lingkar_kepala); ?>">
                                     <span class="unit">cm</span>
                                 </div>
                             </div>
@@ -408,16 +414,16 @@
                                 <div class="input-unit">
                                     <input type="number" step="0.1" name="lingkar_perut" 
                                            class="med-input" placeholder="0.0"
-                                           value="{{ $pemeriksaan->lingkar_perut }}">
+                                           value="<?php echo e($pemeriksaan->lingkar_perut); ?>">
                                     <span class="unit">cm</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    @endif
+                    <?php endif; ?>
 
-                    {{-- ══ SEKSI KHUSUS REMAJA ══ --}}
-                    @if($isRemaja)
+                    
+                    <?php if($isRemaja): ?>
                     <div class="space-y-4 p-5 bg-violet-50/50 border border-violet-100 rounded-[20px]">
                         <p class="text-[10px] font-black text-violet-600 uppercase tracking-widest">Pengukuran Tambahan Remaja</p>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -426,7 +432,7 @@
                                 <div class="input-unit">
                                     <input type="number" step="0.1" name="suhu_tubuh" 
                                            class="med-input" placeholder="36.5"
-                                           value="{{ $pemeriksaan->suhu_tubuh }}">
+                                           value="<?php echo e($pemeriksaan->suhu_tubuh); ?>">
                                     <span class="unit">°C</span>
                                 </div>
                             </div>
@@ -437,16 +443,16 @@
                                 <div class="input-unit">
                                     <input type="number" step="0.1" name="hb" 
                                            class="med-input" placeholder="12.0"
-                                           value="{{ $pemeriksaan->hb }}">
+                                           value="<?php echo e($pemeriksaan->hb); ?>">
                                     <span class="unit">g/dL</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    @endif
+                    <?php endif; ?>
 
-                    {{-- ══ SEKSI KHUSUS LANSIA ══ --}}
-                    @if($isLansia)
+                    
+                    <?php if($isLansia): ?>
                     <div class="space-y-4 p-5 bg-emerald-50/50 border border-emerald-100 rounded-[20px]">
                         <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Pemeriksaan Biomedis Lansia</p>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -455,7 +461,7 @@
                                 <div class="input-unit">
                                     <input type="number" step="0.1" name="suhu_tubuh" 
                                            class="med-input" placeholder="36.5"
-                                           value="{{ $pemeriksaan->suhu_tubuh }}">
+                                           value="<?php echo e($pemeriksaan->suhu_tubuh); ?>">
                                     <span class="unit">°C</span>
                                 </div>
                             </div>
@@ -466,7 +472,7 @@
                                 <div class="input-unit">
                                     <input type="number" step="1" name="gula_darah" 
                                            class="med-input" placeholder="120"
-                                           value="{{ $pemeriksaan->gula_darah }}">
+                                           value="<?php echo e($pemeriksaan->gula_darah); ?>">
                                     <span class="unit">mg/dL</span>
                                 </div>
                             </div>
@@ -477,7 +483,7 @@
                                 <div class="input-unit">
                                     <input type="number" step="1" name="kolesterol" 
                                            class="med-input" placeholder="200"
-                                           value="{{ $pemeriksaan->kolesterol }}">
+                                           value="<?php echo e($pemeriksaan->kolesterol); ?>">
                                     <span class="unit">mg/dL</span>
                                 </div>
                             </div>
@@ -488,16 +494,16 @@
                                 <div class="input-unit">
                                     <input type="number" step="0.1" name="asam_urat" 
                                            class="med-input" placeholder="5.5"
-                                           value="{{ $pemeriksaan->asam_urat }}">
+                                           value="<?php echo e($pemeriksaan->asam_urat); ?>">
                                     <span class="unit">mg/dL</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    @endif
+                    <?php endif; ?>
 
-                    {{-- ══ SEKSI KHUSUS IBU HAMIL ══ --}}
-                    @if($isBumil)
+                    
+                    <?php if($isBumil): ?>
                     <div class="space-y-4 p-5 bg-pink-50/50 border border-pink-100 rounded-[20px]">
                         <p class="text-[10px] font-black text-pink-600 uppercase tracking-widest">Pemeriksaan Kebidanan</p>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -506,7 +512,7 @@
                                 <div class="input-unit">
                                     <input type="number" step="0.1" name="suhu_tubuh" 
                                            class="med-input" placeholder="36.5"
-                                           value="{{ $pemeriksaan->suhu_tubuh }}">
+                                           value="<?php echo e($pemeriksaan->suhu_tubuh); ?>">
                                     <span class="unit">°C</span>
                                 </div>
                             </div>
@@ -515,7 +521,7 @@
                                 <div class="input-unit">
                                     <input type="number" step="0.1" name="hb" 
                                            class="med-input" placeholder="11.0"
-                                           value="{{ $pemeriksaan->hb }}">
+                                           value="<?php echo e($pemeriksaan->hb); ?>">
                                     <span class="unit">g/dL</span>
                                 </div>
                             </div>
@@ -524,7 +530,7 @@
                                 <div class="input-unit">
                                     <input type="number" step="1" name="usia_kehamilan" 
                                            class="med-input" placeholder="20"
-                                           value="{{ $pemeriksaan->usia_kehamilan }}">
+                                           value="<?php echo e($pemeriksaan->usia_kehamilan); ?>">
                                     <span class="unit">mgg</span>
                                 </div>
                             </div>
@@ -533,7 +539,7 @@
                                 <div class="input-unit">
                                     <input type="text" name="tfu" 
                                            class="med-input" placeholder="Contoh: 28"
-                                           value="{{ $pemeriksaan->tfu }}">
+                                           value="<?php echo e($pemeriksaan->tfu); ?>">
                                     <span class="unit">cm</span>
                                 </div>
                             </div>
@@ -542,7 +548,7 @@
                                 <div class="input-unit">
                                     <input type="text" name="djj" 
                                            class="med-input" placeholder="140"
-                                           value="{{ $pemeriksaan->djj }}">
+                                           value="<?php echo e($pemeriksaan->djj); ?>">
                                     <span class="unit">bpm</span>
                                 </div>
                             </div>
@@ -550,31 +556,31 @@
                                 <label class="med-label text-pink-600">Presentasi / Posisi Janin</label>
                                 <select name="posisi_janin" class="med-input cursor-pointer">
                                     <option value="">-- Pilih Presentasi --</option>
-                                    <option value="Kepala" {{ $pemeriksaan->posisi_janin == 'Kepala' ? 'selected' : '' }}>Kepala (Presentasi Normal)</option>
-                                    <option value="Sungsang" {{ $pemeriksaan->posisi_janin == 'Sungsang' ? 'selected' : '' }}>Sungsang (Bokong/Kaki)</option>
-                                    <option value="Lintang" {{ $pemeriksaan->posisi_janin == 'Lintang' ? 'selected' : '' }}>Lintang (Transversal)</option>
-                                    <option value="Miring" {{ $pemeriksaan->posisi_janin == 'Miring' ? 'selected' : '' }}>Miring (Oblique)</option>
-                                    <option value="Belum Bisa Ditentukan" {{ $pemeriksaan->posisi_janin == 'Belum Bisa Ditentukan' ? 'selected' : '' }}>Belum Bisa Ditentukan</option>
+                                    <option value="Kepala" <?php echo e($pemeriksaan->posisi_janin == 'Kepala' ? 'selected' : ''); ?>>Kepala (Presentasi Normal)</option>
+                                    <option value="Sungsang" <?php echo e($pemeriksaan->posisi_janin == 'Sungsang' ? 'selected' : ''); ?>>Sungsang (Bokong/Kaki)</option>
+                                    <option value="Lintang" <?php echo e($pemeriksaan->posisi_janin == 'Lintang' ? 'selected' : ''); ?>>Lintang (Transversal)</option>
+                                    <option value="Miring" <?php echo e($pemeriksaan->posisi_janin == 'Miring' ? 'selected' : ''); ?>>Miring (Oblique)</option>
+                                    <option value="Belum Bisa Ditentukan" <?php echo e($pemeriksaan->posisi_janin == 'Belum Bisa Ditentukan' ? 'selected' : ''); ?>>Belum Bisa Ditentukan</option>
                                 </select>
                             </div>
                         </div>
                     </div>
-                    @endif
+                    <?php endif; ?>
                 </div>
 
                 <div class="divider"></div>
 
-                {{-- ── C. PENILAIAN KLINIS BIDAN ───────────────────────────── --}}
-                {{-- Ini adalah penilaian MANUAL bidan, BUKAN deteksi sistem otomatis --}}
-                {{-- Catatan untuk penguji: semua nilai di bawah diisi oleh bidan, bukan dihitung sistem --}}
+                
+                
+                
                 <div class="mb-8">
                     <div class="form-section-header">
                         <i class="fas fa-stethoscope"></i>
                         C. Penilaian Klinis (Diisi Bidan)
                     </div>
 
-                    {{-- ══ PENILAIAN BALITA / BAYI ══ --}}
-                    @if($isBalita || $isBayi)
+                    
+                    <?php if($isBalita || $isBayi): ?>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-5 bg-sky-50/50 border border-sky-100 rounded-[20px]">
                         <p class="col-span-full text-[9px] font-black text-sky-600 uppercase tracking-widest mb-1">Status Gizi Balita (Standar WHO/Kemenkes)</p>
                         
@@ -582,16 +588,16 @@
                             <label class="med-label">Status BB/U <span class="text-[9px] font-medium text-slate-400 normal-case tracking-normal">(Berat Badan/Umur)</span></label>
                             <select name="status_gizi_bb_u" class="med-input cursor-pointer border-sky-200">
                                 <option value="">-- Pilih Status --</option>
-                                <option value="BB Sangat Kurang" {{ ($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'BB Sangat Kurang' ? 'selected' : '' }}>
+                                <option value="BB Sangat Kurang" <?php echo e(($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'BB Sangat Kurang' ? 'selected' : ''); ?>>
                                     BB Sangat Kurang (&lt; -3 SD)
                                 </option>
-                                <option value="BB Kurang" {{ ($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'BB Kurang' ? 'selected' : '' }}>
+                                <option value="BB Kurang" <?php echo e(($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'BB Kurang' ? 'selected' : ''); ?>>
                                     BB Kurang (-3 s/d &lt;-2 SD)
                                 </option>
-                                <option value="BB Normal" {{ ($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'BB Normal' ? 'selected' : '' }}>
+                                <option value="BB Normal" <?php echo e(($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'BB Normal' ? 'selected' : ''); ?>>
                                     BB Normal (-2 s/d +1 SD)
                                 </option>
-                                <option value="Risiko BB Lebih" {{ ($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'Risiko BB Lebih' ? 'selected' : '' }}>
+                                <option value="Risiko BB Lebih" <?php echo e(($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'Risiko BB Lebih' ? 'selected' : ''); ?>>
                                     Risiko BB Lebih (&gt; +1 SD)
                                 </option>
                             </select>
@@ -601,16 +607,16 @@
                             <label class="med-label">Status TB/U <span class="text-[9px] font-medium text-slate-400 normal-case tracking-normal">(Tinggi Badan/Umur)</span></label>
                             <select name="indikasi_stunting" class="med-input cursor-pointer border-rose-200 focus:border-rose-400 focus:ring-rose-50 bg-rose-50/30">
                                 <option value="">-- Pilih Status --</option>
-                                <option value="Sangat Pendek" {{ $pemeriksaan->indikasi_stunting == 'Sangat Pendek' ? 'selected' : '' }}>
+                                <option value="Sangat Pendek" <?php echo e($pemeriksaan->indikasi_stunting == 'Sangat Pendek' ? 'selected' : ''); ?>>
                                     Sangat Pendek / Severely Stunted (&lt; -3 SD)
                                 </option>
-                                <option value="Pendek" {{ $pemeriksaan->indikasi_stunting == 'Pendek' ? 'selected' : '' }}>
+                                <option value="Pendek" <?php echo e($pemeriksaan->indikasi_stunting == 'Pendek' ? 'selected' : ''); ?>>
                                     Pendek / Stunted (-3 s/d &lt;-2 SD)
                                 </option>
-                                <option value="Normal" {{ ($pemeriksaan->indikasi_stunting == 'Normal' || $pemeriksaan->indikasi_stunting == 'Tidak Stunting') ? 'selected' : '' }}>
+                                <option value="Normal" <?php echo e(($pemeriksaan->indikasi_stunting == 'Normal' || $pemeriksaan->indikasi_stunting == 'Tidak Stunting') ? 'selected' : ''); ?>>
                                     Normal (-2 s/d +3 SD)
                                 </option>
-                                <option value="Tinggi" {{ $pemeriksaan->indikasi_stunting == 'Tinggi' ? 'selected' : '' }}>
+                                <option value="Tinggi" <?php echo e($pemeriksaan->indikasi_stunting == 'Tinggi' ? 'selected' : ''); ?>>
                                     Tinggi (&gt; +3 SD)
                                 </option>
                             </select>
@@ -620,132 +626,132 @@
                             <label class="med-label">Status BB/TB <span class="text-[9px] font-medium text-slate-400 normal-case tracking-normal">(Gizi/Wasting)</span></label>
                             <select name="status_gizi" class="med-input cursor-pointer border-sky-200">
                                 <option value="">-- Pilih Status --</option>
-                                <option value="Gizi Buruk" {{ $pemeriksaan->status_gizi == 'Gizi Buruk' ? 'selected' : '' }}>
+                                <option value="Gizi Buruk" <?php echo e($pemeriksaan->status_gizi == 'Gizi Buruk' ? 'selected' : ''); ?>>
                                     Gizi Buruk / Sangat Kurus (&lt; -3 SD)
                                 </option>
-                                <option value="Gizi Kurang" {{ $pemeriksaan->status_gizi == 'Gizi Kurang' ? 'selected' : '' }}>
+                                <option value="Gizi Kurang" <?php echo e($pemeriksaan->status_gizi == 'Gizi Kurang' ? 'selected' : ''); ?>>
                                     Gizi Kurang / Kurus (-3 s/d &lt;-2 SD)
                                 </option>
-                                <option value="Gizi Baik" {{ $pemeriksaan->status_gizi == 'Gizi Baik' ? 'selected' : '' }}>
+                                <option value="Gizi Baik" <?php echo e($pemeriksaan->status_gizi == 'Gizi Baik' ? 'selected' : ''); ?>>
                                     Gizi Baik / Normal (-2 s/d +1 SD)
                                 </option>
-                                <option value="Risiko Lebih" {{ $pemeriksaan->status_gizi == 'Risiko Lebih' ? 'selected' : '' }}>
+                                <option value="Risiko Lebih" <?php echo e($pemeriksaan->status_gizi == 'Risiko Lebih' ? 'selected' : ''); ?>>
                                     Risiko Berat Lebih (+1 s/d +2 SD)
                                 </option>
-                                <option value="Gizi Lebih" {{ $pemeriksaan->status_gizi == 'Gizi Lebih' ? 'selected' : '' }}>
+                                <option value="Gizi Lebih" <?php echo e($pemeriksaan->status_gizi == 'Gizi Lebih' ? 'selected' : ''); ?>>
                                     Gizi Lebih / Obesitas (&gt; +2 SD)
                                 </option>
                             </select>
                         </div>
                     </div>
-                    @endif
+                    <?php endif; ?>
 
-                    {{-- ══ PENILAIAN REMAJA ══ --}}
-                    @if($isRemaja)
+                    
+                    <?php if($isRemaja): ?>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-5 bg-violet-50/50 border border-violet-100 rounded-[20px]">
                         <p class="col-span-full text-[9px] font-black text-violet-600 uppercase tracking-widest mb-1">Status Gizi & Anemia Remaja</p>
                         <div>
                             <label class="med-label">Status IMT Remaja</label>
                             <select name="status_imt" class="med-input cursor-pointer">
                                 <option value="">-- Pilih Status IMT --</option>
-                                <option value="Sangat Kurus" {{ ($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Sangat Kurus' ? 'selected' : '' }}>Sangat Kurus</option>
-                                <option value="Kurus" {{ ($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Kurus' ? 'selected' : '' }}>Kurus</option>
-                                <option value="Normal" {{ ($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Normal' ? 'selected' : '' }}>Normal</option>
-                                <option value="Gemuk" {{ ($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Gemuk' ? 'selected' : '' }}>Gemuk</option>
-                                <option value="Obesitas" {{ ($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Obesitas' ? 'selected' : '' }}>Obesitas</option>
+                                <option value="Sangat Kurus" <?php echo e(($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Sangat Kurus' ? 'selected' : ''); ?>>Sangat Kurus</option>
+                                <option value="Kurus" <?php echo e(($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Kurus' ? 'selected' : ''); ?>>Kurus</option>
+                                <option value="Normal" <?php echo e(($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Normal' ? 'selected' : ''); ?>>Normal</option>
+                                <option value="Gemuk" <?php echo e(($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Gemuk' ? 'selected' : ''); ?>>Gemuk</option>
+                                <option value="Obesitas" <?php echo e(($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Obesitas' ? 'selected' : ''); ?>>Obesitas</option>
                             </select>
                         </div>
                         <div>
                             <label class="med-label">Status Anemia (dari HB)</label>
                             <select name="status_anemia" class="med-input cursor-pointer">
                                 <option value="">-- Pilih Status --</option>
-                                <option value="Tidak Anemia" {{ $pemeriksaan->status_anemia == 'Tidak Anemia' ? 'selected' : '' }}>Tidak Anemia (HB ≥ 12 g/dL)</option>
-                                <option value="Anemia Ringan" {{ $pemeriksaan->status_anemia == 'Anemia Ringan' ? 'selected' : '' }}>Anemia Ringan (HB 10–11.9)</option>
-                                <option value="Anemia Sedang" {{ $pemeriksaan->status_anemia == 'Anemia Sedang' ? 'selected' : '' }}>Anemia Sedang (HB 8–9.9)</option>
-                                <option value="Anemia Berat" {{ $pemeriksaan->status_anemia == 'Anemia Berat' ? 'selected' : '' }}>Anemia Berat (HB &lt; 8)</option>
+                                <option value="Tidak Anemia" <?php echo e($pemeriksaan->status_anemia == 'Tidak Anemia' ? 'selected' : ''); ?>>Tidak Anemia (HB ≥ 12 g/dL)</option>
+                                <option value="Anemia Ringan" <?php echo e($pemeriksaan->status_anemia == 'Anemia Ringan' ? 'selected' : ''); ?>>Anemia Ringan (HB 10–11.9)</option>
+                                <option value="Anemia Sedang" <?php echo e($pemeriksaan->status_anemia == 'Anemia Sedang' ? 'selected' : ''); ?>>Anemia Sedang (HB 8–9.9)</option>
+                                <option value="Anemia Berat" <?php echo e($pemeriksaan->status_anemia == 'Anemia Berat' ? 'selected' : ''); ?>>Anemia Berat (HB &lt; 8)</option>
                             </select>
                         </div>
                         <div>
                             <label class="med-label">Status KEK (LiLA) <span class="text-[9px] text-slate-400 normal-case font-normal ml-1">Remaja Perempuan</span></label>
                             <select name="status_kek" class="med-input cursor-pointer">
                                 <option value="">-- Pilih Status --</option>
-                                <option value="Tidak KEK" {{ ($pemeriksaan->status_kek ?? 'Tidak KEK') == 'Tidak KEK' ? 'selected' : '' }}>Tidak KEK (LiLA ≥ 23.5 cm)</option>
-                                <option value="KEK" {{ $pemeriksaan->status_kek == 'KEK' ? 'selected' : '' }}>KEK (LiLA &lt; 23.5 cm)</option>
+                                <option value="Tidak KEK" <?php echo e(($pemeriksaan->status_kek ?? 'Tidak KEK') == 'Tidak KEK' ? 'selected' : ''); ?>>Tidak KEK (LiLA ≥ 23.5 cm)</option>
+                                <option value="KEK" <?php echo e($pemeriksaan->status_kek == 'KEK' ? 'selected' : ''); ?>>KEK (LiLA &lt; 23.5 cm)</option>
                             </select>
                         </div>
                     </div>
-                    @endif
+                    <?php endif; ?>
 
-                    {{-- ══ PENILAIAN LANSIA ══ --}}
-                    @if($isLansia)
+                    
+                    <?php if($isLansia): ?>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-5 bg-emerald-50/50 border border-emerald-100 rounded-[20px]">
                         <p class="col-span-full text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Penilaian Klinis Lansia</p>
                         <div>
                             <label class="med-label">Status Gizi / IMT Lansia</label>
                             <select name="status_gizi" class="med-input cursor-pointer">
                                 <option value="">-- Pilih Status --</option>
-                                <option value="Kurus" {{ $pemeriksaan->status_gizi == 'Kurus' ? 'selected' : '' }}>Kurus (IMT &lt; 18.5)</option>
-                                <option value="Normal" {{ $pemeriksaan->status_gizi == 'Normal' ? 'selected' : '' }}>Normal (IMT 18.5–24.9)</option>
-                                <option value="Gemuk" {{ $pemeriksaan->status_gizi == 'Gemuk' ? 'selected' : '' }}>Gemuk (IMT 25–26.9)</option>
-                                <option value="Obesitas" {{ $pemeriksaan->status_gizi == 'Obesitas' ? 'selected' : '' }}>Obesitas (IMT ≥ 27)</option>
+                                <option value="Kurus" <?php echo e($pemeriksaan->status_gizi == 'Kurus' ? 'selected' : ''); ?>>Kurus (IMT &lt; 18.5)</option>
+                                <option value="Normal" <?php echo e($pemeriksaan->status_gizi == 'Normal' ? 'selected' : ''); ?>>Normal (IMT 18.5–24.9)</option>
+                                <option value="Gemuk" <?php echo e($pemeriksaan->status_gizi == 'Gemuk' ? 'selected' : ''); ?>>Gemuk (IMT 25–26.9)</option>
+                                <option value="Obesitas" <?php echo e($pemeriksaan->status_gizi == 'Obesitas' ? 'selected' : ''); ?>>Obesitas (IMT ≥ 27)</option>
                             </select>
                         </div>
                         <div>
                             <label class="med-label">Skala Kemandirian (Barthel/ABC)</label>
                             <select name="tingkat_kemandirian" class="med-input cursor-pointer">
                                 <option value="">-- Pilih Skala --</option>
-                                <option value="A" {{ $pemeriksaan->tingkat_kemandirian == 'A' ? 'selected' : '' }}>
+                                <option value="A" <?php echo e($pemeriksaan->tingkat_kemandirian == 'A' ? 'selected' : ''); ?>>
                                     A — Mandiri Sepenuhnya
                                 </option>
-                                <option value="B" {{ $pemeriksaan->tingkat_kemandirian == 'B' ? 'selected' : '' }}>
+                                <option value="B" <?php echo e($pemeriksaan->tingkat_kemandirian == 'B' ? 'selected' : ''); ?>>
                                     B — Bantuan Sebagian
                                 </option>
-                                <option value="C" {{ $pemeriksaan->tingkat_kemandirian == 'C' ? 'selected' : '' }}>
+                                <option value="C" <?php echo e($pemeriksaan->tingkat_kemandirian == 'C' ? 'selected' : ''); ?>>
                                     C — Ketergantungan Total
                                 </option>
                             </select>
                         </div>
                     </div>
-                    @endif
+                    <?php endif; ?>
 
-                    {{-- ══ PENILAIAN IBU HAMIL ══ --}}
-                    @if($isBumil)
+                    
+                    <?php if($isBumil): ?>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-5 bg-pink-50/50 border border-pink-100 rounded-[20px]">
                         <p class="col-span-full text-[9px] font-black text-pink-600 uppercase tracking-widest mb-1">Penilaian Risiko Kehamilan</p>
                         <div>
                             <label class="med-label text-pink-600">Status Anemia (dari HB)</label>
                             <select name="status_anemia" class="med-input cursor-pointer">
                                 <option value="">-- Pilih Status --</option>
-                                <option value="Tidak Anemia" {{ $pemeriksaan->status_anemia == 'Tidak Anemia' ? 'selected' : '' }}>Tidak Anemia (HB ≥ 11 g/dL)</option>
-                                <option value="Anemia Ringan" {{ $pemeriksaan->status_anemia == 'Anemia Ringan' ? 'selected' : '' }}>Anemia Ringan (HB 8–10.9)</option>
-                                <option value="Anemia Sedang" {{ $pemeriksaan->status_anemia == 'Anemia Sedang' ? 'selected' : '' }}>Anemia Sedang (HB 6–7.9)</option>
-                                <option value="Anemia Berat" {{ $pemeriksaan->status_anemia == 'Anemia Berat' ? 'selected' : '' }}>Anemia Berat (HB &lt; 6)</option>
+                                <option value="Tidak Anemia" <?php echo e($pemeriksaan->status_anemia == 'Tidak Anemia' ? 'selected' : ''); ?>>Tidak Anemia (HB ≥ 11 g/dL)</option>
+                                <option value="Anemia Ringan" <?php echo e($pemeriksaan->status_anemia == 'Anemia Ringan' ? 'selected' : ''); ?>>Anemia Ringan (HB 8–10.9)</option>
+                                <option value="Anemia Sedang" <?php echo e($pemeriksaan->status_anemia == 'Anemia Sedang' ? 'selected' : ''); ?>>Anemia Sedang (HB 6–7.9)</option>
+                                <option value="Anemia Berat" <?php echo e($pemeriksaan->status_anemia == 'Anemia Berat' ? 'selected' : ''); ?>>Anemia Berat (HB &lt; 6)</option>
                             </select>
                         </div>
                         <div>
                             <label class="med-label text-pink-600">Status KEK (dari LiLA)</label>
                             <select name="status_kek" class="med-input cursor-pointer">
                                 <option value="">-- Pilih Status --</option>
-                                <option value="Tidak KEK" {{ ($pemeriksaan->status_kek ?? 'Tidak KEK') == 'Tidak KEK' ? 'selected' : '' }}>Tidak KEK (LiLA ≥ 23.5 cm)</option>
-                                <option value="KEK" {{ $pemeriksaan->status_kek == 'KEK' ? 'selected' : '' }}>KEK (LiLA &lt; 23.5 cm)</option>
+                                <option value="Tidak KEK" <?php echo e(($pemeriksaan->status_kek ?? 'Tidak KEK') == 'Tidak KEK' ? 'selected' : ''); ?>>Tidak KEK (LiLA ≥ 23.5 cm)</option>
+                                <option value="KEK" <?php echo e($pemeriksaan->status_kek == 'KEK' ? 'selected' : ''); ?>>KEK (LiLA &lt; 23.5 cm)</option>
                             </select>
                         </div>
                         <div>
                             <label class="med-label text-pink-600">Kategori Risiko Kehamilan</label>
                             <select name="status_risiko" class="med-input cursor-pointer">
                                 <option value="">-- Pilih Kategori --</option>
-                                <option value="Risiko Rendah" {{ $pemeriksaan->status_risiko == 'Risiko Rendah' ? 'selected' : '' }}>Risiko Rendah</option>
-                                <option value="Risiko Sedang" {{ $pemeriksaan->status_risiko == 'Risiko Sedang' ? 'selected' : '' }}>Risiko Sedang</option>
-                                <option value="Risiko Tinggi" {{ $pemeriksaan->status_risiko == 'Risiko Tinggi' ? 'selected' : '' }}>Risiko Tinggi (Rujuk!)</option>
+                                <option value="Risiko Rendah" <?php echo e($pemeriksaan->status_risiko == 'Risiko Rendah' ? 'selected' : ''); ?>>Risiko Rendah</option>
+                                <option value="Risiko Sedang" <?php echo e($pemeriksaan->status_risiko == 'Risiko Sedang' ? 'selected' : ''); ?>>Risiko Sedang</option>
+                                <option value="Risiko Tinggi" <?php echo e($pemeriksaan->status_risiko == 'Risiko Tinggi' ? 'selected' : ''); ?>>Risiko Tinggi (Rujuk!)</option>
                             </select>
                         </div>
                     </div>
-                    @endif
+                    <?php endif; ?>
                 </div>
 
                 <div class="divider"></div>
 
-                {{-- ── D. DIAGNOSA & TINDAKAN (UNIVERSAL) ──────────────────── --}}
+                
                 <div class="space-y-5 mb-8">
                     <div class="form-section-header">
                         <i class="fas fa-file-medical"></i>
@@ -758,7 +764,7 @@
                         </label>
                         <textarea name="diagnosa" rows="3" required
                                   class="med-input resize-none"
-                                  placeholder="Tuliskan kesimpulan klinis dari seluruh hasil pemeriksaan. Contoh: Tumbuh kembang anak sesuai umur, tidak ada indikasi gizi buruk.">{{ $pemeriksaan->diagnosa }}</textarea>
+                                  placeholder="Tuliskan kesimpulan klinis dari seluruh hasil pemeriksaan. Contoh: Tumbuh kembang anak sesuai umur, tidak ada indikasi gizi buruk."><?php echo e($pemeriksaan->diagnosa); ?></textarea>
                     </div>
 
                     <div>
@@ -767,7 +773,7 @@
                         </label>
                         <textarea name="tindakan" rows="2"
                                   class="med-input resize-none"
-                                  placeholder="Contoh: Pemberian Vitamin A, edukasi gizi, rujuk ke Puskesmas, imunisasi lanjutan...">{{ $pemeriksaan->tindakan }}</textarea>
+                                  placeholder="Contoh: Pemberian Vitamin A, edukasi gizi, rujuk ke Puskesmas, imunisasi lanjutan..."><?php echo e($pemeriksaan->tindakan); ?></textarea>
                     </div>
 
                     <div class="bg-cyan-50 border border-cyan-100 rounded-[18px] p-5">
@@ -780,23 +786,23 @@
                         </p>
                         <textarea name="catatan_bidan" rows="3"
                                   class="med-input border-cyan-200 focus:border-cyan-400 focus:ring-cyan-50 bg-white"
-                                  placeholder="Contoh: Ibu, tolong perbanyak konsumsi protein hewani dan sayuran hijau ya. Jadwal kontrol berikutnya bulan depan...">{{ $pemeriksaan->catatan_bidan }}</textarea>
+                                  placeholder="Contoh: Ibu, tolong perbanyak konsumsi protein hewani dan sayuran hijau ya. Jadwal kontrol berikutnya bulan depan..."><?php echo e($pemeriksaan->catatan_bidan); ?></textarea>
                     </div>
                 </div>
 
-                {{-- ── TOMBOL AKSI ─────────────────────────────────────────── --}}
+                
                 <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    @if($isVerified)
+                    <?php if($isVerified): ?>
                     <button type="button" onclick="confirmReset()" 
                             class="px-6 py-3 bg-white border-2 border-rose-100 text-rose-500 font-black text-[11px] uppercase tracking-widest rounded-xl hover:bg-rose-50 transition-colors w-full sm:w-auto">
                         <i class="fas fa-lock-open mr-1"></i> Buka Kunci Validasi
                     </button>
-                    @else
+                    <?php else: ?>
                         <div class="text-[11px] font-medium text-slate-400 flex items-center gap-2">
                             <i class="fas fa-info-circle text-cyan-400"></i>
                             Semua field bertanda <span class="text-rose-500 font-black">*</span> wajib diisi.
                         </div>
-                    @endif
+                    <?php endif; ?>
                     
                     <button type="submit" id="btnSubmit"
                             class="px-10 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black text-[12px] uppercase tracking-widest rounded-xl hover:shadow-[0_10px_25px_rgba(6,182,212,0.3)] transition-all hover:-translate-y-0.5 w-full sm:w-auto">
@@ -807,19 +813,19 @@
             </form>
         </div>
 
-        {{-- Form tersembunyi untuk reset validasi --}}
-        @if($isVerified)
-        <form id="formReset" action="{{ route('bidan.pemeriksaan.update', $pemeriksaan->id) }}" method="POST" class="hidden">
-            @csrf @method('PUT')
+        
+        <?php if($isVerified): ?>
+        <form id="formReset" action="<?php echo e(route('bidan.pemeriksaan.update', $pemeriksaan->id)); ?>" method="POST" class="hidden">
+            <?php echo csrf_field(); ?> <?php echo method_field('PUT'); ?>
             <input type="hidden" name="status_verifikasi" value="pending">
         </form>
-        @endif
+        <?php endif; ?>
     </div>
 
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.getElementById('formPemeriksaan').addEventListener('submit', function(e) {
@@ -877,4 +883,5 @@ function confirmReset() {
     });
 }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.bidan', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/bidan/pemeriksaan/show.blade.php ENDPATH**/ ?>

@@ -17,17 +17,15 @@ class RujukanController extends Controller
         $query = Pemeriksaan::with(['balita', 'remaja', 'lansia', 'ibuHamil', 'verifikator'])
             ->where('status_verifikasi', 'verified')
             ->where(function($q) {
-                // Deteksi Stunting (Dari kolom baru)
-                $q->where('indikasi_stunting', 'Stunting')
-                  ->orWhere('indikasi_stunting', 'Sangat Stunting')
-                // Deteksi Gizi Buruk
+                // 1. Deteksi Stunting & Gizi Buruk
+                $q->whereIn('indikasi_stunting', ['Stunting', 'Sangat Stunting'])
                   ->orWhere('status_gizi', 'Gizi Buruk')
-                // Deteksi Hipertensi (Tensi > 140)
-                  ->orWhere('tekanan_darah', 'LIKE', '140/%')
-                  ->orWhere('tekanan_darah', 'LIKE', '150/%')
-                  ->orWhere('tekanan_darah', 'LIKE', '160/%')
-                  ->orWhere('tekanan_darah', 'LIKE', '170/%')
-                // Deteksi Catatan Bidan
+                  
+                // 2. Deteksi Hipertensi (Sistolik >= 140)
+                // Mengambil angka sebelum garis miring '/' dan di-cast ke Integer agar akurat
+                  ->orWhereRaw("CAST(SUBSTRING_INDEX(tekanan_darah, '/', 1) AS UNSIGNED) >= 140")
+                  
+                // 3. Deteksi Rekomendasi Rujukan dari Catatan Bidan/Kader
                   ->orWhere('tindakan', 'LIKE', '%rujuk%')
                   ->orWhere('tindakan', 'LIKE', '%puskesmas%')
                   ->orWhere('tindakan', 'LIKE', '%rsud%');

@@ -71,29 +71,45 @@
                 </thead>
                 <tbody>
                     @forelse($imunisasis as $imu)
-                    @php
-                        $pasien = $imu->kunjungan->pasien ?? null;
-                        $nama = $pasien->nama_lengkap ?? 'Anonim / Dihapus';
-                        $kategoriRaw = strtolower(class_basename($imu->kunjungan->pasien_type ?? ''));
-                        
-                        if($kategoriRaw == 'balita') { $nCol = 'sky'; $nIco = 'baby'; $kat = 'Balita'; }
-                        elseif(in_array($kategoriRaw, ['ibu_hamil','ibuhamil','bumil'])) { $nCol = 'pink'; $nIco = 'female'; $kat = 'Ibu Hamil'; }
-                        else { $nCol = 'slate'; $nIco = 'user'; $kat = 'Umum';}
-                    @endphp
-                    
-                    <tr class="table-row-hover transition-all duration-300 border-b border-slate-50 last:border-0 group">
-                        
-                        <td class="py-5 px-6 align-middle">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-[16px] bg-{{$nCol}}-50 text-{{$nCol}}-600 flex items-center justify-center shrink-0 border border-{{$nCol}}-100 shadow-inner group-hover:scale-110 transition-transform duration-300">
-                                    <i class="fas fa-{{$nIco}} text-lg"></i>
-                                </div>
-                                <div>
-                                    <p class="font-black text-slate-800 text-[14.5px] mb-1 group-hover:text-cyan-600 transition-colors font-poppins">{{ $nama }}</p>
-                                    <span class="text-[9px] font-black text-{{$nCol}}-600 uppercase tracking-widest bg-white border border-{{$nCol}}-200 px-2 py-0.5 rounded shadow-sm">{{ $kat }}</span>
-                                </div>
-                            </div>
-                        </td>
+                   @php
+    $pasien = $imu->kunjungan->pasien ?? null;
+    $nama = $pasien->nama_lengkap ?? 'Anonim';
+    $kategoriRaw = strtolower(class_basename($imu->kunjungan->pasien_type ?? ''));
+    
+    // Fix: Tailwind PurgeCSS Safe Classes
+    if($kategoriRaw == 'balita') { 
+        $theme = 'bg-sky-50 text-sky-600 border-sky-100'; 
+        $badgeTheme = 'text-sky-600 border-sky-200';
+        $nIco = 'fa-baby'; $kat = 'Balita'; 
+    } elseif(in_array($kategoriRaw, ['ibuhamil', 'ibu_hamil', 'bumil'])) { 
+        $theme = 'bg-pink-50 text-pink-600 border-pink-100'; 
+        $badgeTheme = 'text-pink-600 border-pink-200';
+        $nIco = 'fa-female'; $kat = 'Ibu Hamil'; 
+    } else { 
+        $theme = 'bg-slate-50 text-slate-600 border-slate-100'; 
+        $badgeTheme = 'text-slate-600 border-slate-200';
+        $nIco = 'fa-user'; $kat = 'Umum';
+    }
+@endphp
+
+<tr class="table-row-hover transition-all duration-300 border-b border-slate-50 last:border-0 group">
+    <td class="py-5 px-6">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-[16px] {{ $theme }} flex items-center justify-center shrink-0 border shadow-inner group-hover:scale-110 transition-transform">
+                <i class="fas {{ $nIco }} text-lg"></i>
+            </div>
+            <div>
+                <p class="font-black text-slate-800 text-[14.5px] mb-1 group-hover:text-cyan-600 transition-colors">{{ $nama }}</p>
+                <span class="text-[9px] font-black uppercase tracking-widest bg-white border px-2 py-0.5 rounded shadow-sm {{ $badgeTheme }}">{{ $kat }}</span>
+            </div>
+        </div>
+    </td>
+    <td class="py-5 px-6">
+        <div class="flex flex-col">
+            <span class="text-slate-800 font-bold text-[14px]">{{ $imu->vaksin }}</span>
+            <span class="text-slate-400 text-[11px] font-medium">Dosis: {{ $imu->dosis }}</span>
+        </div>
+    </td>
 
                         <td class="py-5 px-6 align-middle">
                             <div>

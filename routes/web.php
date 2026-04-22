@@ -87,68 +87,127 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','checkstatus','role:a
 });
 
 // ==================== BIDAN ====================
+// Semua route bidan dilindungi middleware: auth + checkstatus + role:bidan
+// Urutan nomor = urutan menu di sidebar bidan.blade.php
 Route::prefix('bidan')->name('bidan.')->middleware(['auth','checkstatus','role:bidan'])->group(function () {
-    
+
+    // ---------------------------------------------------------------
     // 1. DASHBOARD
+    // Halaman: resources/views/bidan/dashboard.blade.php
+    // Controller: App\Http\Controllers\Bidan\DashboardController
+    // ---------------------------------------------------------------
     Route::get('/', fn() => redirect()->route('bidan.dashboard'));
     Route::get('/dashboard', [BidanDashboard::class, 'index'])->name('dashboard');
 
-    // 2. PEMERIKSAAN MEDIS (MEJA 5) - SUPER CONTROLLER
+    // ---------------------------------------------------------------
+    // 2. PEMERIKSAAN MEDIS (MEJA 5)
+    // Mengelola antrian & hasil pemeriksaan pasien (balita/remaja/lansia)
+    // Controller: App\Http\Controllers\Bidan\PemeriksaanController
+    // Tabel: pemeriksaans, kunjungans
+    // ---------------------------------------------------------------
     Route::prefix('pemeriksaan')->name('pemeriksaan.')->group(function () {
-        Route::get('/', [BidanPemeriksaan::class, 'index'])->name('index');
-        
-        // Rute Input Mandiri oleh Bidan (KEMBALI DIAKTIFKAN)
-        Route::get('/create', [BidanPemeriksaan::class, 'create'])->name('create');
-        Route::post('/', [BidanPemeriksaan::class, 'store'])->name('store');
-        
-        // Rute Validasi (Split-View)
-        Route::get('/validasi/{id}', [BidanPemeriksaan::class, 'validasi'])->name('validasi');
-        Route::put('/validasi/{id}', [BidanPemeriksaan::class, 'simpanValidasi'])->name('simpan-validasi');
-        
-        // Rute Standar (Show, Edit, Update, Destroy)
-        Route::get('/{id}', [BidanPemeriksaan::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [BidanPemeriksaan::class, 'edit'])->name('edit');
-        Route::put('/{id}', [BidanPemeriksaan::class, 'update'])->name('update');
-        Route::delete('/{id}', [BidanPemeriksaan::class, 'destroy'])->name('destroy');
-        Route::put('/{id}/verifikasi', [App\Http\Controllers\Bidan\PemeriksaanController::class, 'verifikasi'])->name('verifikasi');
+        Route::get('/',           [BidanPemeriksaan::class, 'index'])->name('index');
+        Route::get('/create',     [BidanPemeriksaan::class, 'create'])->name('create');
+        Route::post('/',          [BidanPemeriksaan::class, 'store'])->name('store');
+        Route::get('/{id}',       [BidanPemeriksaan::class, 'show'])->name('show');
+        Route::get('/{id}/edit',  [BidanPemeriksaan::class, 'edit'])->name('edit');
+        Route::put('/{id}',       [BidanPemeriksaan::class, 'update'])->name('update');
+        Route::delete('/{id}',    [BidanPemeriksaan::class, 'destroy'])->name('destroy');
+        // Validasi: bidan review hasil pemeriksaan dari kader
+        Route::get('/validasi/{id}',  [BidanPemeriksaan::class, 'validasi'])->name('validasi');
+        Route::put('/validasi/{id}',  [BidanPemeriksaan::class, 'simpanValidasi'])->name('simpan-validasi');
+        // Verifikasi status pemeriksaan
+        Route::put('/{id}/verifikasi', [BidanPemeriksaan::class, 'verifikasi'])->name('verifikasi');
     });
-    // 3. JADWAL POSYANDU
+
+    // ---------------------------------------------------------------
+    // 3. E-RUJUKAN PUSKESMAS
+    // Membuat & mencetak surat rujukan untuk pasien
+    // Controller: App\Http\Controllers\Bidan\RujukanController
+    // TODO: Tambahkan route create/store/update jika fitur input rujukan dibutuhkan
+    // ---------------------------------------------------------------
+    Route::get('rujukan',          [\App\Http\Controllers\Bidan\RujukanController::class, 'index'])->name('rujukan.index');
+    Route::get('rujukan/{id}/cetak',[\App\Http\Controllers\Bidan\RujukanController::class, 'cetak'])->name('rujukan.cetak');
+
+    // ---------------------------------------------------------------
+    // 4. IMUNISASI & VAKSIN
+    // CRUD data imunisasi, terhubung ke tabel imunisasis + kunjungans
+    // Controller: App\Http\Controllers\Bidan\ImunisasiController
+    // ---------------------------------------------------------------
+    Route::prefix('imunisasi')->name('imunisasi.')->group(function () {
+        Route::get('/',           [\App\Http\Controllers\Bidan\ImunisasiController::class, 'index'])->name('index');
+        Route::get('/create',     [\App\Http\Controllers\Bidan\ImunisasiController::class, 'create'])->name('create');
+        Route::post('/',          [\App\Http\Controllers\Bidan\ImunisasiController::class, 'store'])->name('store');
+        Route::get('/{id}',       [\App\Http\Controllers\Bidan\ImunisasiController::class, 'show'])->name('show');
+        Route::get('/{id}/edit',  [\App\Http\Controllers\Bidan\ImunisasiController::class, 'edit'])->name('edit');
+        Route::put('/{id}',       [\App\Http\Controllers\Bidan\ImunisasiController::class, 'update'])->name('update');
+        Route::delete('/{id}',    [\App\Http\Controllers\Bidan\ImunisasiController::class, 'destroy'])->name('destroy');
+    });
+
+    // ---------------------------------------------------------------
+    // 5. DATA PASIEN & REKAM MEDIS (EMR)
+    // Tampilan terpusat semua data pasien (balita, remaja, lansia)
+    // Controller: App\Http\Controllers\Bidan\RekamMedisController
+    // Tabel: balitas, remajas, lansias, ibu_hamils, kunjungans, pemeriksaans
+    //
+    // CATATAN: bidan.pasien.index adalah ALIAS dari bidan.rekam-medis.index
+    // Keduanya diarahkan ke controller yang sama (DRY principle).
+    // Di sidebar, menu "Data Pasien" memakai bidan.pasien.index.
+    // Active-state di sidebar menutup keduanya: bidan.pasien.* || bidan.rekam-medis.*
+    // ---------------------------------------------------------------
+    Route::get('/pasien',                               [BidanRekamMedisController::class, 'index'])->name('pasien.index');
+    Route::get('/rekam-medis',                          [BidanRekamMedisController::class, 'index'])->name('rekam-medis.index');
+    Route::get('/rekam-medis/{pasien_type}/{pasien_id}',[BidanRekamMedisController::class, 'show'])->name('rekam-medis.show');
+
+    // ---------------------------------------------------------------
+    // 6. KONSELING WARGA
+    // Fitur chat antara warga dan bidan (bukan "catatan edukasi").
+    // Controller: App\Http\Controllers\Bidan\KonselingController
+    // Tabel: konselings
+    // Catatan: label di sidebar sudah diperbaiki dari "Catatan Edukasi" -> "Konseling Warga"
+    // ---------------------------------------------------------------
+    Route::prefix('konseling')->name('konseling.')->group(function () {
+        Route::get('/',                          [BidanKonseling::class, 'index'])->name('index');
+        Route::get('/fetch-list',                [BidanKonseling::class, 'fetchList'])->name('fetch-list');
+        Route::get('/fetch-chat/{user_id}',      [BidanKonseling::class, 'fetchChat'])->name('fetch-chat');
+        Route::post('/reply/{user_id}',          [BidanKonseling::class, 'reply'])->name('reply');
+    });
+
+    // ---------------------------------------------------------------
+    // 7. JADWAL POSYANDU
+    // CRUD jadwal kegiatan posyandu
+    // Controller: App\Http\Controllers\Bidan\JadwalController
+    // Tabel: jadwal_posyandu
+    // ---------------------------------------------------------------
     Route::resource('jadwal', BidanJadwal::class);
 
-    // 4. IMUNISASI (VAKSIN)
-    Route::prefix('imunisasi')->name('imunisasi.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'store'])->name('store');
-        Route::get('/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'update'])->name('update');
-        Route::delete('/{id}', [\App\Http\Controllers\Bidan\ImunisasiController::class, 'destroy'])->name('destroy');
-    });
-
-    // 5. REKAM MEDIS & DATABASE PASIEN
-    Route::get('/rekam-medis', [BidanRekamMedisController::class, 'index'])->name('rekam-medis.index');
-    Route::get('/rekam-medis/{pasien_type}/{pasien_id}', [BidanRekamMedisController::class, 'show'])->name('rekam-medis.show');
-    
-    // Alias Route: Agar tombol "Data Pasien (View)" di Sidebar tidak error, 
-    // kita arahkan langsung ke pusat Rekam Medis (DRY - Don't Repeat Yourself)
-    Route::get('/pasien', [BidanRekamMedisController::class, 'index'])->name('pasien.index');
-
-    // 6. LAPORAN PDF
-    Route::get('/laporan', [\App\Http\Controllers\Bidan\LaporanController::class, 'index'])->name('laporan.index');
-    Route::get('/laporan/cetak', [\App\Http\Controllers\Bidan\LaporanController::class, 'cetak'])->name('laporan.cetak');
+    // ---------------------------------------------------------------
+    // 8. LAPORAN POSYANDU (PDF)
+    // Generate & cetak laporan (balita, remaja, lansia, kunjungan)
+    // Controller: App\Http\Controllers\Bidan\LaporanController
+    // Catatan: label di sidebar sudah diperbaiki dari "Laporan SIP" -> "Laporan Posyandu"
+    // ---------------------------------------------------------------
+    Route::get('/laporan',             [\App\Http\Controllers\Bidan\LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/cetak',       [\App\Http\Controllers\Bidan\LaporanController::class, 'cetak'])->name('laporan.cetak');
     Route::post('/laporan/upload-ttd', [\App\Http\Controllers\Bidan\LaporanController::class, 'uploadTtd'])->name('laporan.upload-ttd');
 
-    // 7. KONSELING MEJA 5
-    Route::prefix('konseling')->name('konseling.')->group(function () {
-        Route::get('/', [BidanKonseling::class, 'index'])->name('index');
-        Route::get('/fetch-list', [BidanKonseling::class, 'fetchList'])->name('fetch-list');
-        Route::get('/fetch-chat/{user_id}', [BidanKonseling::class, 'fetchChat'])->name('fetch-chat');
-        Route::post('/reply/{user_id}', [BidanKonseling::class, 'reply'])->name('reply');
-        
-    });
-    Route::get('rujukan', [App\Http\Controllers\Bidan\RujukanController::class, 'index'])->name('rujukan.index');
-    Route::get('rujukan/{id}/cetak', [App\Http\Controllers\Bidan\RujukanController::class, 'cetak'])->name('rujukan.cetak');
+    // ---------------------------------------------------------------
+    // PROFIL BIDAN
+    // Menggunakan route global 'profile.edit' (web.php baris 66) yang sudah ada.
+    // Route global tersebut: GET /profile -> UserProfile@edit -> name='profile.edit'
+    // Dapat diakses semua role (middleware 'auth'), termasuk bidan.
+    //
+    // TODO (opsional - jika perlu data spesifik bidan):
+    // Buat App\Http\Controllers\Bidan\ProfileController dengan method:
+    //   - index()       -> tampilkan profil + data tabel bidans (no_str, no_sip)
+    //   - update()      -> update nama, email, foto
+    //   - updatePassword() -> ganti password
+    // Lalu daftarkan di sini:
+    //   Route::get('/profile',          [BidanProfileController::class, 'index'])->name('profile.index');
+    //   Route::put('/profile',          [BidanProfileController::class, 'update'])->name('profile.update');
+    //   Route::put('/profile/password', [BidanProfileController::class, 'updatePassword'])->name('profile.update-password');
+    // ---------------------------------------------------------------
+    // (Tidak perlu route tambahan — sidebar sudah pakai profile.edit global)
 });
 
 // ==================== KADER ====================
