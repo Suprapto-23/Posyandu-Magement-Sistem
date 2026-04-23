@@ -1,88 +1,141 @@
 @extends('layouts.user')
-@section('title', 'Pesan dari Bidan')
-@section('page-name', 'Pesan')
 
 @section('content')
-<div class="max-w-5xl mx-auto animate-[slideDown_0.5s_ease-out]">
-
-    <div class="bg-white rounded-[32px] p-6 md:p-8 mb-6 border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center text-2xl shadow-sm border border-teal-100">
-                <i class="fas fa-envelope-open-text"></i>
+<div class="p-4 md:p-8 font-poppins bg-[#f8fafc] min-h-screen">
+    
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+            <div class="inline-flex items-center gap-3 px-4 py-2 bg-indigo-50 rounded-full shadow-sm border border-indigo-100 mb-4">
+                <i class="fas fa-inbox text-indigo-500"></i>
+                <span class="text-[11px] font-black tracking-widest uppercase text-indigo-700">Pusat Informasi</span>
             </div>
-            <div>
-                <h2 class="text-2xl font-black font-poppins text-slate-800 tracking-tight">Pesan Masuk</h2>
-                <p class="text-slate-500 text-sm font-medium">Anda memiliki <strong id="header-unread-count" class="text-rose-500">{{ \App\Models\Notifikasi::where('user_id', Auth::id())->where('is_read', false)->count() }}</strong> pesan baru.</p>
-            </div>
+            <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Kotak Masuk Bidan 📨</h1>
+            <p class="text-sm font-medium text-slate-500 mt-2 max-w-2xl leading-relaxed">Semua pesan, pengingat jadwal, dan hasil validasi pemeriksaan dari Bidan dan Kader akan muncul di sini.</p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            @if(\App\Models\Notifikasi::where('user_id', Auth::id())->where('is_read', false)->count() > 0)
-            <form action="{{ route('user.notifikasi.markall') }}" method="POST">
+        @if(isset($unreadCount) && $unreadCount > 0)
+            <form action="{{ route('user.notifikasi.markall') }}" method="POST" class="m-0">
                 @csrf
-                <button type="submit" class="px-5 py-3 bg-teal-600 text-white font-bold text-[13px] rounded-xl hover:bg-teal-700 transition-all shadow-[0_4px_15px_rgba(13,148,136,0.3)] hover:-translate-y-0.5 flex items-center gap-2">
+                <button type="submit" class="w-full md:w-auto px-5 py-2.5 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition-colors shadow-sm flex items-center justify-center gap-2">
                     <i class="fas fa-check-double"></i> Tandai Semua Dibaca
                 </button>
             </form>
-            @endif
-        </div>
+        @endif
     </div>
 
-    <div id="main-notif-wrapper">
-        <div class="bg-white rounded-[24px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
-            <div class="divide-y divide-slate-100/80">
-                @forelse($notifikasis as $notif)
-                    <div class="p-5 sm:p-6 flex gap-4 transition-colors group {{ $notif->is_read ? 'bg-white hover:bg-slate-50' : 'bg-teal-50/30 border-l-4 border-l-teal-500 hover:bg-teal-50/50' }}">
-                        
-                        @php
-                            $icon = 'envelope'; $iconColor = $notif->is_read ? 'bg-slate-50 text-slate-400 border-slate-100' : 'bg-teal-100 text-teal-600 border-teal-200';
-                            $jdl = strtolower($notif->judul);
-                            if (str_contains($jdl, 'jadwal')) { $icon = 'calendar-alt'; $iconColor = $notif->is_read ? 'bg-slate-50 text-slate-400' : 'bg-amber-100 text-amber-600 border-amber-200'; }
-                        @endphp
+    <div class="flex overflow-x-auto custom-scrollbar pb-4 mb-6 gap-3">
+        <a href="{{ route('user.notifikasi.index', ['filter' => 'semua']) }}" 
+           class="whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-xl border font-bold text-xs transition-all {{ $filter == 'semua' ? 'bg-slate-800 text-white border-slate-800 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50' }}">
+            Semua Pesan
+            <span class="px-2 py-0.5 rounded-md text-[10px] {{ $filter == 'semua' ? 'bg-slate-600 text-white' : 'bg-slate-100 text-slate-500' }}">{{ $allCount ?? 0 }}</span>
+        </a>
 
-                        <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 border {{ $iconColor }}">
-                            <i class="fas fa-{{ $icon }} text-lg"></i>
-                        </div>
-                        
-                        <div class="flex-1 min-w-0">
-                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 mb-1">
-                                <h4 class="text-[15px] font-bold truncate pr-4 {{ $notif->is_read ? 'text-slate-600' : 'text-slate-900' }}">{{ $notif->judul }}</h4>
-                                <span class="text-[11px] font-bold text-slate-400 whitespace-nowrap"><i class="fas fa-clock mr-1"></i> {{ $notif->created_at->diffForHumans() }}</span>
-                            </div>
-                            <p class="text-[13px] {{ $notif->is_read ? 'text-slate-500' : 'text-slate-600 font-medium' }} leading-relaxed mb-3">{{ $notif->pesan }}</p>
-                            
-                            @if(!$notif->is_read)
-                            <div class="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <form action="{{ route('user.notifikasi.read', $notif->id) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="text-[11px] font-bold text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors">Tandai Dibaca</button>
-                                </form>
-                            </div>
-                            @endif
-                        </div>
-                        
-                        @if(!$notif->is_read)
-                            <div class="w-2.5 h-2.5 rounded-full bg-rose-500 mt-2 sm:hidden shrink-0"></div>
-                        @endif
-                    </div>
-                @empty
-                    <div class="py-24 flex flex-col items-center justify-center text-center">
-                        <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-5 text-4xl shadow-inner border border-slate-100">
-                            <i class="fas fa-envelope-open"></i>
-                        </div>
-                        <h3 class="text-lg font-black text-slate-800 font-poppins">Kotak Masuk Bersih!</h3>
-                        <p class="text-sm font-medium text-slate-500 mt-1">Belum ada pesan atau pengingat jadwal dari Bidan saat ini.</p>
-                    </div>
-                @endforelse
-            </div>
+        <a href="{{ route('user.notifikasi.index', ['filter' => 'belum']) }}" 
+           class="whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-xl border font-bold text-xs transition-all {{ $filter == 'belum' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50' }}">
+            <i class="fas fa-envelope {{ $filter == 'belum' ? 'text-white' : 'text-indigo-500' }}"></i> Belum Dibaca
+            @if(isset($unreadCount) && $unreadCount > 0)
+                <span class="px-2 py-0.5 rounded-md text-[10px] {{ $filter == 'belum' ? 'bg-indigo-400 text-white' : 'bg-rose-500 text-white animate-pulse' }}">{{ $unreadCount }}</span>
+            @endif
+        </a>
 
-            @if($notifikasis->hasPages())
-                <div class="p-5 bg-slate-50/50 border-t border-slate-100">
-                    {{ $notifikasis->links() }}
+        <a href="{{ route('user.notifikasi.index', ['filter' => 'sudah']) }}" 
+           class="whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-xl border font-bold text-xs transition-all {{ $filter == 'sudah' ? 'bg-teal-600 text-white border-teal-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300 hover:bg-teal-50' }}">
+            <i class="fas fa-envelope-open {{ $filter == 'sudah' ? 'text-white' : 'text-teal-500' }}"></i> Sudah Dibaca
+        </a>
+    </div>
+
+    <div class="space-y-4">
+        @forelse($notifikasis as $notif)
+            @php
+                $isUnread = !$notif->is_read;
+                // Kustomisasi ikon berdasarkan kata kunci di judul (Opsional, agar lebih cantik)
+                $icon = 'fa-envelope';
+                $iconBg = 'bg-indigo-50 text-indigo-500';
+                $judulLower = strtolower($notif->judul);
+                
+                if(str_contains($judulLower, 'jadwal') || str_contains($judulLower, 'posyandu')) {
+                    $icon = 'fa-calendar-alt'; $iconBg = 'bg-teal-50 text-teal-500';
+                } elseif(str_contains($judulLower, 'pemeriksaan') || str_contains($judulLower, 'hasil')) {
+                    $icon = 'fa-stethoscope'; $iconBg = 'bg-sky-50 text-sky-500';
+                } elseif(str_contains($judulLower, 'imunisasi') || str_contains($judulLower, 'vaksin')) {
+                    $icon = 'fa-syringe'; $iconBg = 'bg-pink-50 text-pink-500';
+                } elseif(str_contains($judulLower, 'gizi') || str_contains($judulLower, 'darah')) {
+                    $icon = 'fa-heartbeat'; $iconBg = 'bg-orange-50 text-orange-500';
+                }
+                
+                if(!$isUnread) {
+                    $iconBg = 'bg-slate-100 text-slate-400'; // Redupkan jika sudah dibaca
+                }
+            @endphp
+
+            <div class="group relative bg-white rounded-3xl border {{ $isUnread ? 'border-indigo-200 shadow-[0_4px_20px_-4px_rgba(99,102,241,0.1)]' : 'border-slate-100 shadow-sm' }} overflow-hidden transition-all hover:shadow-md">
+                
+                @if($isUnread)
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500"></div>
+                @endif
+
+                <div class="p-5 md:p-6 flex flex-col md:flex-row gap-5 items-start">
+                    
+                    <div class="w-12 h-12 rounded-2xl {{ $iconBg }} flex items-center justify-center shrink-0 text-xl shadow-sm">
+                        <i class="fas {{ $icon }}"></i>
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+                            <h3 class="text-base font-black {{ $isUnread ? 'text-slate-800' : 'text-slate-600' }}">{{ $notif->judul }}</h3>
+                            <span class="text-[11px] font-bold text-slate-400 flex items-center gap-1.5 whitespace-nowrap">
+                                <i class="far fa-clock"></i> {{ $notif->created_at->diffForHumans() }}
+                            </span>
+                        </div>
+                        <p class="text-sm font-medium {{ $isUnread ? 'text-slate-700' : 'text-slate-500' }} leading-relaxed">{{ $notif->pesan }}</p>
+                    </div>
+
+                    @if($isUnread)
+                        <div class="shrink-0 mt-3 md:mt-0 self-end md:self-center">
+                            <form action="{{ route('user.notifikasi.read', $notif->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="px-4 py-2 bg-indigo-50 text-indigo-600 text-[11px] font-bold uppercase tracking-wider rounded-lg hover:bg-indigo-600 hover:text-white transition-colors border border-indigo-100">
+                                    <i class="fas fa-check mr-1"></i> Mengerti
+                                </button>
+                            </form>
+                        </div>
+                    @else
+                        <div class="shrink-0 mt-3 md:mt-0 self-end md:self-center hidden md:block">
+                            <span class="px-3 py-1 bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-slate-100">
+                                <i class="fas fa-check-double mr-1"></i> Terbaca
+                            </span>
+                        </div>
+                    @endif
                 </div>
-            @endif
-        </div>
+            </div>
+        @empty
+            <div class="py-20 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                <div class="relative mb-6">
+                    <div class="absolute inset-0 bg-indigo-100 rounded-full blur-xl opacity-50"></div>
+                    <div class="w-24 h-24 bg-white border border-slate-100 text-slate-300 rounded-full flex items-center justify-center text-5xl relative z-10 shadow-sm">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                </div>
+                <h3 class="text-xl font-black text-slate-700 mb-2">Kotak Masuk Kosong</h3>
+                <p class="text-sm font-medium text-slate-500 text-center max-w-md leading-relaxed">
+                    @if($filter == 'belum')
+                        Hore! Anda sudah membaca semua pesan dari Bidan. Tidak ada notifikasi baru saat ini.
+                    @else
+                        Belum ada pesan, pengingat jadwal, atau hasil pemeriksaan dari Bidan Posyandu.
+                    @endif
+                </p>
+                @if($filter != 'semua')
+                    <a href="{{ route('user.notifikasi.index') }}" class="mt-6 text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 border border-indigo-100 px-5 py-2.5 rounded-xl transition-colors">Lihat Semua Pesan</a>
+                @endif
+            </div>
+        @endforelse
     </div>
+
+    @if($notifikasis->hasPages())
+        <div class="mt-8">
+            {{ $notifikasis->links() }}
+        </div>
+    @endif
 
 </div>
 @endsection

@@ -1,9 +1,6 @@
 <?php
 /**
  * PATH   : app/Http/Controllers/Admin/UserController.php
- * FUNGSI : CRUD akun user warga
- *          Login via NIK (email = nik@posyandu.user dibuat otomatis)
- *          Deteksi pasien terhubung (balita/remaja/lansia via NIK)
  */
 
 namespace App\Http\Controllers\Admin;
@@ -17,6 +14,7 @@ use App\Models\User;
 use App\Models\Balita;
 use App\Models\Remaja;
 use App\Models\Lansia;
+use App\Models\IbuHamil; // 👈 Pastikan Model IbuHamil di-import
 
 class UserController extends Controller
 {
@@ -25,6 +23,7 @@ class UserController extends Controller
     {
         $query = User::with('profile')->where('role', 'user');
 
+        // 1. Fitur Pencarian
         if ($search = $request->search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -35,7 +34,28 @@ class UserController extends Controller
                   );
             });
         }
+        
         if ($request->status) $query->where('status', $request->status);
+
+        // 2. FITUR BARU: Filter Kategori Cerdas (Berdasarkan relasi NIK & ID)
+        if ($kat = $request->kategori) {
+            $query->where(function($q) use ($kat) {
+                if ($kat == 'remaja') {
+                    $q->whereIn('nik', Remaja::select('nik')->whereNotNull('nik'))
+                      ->orWhereIn('id', Remaja::select('user_id')->whereNotNull('user_id'));
+                } elseif ($kat == 'lansia') {
+                    $q->whereIn('nik', Lansia::select('nik')->whereNotNull('nik'))
+                      ->orWhereIn('id', Lansia::select('user_id')->whereNotNull('user_id'));
+                } elseif ($kat == 'balita') {
+                    $q->whereIn('nik', Balita::select('nik_ibu')->whereNotNull('nik_ibu'))
+                      ->orWhereIn('nik', Balita::select('nik_ayah')->whereNotNull('nik_ayah'))
+                      ->orWhereIn('id', Balita::select('user_id')->whereNotNull('user_id'));
+                } elseif ($kat == 'bumil') {
+                    $q->whereIn('nik', IbuHamil::select('nik')->whereNotNull('nik'))
+                      ->orWhereIn('id', IbuHamil::select('user_id')->whereNotNull('user_id'));
+                }
+            });
+        }
 
         $users = $query->latest()->paginate($request->per_page ?? 15)->withQueryString();
         $stats = $this->getStats();

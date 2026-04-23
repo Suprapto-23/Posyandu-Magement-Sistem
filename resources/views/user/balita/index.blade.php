@@ -1,98 +1,89 @@
 @extends('layouts.user')
 
-@section('title', 'Kesehatan Anak & Balita')
-
-@push('styles')
-<style>
-    .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-</style>
-@endpush
-
 @section('content')
-<div class="animate-slide-up space-y-6 pb-6">
-
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="text-2xl font-black text-slate-800 font-poppins tracking-tight">Data Balita Anda</h2>
-            <p class="text-sm font-medium text-slate-500 mt-1">Pantau tumbuh kembang si buah hati.</p>
+<div class="p-4 md:p-8 font-poppins bg-[#f8fafc] min-h-screen">
+    
+    <div class="mb-8">
+        <div class="inline-flex items-center gap-3 px-4 py-2 bg-sky-50 rounded-full shadow-sm border border-sky-100 mb-4">
+            <i class="fas fa-baby-carriage text-sky-500"></i>
+            <span class="text-[11px] font-black tracking-widest uppercase text-sky-700">Tumbuh Kembang Anak</span>
         </div>
-        <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-2xl shadow-sm">
-            <i class="fas fa-baby"></i>
-        </div>
+        <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Kesehatan Bayi & Balita 👶</h1>
+        <p class="text-sm font-medium text-slate-500 mt-2 max-w-2xl leading-relaxed">Pilih profil anak Anda untuk melihat Kartu Menuju Sehat (KMS) digital dan riwayat pengukuran terverifikasi.</p>
     </div>
 
-    @if(isset($pesan))
-        <div class="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex items-start gap-4 shadow-sm">
-            <i class="fas fa-info-circle text-amber-500 text-xl shrink-0 mt-0.5"></i>
-            <div>
-                <h4 class="text-sm font-bold text-amber-800 font-poppins">Informasi</h4>
-                <p class="text-xs font-medium text-amber-700 mt-1 leading-snug">{{ $pesan }}</p>
-            </div>
-        </div>
-    @else
-        <div class="space-y-5">
-            @foreach($dataBalita as $balita)
-            <div class="bg-white border border-slate-100 rounded-[24px] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group">
-                <div class="absolute -right-6 -top-6 w-24 h-24 bg-rose-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        @forelse($dataBalita as $anak)
+            @php
+                // Tentukan warna berdasarkan kategori medis yang sudah kita buat di Controller
+                $isBayi = $anak->kategori_medis == 'Bayi';
+                $badgeBg = $isBayi ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700';
+                $icon = $anak->jenis_kelamin == 'L' ? 'fa-child text-blue-500' : 'fa-child text-pink-500';
+            @endphp
+
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-sky-200 transition-all p-6 flex flex-col group relative overflow-hidden">
                 
-                <div class="relative z-10 flex items-start gap-4 mb-4">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 text-white flex items-center justify-center text-xl font-bold shadow-md shrink-0">
-                        {{ strtoupper(substr($balita->nama_lengkap, 0, 1)) }}
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-sky-50 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
+                
+                <div class="relative z-10 flex items-start justify-between mb-5">
+                    <div class="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-3xl shadow-inner shrink-0">
+                        <i class="fas {{ $icon }}"></i>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <h3 class="text-lg font-black text-slate-800 font-poppins truncate">{{ $balita->nama_lengkap }}</h3>
-                        <div class="flex flex-wrap gap-2 mt-1.5">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md">
-                                <i class="fas fa-birthday-cake text-slate-400"></i> {{ $balita->usia_tahun }}th {{ $balita->usia_bulan }}bln
-                            </span>
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md">
-                                <i class="fas fa-venus-mars text-slate-400"></i> {{ $balita->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}
-                            </span>
-                        </div>
+                    <span class="px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg {{ $badgeBg }}">
+                        {{ $anak->kategori_medis }} ({{ $anak->usia_tahun }} Thn {{ $anak->usia_bulan }} Bln)
+                    </span>
+                </div>
+
+                <div class="relative z-10 flex-1">
+                    <h3 class="text-lg font-black text-slate-800 line-clamp-1 group-hover:text-sky-600 transition-colors">{{ $anak->nama_lengkap }}</h3>
+                    <p class="text-xs font-medium text-slate-500 mt-1"><i class="far fa-calendar-alt mr-1"></i> Lhr: {{ \Carbon\Carbon::parse($anak->tanggal_lahir)->translatedFormat('d M Y') }}</p>
+                    
+                    <div class="mt-4 p-4 bg-sky-50/50 rounded-2xl border border-sky-100">
+                        <p class="text-[10px] font-black text-sky-600 uppercase tracking-wider mb-2">Pengukuran Terakhir</p>
+                        @php
+                            $terakhir = $anak->riwayatPemeriksaan->first();
+                        @endphp
+                        
+                        @if($terakhir)
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-sm font-black text-slate-800">{{ $terakhir->berat_badan ?? '-' }} <span class="text-[10px] text-slate-500 font-medium">kg</span></p>
+                                    <p class="text-[10px] font-bold text-slate-400">Berat</p>
+                                </div>
+                                <div class="w-px h-6 bg-sky-200"></div>
+                                <div>
+                                    <p class="text-sm font-black text-slate-800">{{ $terakhir->tinggi_badan ?? '-' }} <span class="text-[10px] text-slate-500 font-medium">cm</span></p>
+                                    <p class="text-[10px] font-bold text-slate-400">Tinggi</p>
+                                </div>
+                                <div class="w-px h-6 bg-sky-200"></div>
+                                <div class="text-right">
+                                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded"><i class="fas fa-check"></i> Valid</span>
+                                </div>
+                            </div>
+                        @else
+                            <p class="text-xs font-medium text-slate-500 italic">Belum ada data tervalidasi</p>
+                        @endif
                     </div>
                 </div>
 
-                @php $cekTerakhir = $balita->riwayatPemeriksaan->first(); @endphp
-                
-                <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-4">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Pemeriksaan Terakhir</p>
-                    @if($cekTerakhir)
-                        <div class="grid grid-cols-3 gap-2">
-                            <div>
-                                <p class="text-xs text-slate-500">Berat</p>
-                                <p class="text-sm font-black text-slate-800">{{ $cekTerakhir->berat_badan }} <span class="text-[10px] text-slate-400 font-bold">KG</span></p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-slate-500">Tinggi</p>
-                                <p class="text-sm font-black text-slate-800">{{ $cekTerakhir->tinggi_badan }} <span class="text-[10px] text-slate-400 font-bold">CM</span></p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-slate-500">Gizi</p>
-                                @php
-                                    $gizi = strtolower($cekTerakhir->status_gizi);
-                                    $gColor = in_array($gizi, ['baik', 'normal']) ? 'text-emerald-600' : 'text-amber-600';
-                                @endphp
-                                <p class="text-sm font-black uppercase {{ $gColor }}">{{ $cekTerakhir->status_gizi ?? '-' }}</p>
-                            </div>
-                        </div>
-                    @else
-                        <p class="text-xs font-semibold text-slate-500 italic">Belum ada catatan pemeriksaan.</p>
-                    @endif
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <a href="{{ route('user.balita.show', $balita->id) }}" class="smooth-route flex items-center justify-center gap-2 w-full py-2.5 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold rounded-xl transition-colors">
-                        <i class="fas fa-chart-line"></i> Grafik Tumbuh
-                    </a>
-                    <a href="{{ route('user.imunisasi.index') }}" class="smooth-route flex items-center justify-center gap-2 w-full py-2.5 bg-sky-50 text-sky-600 hover:bg-sky-100 text-xs font-bold rounded-xl transition-colors">
-                        <i class="fas fa-syringe"></i> Riwayat Imunisasi
+                <div class="relative z-10 mt-5 pt-5 border-t border-slate-100">
+                    <a href="{{ route('user.balita.show', $anak->id) }}" class="flex items-center justify-center gap-2 w-full py-2.5 bg-sky-500 text-white text-xs font-bold rounded-xl hover:bg-sky-600 transition-colors shadow-sm">
+                        Buka Buku KIA / KMS <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
-            @endforeach
-        </div>
-    @endif
-
+        @empty
+            <div class="col-span-full py-20 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                <div class="w-20 h-20 bg-sky-50 text-sky-400 rounded-full flex items-center justify-center text-4xl mb-4 shadow-sm">
+                    <i class="fas fa-baby-carriage"></i>
+                </div>
+                <h3 class="text-xl font-black text-slate-700 mb-2">Belum Ada Data Anak</h3>
+                <p class="text-sm font-medium text-slate-500 text-center max-w-md leading-relaxed">
+                    {{ $pesan ?? 'Kami tidak menemukan data bayi atau balita yang terhubung dengan NIK Anda. Silakan hubungi Kader Posyandu untuk pendaftaran.' }}
+                </p>
+                <a href="{{ route('user.profile.edit') }}" class="mt-6 text-xs font-bold text-sky-600 bg-sky-50 px-5 py-2.5 rounded-xl hover:bg-sky-100 transition-colors">Cek NIK di Profil Anda</a>
+            </div>
+        @endforelse
+    </div>
 </div>
 @endsection

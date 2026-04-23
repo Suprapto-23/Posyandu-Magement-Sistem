@@ -34,13 +34,14 @@ use App\Http\Controllers\Kader\JadwalController;
 use App\Http\Controllers\Kader\ImportController;
 use App\Http\Controllers\Kader\ProfileController    as KaderProfile;
 use App\Http\Controllers\Kader\NotifikasiController as KaderNotifikasi;
-use App\Http\Controllers\Kader\AbsensiController; // 👈 Controller Absensi ditambahkan di sini
+use App\Http\Controllers\Kader\AbsensiController; 
 
 // User (Warga)
 use App\Http\Controllers\User\DashboardController   as UserDashboard;
 use App\Http\Controllers\User\BalitaController      as UserBalita;
 use App\Http\Controllers\User\RemajaController      as UserRemaja;
 use App\Http\Controllers\User\LansiaController      as UserLansia;
+use App\Http\Controllers\User\IbuHamilController    as UserIbuHamil;
 use App\Http\Controllers\User\JadwalController      as UserJadwal;
 use App\Http\Controllers\User\ProfileController     as UserProfile;
 use App\Http\Controllers\User\NotifikasiController  as UserNotifikasi;
@@ -60,10 +61,11 @@ Route::get('/logout', [LoginController::class, 'logout'])->name('logout.get');
 
 // ==================== GLOBAL ====================
 Route::middleware('auth')->group(function () {
-    Route::get('/home',             [HomeController::class, 'index'])->name('home');
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/password/change',  [ChangePasswordController::class, 'showChangeForm'])->name('password.change');
     Route::post('/password/change', [ChangePasswordController::class, 'change'])->name('password.change.post');
     Route::get('/profile',          [UserProfile::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile',        [UserProfile::class, 'update'])->name('profile.update');
 });
 
 // ==================== ADMIN ====================
@@ -303,32 +305,64 @@ Route::prefix('kader')->name('kader.')->middleware(['auth','checkstatus','role:k
 // ==================== USER (WARGA) ====================
 Route::prefix('user')->name('user.')->middleware(['auth','checkstatus','role:user'])->group(function () {
     Route::get('/', fn() => redirect()->route('user.dashboard'));
-
+ 
+    // ── Dashboard (fallback untuk multi-peran / umum) ──────────────────
     Route::get('/dashboard', [UserDashboard::class, 'index'])->name('dashboard');
-    Route::get('/stats',     [UserDashboard::class, 'getStats'])->name('stats');
+ 
+    // PERBAIKAN: method getLatestNotifications() diganti getStats()
+    // (method lama getLatestNotifications() punya bug is_read vs read_at)
+    Route::get('/stats', [UserDashboard::class, 'getStats'])->name('stats');
+ 
+    // ── Balita & Imunisasi ──────────────────────────────────────────────
+    Route::resource('balita', UserBalita::class)->only(['index', 'show']);
+    // route: user.balita.index, user.balita.show
+    Route::get('imunisasi', [UserBalita::class, 'imunisasi'])->name('imunisasi.index');
+    // route: user.imunisasi.index
+ 
+    // ── Remaja ──────────────────────────────────────────────────────────
+    // PERBAIKAN: hapus route user.remaja.konseling (method tidak ada di RemajaController baru)
+    // Konseling sudah ditangani user.konseling.* di bawah
+    Route::get('remaja',          [UserRemaja::class, 'index'])->name('remaja.index');
+    Route::get('remaja/riwayat',  [UserRemaja::class, 'riwayat'])->name('remaja.riwayat');
+    // route: user.remaja.index, user.remaja.riwayat
+ 
+    // ── Lansia ──────────────────────────────────────────────────────────
+    // PERBAIKAN: daftarkan route yang hilang (showKunjungan dll dihapus dari controller)
+    // Cukup 2 route: index + riwayat
+    Route::get('lansia',          [UserLansia::class, 'index'])->name('lansia.index');
+    Route::get('lansia/riwayat',  [UserLansia::class, 'riwayat'])->name('lansia.riwayat');
+    // route: user.lansia.index, user.lansia.riwayat
 
-    Route::resource('balita', UserBalita::class);
-    Route::get('imunisasi',   [UserBalita::class, 'imunisasi'])->name('imunisasi.index');
-    Route::resource('remaja', UserRemaja::class);
-    Route::resource('lansia', UserLansia::class);
-
+    // ── Ibu Hamil ──────────────────────────────────────────────
+    Route::resource('ibu-hamil', UserIbuHamil::class)->only(['index', 'show']);
+ 
+    // ── Jadwal Posyandu ─────────────────────────────────────────────────
     Route::get('/jadwal', [UserJadwal::class, 'index'])->name('jadwal.index');
-
+    // route: user.jadwal.index
+ 
+    // ── Notifikasi ──────────────────────────────────────────────────────
     Route::prefix('notifikasi')->name('notifikasi.')->group(function () {
-        Route::get('/', [UserNotifikasi::class, 'index'])->name('index');
-        Route::get('/fetch', [UserNotifikasi::class, 'fetchRecent'])->name('fetch');
-        Route::post('/mark-all-read', [UserNotifikasi::class, 'markAllRead'])->name('markall');
-        Route::post('/{id}/read', [UserNotifikasi::class, 'markRead'])->name('read');
+        Route::get('/',              [UserNotifikasi::class, 'index'])->name('index');
+        Route::get('/fetch',         [UserNotifikasi::class, 'fetchRecent'])->name('fetch');
+        Route::post('/mark-all-read',[UserNotifikasi::class, 'markAllRead'])->name('markall');
+        Route::post('/{id}/read',    [UserNotifikasi::class, 'markRead'])->name('read');
     });
-
-    Route::get('/profile',   [UserProfile::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [UserProfile::class, 'update'])->name('profile.update');
-    
+    // route: user.notifikasi.index, .fetch, .markall, .read
+ 
+    // ── Profil Warga ────────────────────────────────────────────────────
+    Route::get('/profile', [\App\Http\Controllers\User\ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [\App\Http\Controllers\User\ProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/password', [\App\Http\Controllers\User\ProfileController::class, 'updatePassword'])->name('password.update');
+    // route: user.profile.edit, user.profile.update
+ 
+    // ── Riwayat Rekam Medis (lintas kategori) ───────────────────────────
     Route::get('riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
-
+    // route: user.riwayat.index
+ 
+    // ── Konseling dengan Bidan ──────────────────────────────────────────
     Route::prefix('konseling')->name('konseling.')->group(function () {
-        Route::get('/', [UserKonseling::class, 'index'])->name('index');
-        Route::get('/fetch-chat', [UserKonseling::class, 'fetchChat'])->name('fetch-chat');
-        Route::post('/store', [UserKonseling::class, 'store'])->name('store');
-    });
+            Route::get('/', [\App\Http\Controllers\User\KonselingController::class, 'index'])->name('index');
+            Route::get('/fetch', [\App\Http\Controllers\User\KonselingController::class, 'fetchChat'])->name('fetch');
+            Route::post('/store', [\App\Http\Controllers\User\KonselingController::class, 'store'])->name('store');
+        });
 });

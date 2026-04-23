@@ -3,51 +3,101 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Traits\DetectsUserPeran;
 use App\Models\Remaja;
 use App\Models\Pemeriksaan;
-use App\Models\KonselingRemaja;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * RemajaController (User/Warga)
+ *
+ * Menampilkan halaman kesehatan untuk warga kategori Remaja.
+ * Data yang ditampilkan hanya untuk remaja yang NIK-nya cocok
+ * dengan user yang sedang login — tidak bisa melihat data orang lain.
+ *
+ * PERBAIKAN dari versi sebelumnya:
+ * 1. Hapus dependency ke model KonselingRemaja (tidak ada tabelnya)
+ *    → Konseling sudah ditangani User\KonselingController (tabel: konselings)
+ * 2. Fix field 'hemoglobin' → 'hb' (sesuai kolom di tabel pemeriksaans)
+ * 3. Gunakan Trait DetectsUserPeran (bukan inline NIK detection)
+ * 4. Tambah try-catch untuk keamanan
+ */
 class RemajaController extends Controller
 {
-    private function getRemaja()
-    {
-        $user = Auth::user();
-        $nik = $user->nik ?? ($user->profile->nik ?? null);
-        if (empty($nik)) return Remaja::where('nama_lengkap', $user->name)->first();
-        return Remaja::where('nik', $nik)->first();
-    }
+    use DetectsUserPeran;
 
+    /**
+     * Halaman utama portal kesehatan remaja.
+     * Menampilkan data fisik terakhir yang SUDAH DIVALIDASI bidan.
+     */
     public function index()
     {
-        $remaja = $this->getRemaja();
-        if (!$remaja) return view('user.remaja.empty');
-        
-        // INTEGRASI BIDAN: Baca langsung dari Pemeriksaan yang verified
-        $pemeriksaanTerakhir = Pemeriksaan::where('pasien_id', $remaja->id)
-            ->where('kategori_pasien', 'remaja')
-            ->where('status_verifikasi', 'verified')
-            ->orderBy('tanggal_periksa', 'desc')
-            ->first();
+        $user = Auth::user();
+        $ctx  = $this->getUserContext($user);
 
-        $riwayatPemeriksaan = Pemeriksaan::where('pasien_id', $remaja->id)
-            ->where('kategori_pasien', 'remaja')
-            ->where('status_verifikasi', 'verified')
-            ->orderBy('tanggal_periksa', 'desc')
-            ->take(5)
-            ->get();
-            
-        return view('user.remaja.index', compact('remaja', 'pemeriksaanTerakhir', 'riwayatPemeriksaan'));
+        // Jika tidak terdaftar sebagai remaja
+        if (!$ctx['remaja']) {
+            return view('user.remaja.empty', [
+                'nik'     => $ctx['nik'],
+                'pesan'   => $ctx['nik']
+                    ? 'NIK ' . $ctx['nik'] . ' belum terdaftar sebagai remaja di Posyandu. Hubungi kader.'
+                    : 'NIK belum diisi. Lengkapi profil Anda terlebih dahulu.',
+            ]);
+        }
+
+        $remaja = $ctx['remaja'];
+
+        // Pemeriksaan terakhir yang SUDAH DIVALIDASI bidan
+        // status_verifikasi = 'verified' → data sudah dicek bidan, aman ditampilkan
+        $pemeriksaanTerakhir = null;
+        $riwayatPemeriksaan  = collect();
+
+        try {
+            $pemeriksaanTerakhir = Pemeriksaan::where('pasien_id', $remaja->id)
+                ->where('kategori_pasien', 'remaja')
+                ->where('status_verifikasi', 'verified')
+                ->orderBy('tanggal_periksa', 'desc')
+                ->first();
+
+            $riwayatPemeriksaan = Pemeriksaan::where('pasien_id', $remaja->id)
+                ->where('kategori_pasien', 'remaja')
+                ->where('status_verifikasi', 'verified')
+                ->orderBy('tanggal_periksa', 'desc')
+                ->take(6)
+                ->get();
+        } catch (\Throwable $e) {
+            Log::warning('RemajaController: pemeriksaan query error - ' . $e->getMessage());
+        }
+
+        return view('user.remaja.index', compact(
+            'remaja',
+            'pemeriksaanTerakhir',
+            'riwayatPemeriksaan'
+        ));
     }
 
-    public function konseling()
+    /**
+     * Halaman riwayat pemeriksaan lengkap (semua, bukan hanya 6 terakhir).
+     */
+    public function riwayat()
     {
-        $remaja = $this->getRemaja();
-        if (!$remaja) return view('user.remaja.empty');
+        $user = Auth::user();
+        $ctx  = $this->getUserContext($user);
 
-        $riwayatKonseling = KonselingRemaja::where('remaja_id', $remaja->id)
-            ->orderBy('created_at', 'desc')->get();
+        if (!$ctx['remaja']) {
+            return redirect()->route('user.remaja.index');
+        }
 
-        return view('user.remaja.konseling', compact('remaja', 'riwayatKonseling'));
+        $riwayatPemeriksaan = Pemeriksaan::where('pasien_id', $ctx['remaja']->id)
+            ->where('kategori_pasien', 'remaja')
+            ->where('status_verifikasi', 'verified')
+            ->orderBy('tanggal_periksa', 'desc')
+            ->paginate(10);
+
+        return view('user.remaja.riwayat', [
+            'remaja'             => $ctx['remaja'],
+            'riwayatPemeriksaan' => $riwayatPemeriksaan,
+        ]);
     }
 }

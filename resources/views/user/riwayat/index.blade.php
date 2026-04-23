@@ -1,96 +1,198 @@
 @extends('layouts.user')
 
-@section('title', 'Buku Rekam Medis')
-
-@push('styles')
-<style>
-    .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .timeline-line { position: absolute; left: 16px; top: 20px; bottom: 0; width: 2px; background: #e2e8f0; z-index: 0; }
-</style>
-@endpush
-
 @section('content')
-<div class="animate-slide-up space-y-6 pb-6">
-
-    <div class="bg-gradient-to-r from-teal-500 to-sky-500 rounded-[24px] p-6 text-white shadow-lg relative overflow-hidden">
-        <i class="fas fa-book-medical absolute -right-4 -bottom-4 text-7xl opacity-20"></i>
-        <div class="relative z-10">
-            <h2 class="text-2xl font-black font-poppins mb-1 tracking-tight">Buku Rekam Medis</h2>
-            <p class="text-teal-50 text-xs font-medium">Jejak histori kesehatan seluruh anggota keluarga Anda yang telah diverifikasi Bidan.</p>
+<div class="p-4 md:p-8 font-poppins bg-[#f8fafc] min-h-screen">
+    
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <div class="inline-flex items-center gap-3 px-4 py-2 bg-teal-50 rounded-full shadow-sm border border-teal-100 mb-4">
+                <i class="fas fa-folder-open text-teal-500"></i>
+                <span class="text-[11px] font-black tracking-widest uppercase text-teal-700">Arsip Kesehatan Terpadu</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Rekam Medis Keluarga 🏥</h1>
+            <p class="text-sm font-medium text-slate-500 mt-2 max-w-2xl leading-relaxed">Pusat arsip seluruh hasil pemeriksaan Anda dan keluarga yang telah divalidasi resmi oleh Bidan Posyandu.</p>
         </div>
     </div>
 
-    <div class="relative pt-4 pl-2 sm:pl-4">
-        <div class="timeline-line hidden sm:block"></div>
+    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 mb-8">
+        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4"><i class="fas fa-users mr-1.5"></i> Anggota Keluarga Terhubung</h3>
+        
+        <div class="flex flex-wrap gap-3">
+            @forelse($targets as $target)
+                @php
+                    $kat = $target['kat'] ?? $target['kategori'] ?? 'umum';
+                    $bgBadge = 'bg-slate-50 text-slate-600 border-slate-200';
+                    $icon = 'fa-user';
+                    
+                    if($kat == 'balita') { $bgBadge = 'bg-sky-50 text-sky-700 border-sky-100'; $icon = 'fa-baby'; }
+                    if($kat == 'ibu_hamil' || $kat == 'bumil') { $bgBadge = 'bg-pink-50 text-pink-700 border-pink-100'; $icon = 'fa-female'; }
+                    if($kat == 'remaja') { $bgBadge = 'bg-indigo-50 text-indigo-700 border-indigo-100'; $icon = 'fa-user-graduate'; }
+                    if($kat == 'lansia') { $bgBadge = 'bg-orange-50 text-orange-700 border-orange-100'; $icon = 'fa-wheelchair'; }
+                @endphp
+                <div class="flex items-center gap-2 px-4 py-2 rounded-xl border {{ $bgBadge }}">
+                    <i class="fas {{ $icon }} opacity-70"></i>
+                    <span class="text-xs font-bold">{{ $target['nama'] }}</span>
+                </div>
+            @empty
+                <p class="text-xs font-medium text-slate-500 italic">Belum ada anggota keluarga yang terhubung dengan NIK ini.</p>
+            @endforelse
+        </div>
+    </div>
 
+    <div class="space-y-5">
         @forelse($riwayat as $item)
             @php
-                $isBalita = $item->kategori_pasien == 'balita';
-                $isRemaja = $item->kategori_pasien == 'remaja';
-                $isLansia = $item->kategori_pasien == 'lansia';
+                // Mencari nama dan kategori pasien dari array targets
+                $pasien = collect($targets)->first(function($t) use ($item) {
+                    $kat = $t['kat'] ?? $t['kategori'] ?? '';
+                    return $t['id'] == $item->pasien_id && $kat == $item->kategori_pasien;
+                });
                 
-                $dotColor = $isBalita ? 'border-rose-500' : ($isRemaja ? 'border-indigo-500' : 'border-amber-500');
-                $badgeColor = $isBalita ? 'bg-rose-100 text-rose-700' : ($isRemaja ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700');
-                $icon = $isBalita ? 'fa-baby' : ($isRemaja ? 'fa-user-graduate' : 'fa-wheelchair');
+                $namaPasien = $pasien ? $pasien['nama'] : 'Pasien Tidak Diketahui';
+                $katPasien = $pasien ? ($pasien['kat'] ?? $pasien['kategori'] ?? 'umum') : $item->kategori_pasien;
+
+                // Set warna dan ikon berdasarkan kategori
+                $cardBorder = 'border-slate-100 hover:border-slate-300';
+                $iconBg = 'bg-slate-50 text-slate-500';
+                $icon = 'fa-file-medical';
+                $kategoriLabel = 'Umum';
+
+                if($katPasien == 'balita') { 
+                    $cardBorder = 'border-sky-100 hover:border-sky-300 shadow-[0_4px_15px_-5px_rgba(14,165,233,0.1)]'; 
+                    $iconBg = 'bg-sky-50 text-sky-500'; 
+                    $icon = 'fa-baby'; 
+                    $kategoriLabel = 'Pemeriksaan Balita'; 
+                }
+                elseif($katPasien == 'ibu_hamil' || $katPasien == 'bumil') { 
+                    $cardBorder = 'border-pink-100 hover:border-pink-300 shadow-[0_4px_15px_-5px_rgba(236,72,153,0.1)]'; 
+                    $iconBg = 'bg-pink-50 text-pink-500'; 
+                    $icon = 'fa-female'; 
+                    $kategoriLabel = 'Pemeriksaan Ibu Hamil'; 
+                }
+                elseif($katPasien == 'remaja') { 
+                    $cardBorder = 'border-indigo-100 hover:border-indigo-300 shadow-[0_4px_15px_-5px_rgba(99,102,241,0.1)]'; 
+                    $iconBg = 'bg-indigo-50 text-indigo-500'; 
+                    $icon = 'fa-user-graduate'; 
+                    $kategoriLabel = 'Cek Fisik Remaja'; 
+                }
+                elseif($katPasien == 'lansia') { 
+                    $cardBorder = 'border-orange-100 hover:border-orange-300 shadow-[0_4px_15px_-5px_rgba(249,115,22,0.1)]'; 
+                    $iconBg = 'bg-orange-50 text-orange-500'; 
+                    $icon = 'fa-wheelchair'; 
+                    $kategoriLabel = 'Pemantauan Lansia'; 
+                }
             @endphp
 
-            <div class="relative pl-0 sm:pl-10 mb-6 last:mb-0 group">
+            <div class="bg-white rounded-[2rem] border {{ $cardBorder }} p-6 transition-all flex flex-col lg:flex-row gap-6 relative overflow-hidden group">
                 
-                <div class="hidden sm:block absolute left-[-6px] top-4 w-4 h-4 rounded-full bg-white border-[4px] {{ $dotColor }} shadow-sm z-10"></div>
-
-                <div class="bg-white border border-slate-100 rounded-[20px] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md transition-shadow">
-                    
-                    <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
-                        <div class="flex items-center gap-2">
-                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider {{ $badgeColor }}">
-                                <i class="fas {{ $icon }}"></i> {{ ucfirst($item->kategori_pasien) }}
-                            </span>
-                            <span class="text-[10px] font-bold text-slate-400"><i class="fas fa-clock"></i> {{ \Carbon\Carbon::parse($item->tanggal_periksa)->format('d M Y') }}</span>
-                        </div>
-                        <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 text-xs font-bold shrink-0">
-                            {{ strtoupper(substr($item->pasien_nama, 0, 1)) }}
-                        </div>
-                    </div>
-
-                    <h4 class="text-sm font-black text-slate-800 font-poppins mb-2">{{ $item->pasien_nama }}</h4>
-                    
-                    <div class="flex flex-wrap gap-2 text-xs font-semibold text-slate-600 mb-3">
-                        <span class="bg-slate-50 px-2.5 py-1 rounded border border-slate-100">BB: <span class="font-bold">{{ $item->berat_badan ?? '-' }} kg</span></span>
-                        <span class="bg-slate-50 px-2.5 py-1 rounded border border-slate-100">TB: <span class="font-bold">{{ $item->tinggi_badan ?? '-' }} cm</span></span>
-                        @if($item->tekanan_darah)
-                            <span class="bg-slate-50 px-2.5 py-1 rounded border border-slate-100">TD: <span class="font-bold">{{ $item->tekanan_darah }}</span></span>
-                        @endif
-                    </div>
-
-                    <div class="bg-teal-50 border border-teal-100 p-3 rounded-xl">
-                        <p class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-1">Diagnosa Bidan</p>
-                        <p class="text-xs font-bold text-teal-900 leading-relaxed">{{ $item->diagnosa ?? 'Kondisi sehat/normal terpantau.' }}</p>
-                        
-                        @if($item->tindakan)
-                            <p class="text-[11px] font-semibold text-teal-700 mt-2 border-t border-teal-200/50 pt-2"><span class="font-bold uppercase mr-1 text-[9px]">Tindakan:</span> {{ $item->tindakan }}</p>
-                        @endif
-                    </div>
-
+                <div class="absolute -right-10 -bottom-10 opacity-[0.03] group-hover:scale-110 transition-transform pointer-events-none">
+                    <i class="fas {{ $icon }} text-[10rem] text-slate-800"></i>
                 </div>
+
+                <div class="lg:w-1/3 shrink-0 lg:border-r border-slate-100 lg:pr-6 relative z-10 flex flex-col justify-center">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-2xl {{ $iconBg }} flex items-center justify-center text-2xl shadow-sm">
+                            <i class="fas {{ $icon }}"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $kategoriLabel }}</p>
+                            <h3 class="text-base font-black text-slate-800">{{ $namaPasien }}</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="far fa-calendar-alt text-slate-400 w-4 text-center"></i>
+                        <span class="text-sm font-bold text-slate-700">{{ \Carbon\Carbon::parse($item->tanggal_periksa)->translatedFormat('l, d F Y') }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-emerald-500 w-4 text-center"></i>
+                        <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Verified Bidan</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 relative z-10">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                        
+                        @if($item->berat_badan)
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Berat Badan</p>
+                                <p class="text-sm font-bold text-slate-800">{{ $item->berat_badan }} <span class="text-[10px] text-slate-500 font-medium">kg</span></p>
+                            </div>
+                        @endif
+
+                        @if($item->tinggi_badan)
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Tinggi Badan</p>
+                                <p class="text-sm font-bold text-slate-800">{{ $item->tinggi_badan }} <span class="text-[10px] text-slate-500 font-medium">cm</span></p>
+                            </div>
+                        @endif
+
+                        @if($item->tekanan_darah)
+                            <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
+                                <p class="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Tekanan Darah</p>
+                                <p class="text-sm font-bold text-rose-700">{{ $item->tekanan_darah }}</p>
+                            </div>
+                        @endif
+
+                        @if($item->gula_darah)
+                            <div class="bg-sky-50 p-3 rounded-xl border border-sky-100">
+                                <p class="text-[9px] font-black text-sky-500 uppercase tracking-widest mb-1">Gula Darah</p>
+                                <p class="text-sm font-bold text-sky-700">{{ $item->gula_darah }} <span class="text-[10px] text-sky-500 font-medium">mg/dL</span></p>
+                            </div>
+                        @endif
+
+                        @if($item->hemoglobin || $item->hb)
+                            <div class="bg-violet-50 p-3 rounded-xl border border-violet-100">
+                                <p class="text-[9px] font-black text-violet-400 uppercase tracking-widest mb-1">Hemoglobin</p>
+                                <p class="text-sm font-bold text-violet-700">{{ $item->hemoglobin ?? $item->hb }}</p>
+                            </div>
+                        @endif
+
+                        @if($item->tfu)
+                            <div class="bg-amber-50 p-3 rounded-xl border border-amber-100">
+                                <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-1">TFU</p>
+                                <p class="text-sm font-bold text-amber-700">{{ $item->tfu }} <span class="text-[10px] text-amber-600 font-medium">cm</span></p>
+                            </div>
+                        @endif
+
+                    </div>
+
+                    @if($item->keterangan || $item->status_gizi)
+                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 mt-2">
+                            @if($item->status_gizi)
+                                <div class="mb-2">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">Status Gizi:</span>
+                                    <span class="px-2 py-0.5 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded shadow-sm">{{ $item->status_gizi }}</span>
+                                </div>
+                            @endif
+                            
+                            @if($item->keterangan)
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Catatan Bidan:</p>
+                                <p class="text-xs font-medium text-slate-600 italic leading-relaxed">"{{ $item->keterangan }}"</p>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+
             </div>
         @empty
-            <div class="text-center py-16 px-4">
-                <div class="w-16 h-16 bg-white border border-slate-100 shadow-sm rounded-full flex items-center justify-center mx-auto mb-4 text-3xl text-slate-300">
+            <div class="py-20 flex flex-col items-center justify-center text-center bg-white rounded-[2rem] border-2 border-dashed border-slate-200">
+                <div class="w-20 h-20 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center text-4xl shadow-sm mb-5">
                     <i class="fas fa-folder-open"></i>
                 </div>
-                <h4 class="text-sm font-black text-slate-700 font-poppins mb-1">Buku Medis Kosong</h4>
-                <p class="text-xs font-medium text-slate-500 max-w-xs mx-auto">Belum ada riwayat pemeriksaan terverifikasi untuk keluarga Anda.</p>
+                <h3 class="text-xl font-black text-slate-700 mb-2">Belum Ada Rekam Medis</h3>
+                <p class="text-sm font-medium text-slate-500 max-w-md leading-relaxed">
+                    Kami belum menemukan riwayat pemeriksaan yang tervalidasi untuk Anda maupun anggota keluarga Anda.
+                </p>
             </div>
         @endforelse
-        
-        @if($riwayat->hasPages())
-        <div class="mt-6">
+    </div>
+
+    @if($riwayat->hasPages())
+        <div class="mt-8">
             {{ $riwayat->links() }}
         </div>
-        @endif
-
-    </div>
+    @endif
 
 </div>
 @endsection

@@ -10,82 +10,88 @@ use App\Models\JadwalPosyandu;
 use App\Models\Balita;
 use App\Models\Remaja;
 use App\Models\Lansia;
+use App\Models\IbuHamil;
+use App\Traits\DetectsUserPeran;
 use Carbon\Carbon;
 
+/**
+ * JadwalController (User/Warga)
+ *
+ * PERBAIKAN [BUG-8]:
+ * View baru jadwal menggunakan URL param 'target' (?target=balita)
+ * tapi controller membaca 'filter'. Semua distandarisasi ke 'filter'
+ * agar konsisten. View harus pakai ?filter=balita.
+ *
+ * Juga ditambahkan:
+ * - Deteksi ibu_hamil via Trait DetectsUserPeran
+ * - hakAkses yang lebih akurat (include ibu_hamil jika terdaftar)
+ */
 class JadwalController extends Controller
 {
+    use DetectsUserPeran;
+
+    /**
+     * Daftar jadwal posyandu yang relevan untuk user yang login.
+     * Route: GET /user/jadwal → user.jadwal.index
+     *
+     * Query param: filter (semua|balita|remaja|lansia|ibu_hamil)
+     */
     public function index(Request $request)
     {
-        $user    = Auth::user();
-        $nikUser = $user->nik ?? null;
+        $user = Auth::user();
+        $ctx  = $this->getUserContext($user);
 
-        // 1. Tentukan hak akses target peserta
+        // Tentukan hak akses berdasarkan data user di database
         $hakAkses = ['semua'];
-        if ($nikUser) {
-            try {
-                if (Balita::where('nik_ibu', $nikUser)->orWhere('nik_ayah', $nikUser)->exists())
-                    $hakAkses[] = 'balita';
-            } catch (\Throwable $e) { Log::warning('Jadwal balita check: ' . $e->getMessage()); }
+        if (in_array('orang_tua', $ctx['peran'])) $hakAkses[] = 'balita';
+        if (in_array('remaja',    $ctx['peran'])) $hakAkses[] = 'remaja';
+        if (in_array('lansia',    $ctx['peran'])) $hakAkses[] = 'lansia';
+        if (in_array('bumil',     $ctx['peran'])) $hakAkses[] = 'ibu_hamil';
 
-            try {
-                if (Remaja::where('nik', $nikUser)->exists()) $hakAkses[] = 'remaja';
-            } catch (\Throwable $e) { Log::warning('Jadwal remaja check: ' . $e->getMessage()); }
-
-            try {
-                if (Lansia::where('nik', $nikUser)->exists()) $hakAkses[] = 'lansia';
-            } catch (\Throwable $e) { Log::warning('Jadwal lansia check: ' . $e->getMessage()); }
-        }
-
-        // 2. Filter tab aktif dari query string
-        // Nilai valid: semua, balita, remaja, lansia, ibu_hamil
+        // [BUG-8 FIX] Semua konsisten pakai param 'filter', bukan 'target'
         $filterTarget = $request->get('filter', 'semua');
         $validFilters = ['semua', 'balita', 'remaja', 'lansia', 'ibu_hamil'];
         if (!in_array($filterTarget, $validFilters)) {
             $filterTarget = 'semua';
         }
 
-        // 3. Bangun query
-        $query = JadwalPosyandu::aktif()
+        // Bangun query dasar
+        $query = JadwalPosyandu::where('status', 'aktif')
             ->whereIn('target_peserta', $hakAkses);
 
-        // Terapkan filter tab jika bukan 'semua'
+        // Terapkan filter tab
         if ($filterTarget !== 'semua') {
             $query->where('target_peserta', $filterTarget);
         }
 
-        // Urutan: akan datang (ASC) dulu, lalu yang sudah lewat (DESC)
-        // Caranya: pisah jadi 2 query, gabung via union tidak bisa di paginate,
-        // jadi pakai orderByRaw dengan CASE
+        // Urutan: mendatang dulu (ASC), lalu yang sudah lewat (DESC)
         $query->orderByRaw("
-            CASE
-                WHEN tanggal >= CURDATE() THEN 0
-                ELSE 1
-            END ASC,
-            CASE
-                WHEN tanggal >= CURDATE() THEN tanggal
-                ELSE NULL
-            END ASC,
-            CASE
-                WHEN tanggal < CURDATE() THEN tanggal
-                ELSE NULL
-            END DESC,
+            CASE WHEN tanggal >= CURDATE() THEN 0 ELSE 1 END ASC,
+            CASE WHEN tanggal >= CURDATE() THEN tanggal ELSE NULL END ASC,
+            CASE WHEN tanggal < CURDATE() THEN tanggal ELSE NULL END DESC,
             waktu_mulai ASC
         ");
 
         $jadwalKegiatan = $query->paginate(9)->withQueryString();
 
-        // 4. Hitung summary untuk badge tab
-        $baseQuery = JadwalPosyandu::aktif()->whereIn('target_peserta', $hakAkses);
+        // Hitung badge count per tab
+        $base = JadwalPosyandu::where('status', 'aktif')
+            ->whereIn('target_peserta', $hakAkses);
+
         $summary = [
-            'semua'    => (clone $baseQuery)->count(),
-            'balita'   => (clone $baseQuery)->where('target_peserta', 'balita')->count(),
-            'remaja'   => (clone $baseQuery)->where('target_peserta', 'remaja')->count(),
-            'lansia'   => (clone $baseQuery)->where('target_peserta', 'lansia')->count(),
-            'mendatang'=> (clone $baseQuery)->whereDate('tanggal', '>=', Carbon::today())->count(),
+            'semua'     => (clone $base)->count(),
+            'balita'    => (clone $base)->where('target_peserta', 'balita')->count(),
+            'remaja'    => (clone $base)->where('target_peserta', 'remaja')->count(),
+            'lansia'    => (clone $base)->where('target_peserta', 'lansia')->count(),
+            'ibu_hamil' => (clone $base)->where('target_peserta', 'ibu_hamil')->count(),
+            'mendatang' => (clone $base)->whereDate('tanggal', '>=', Carbon::today())->count(),
         ];
 
         return view('user.jadwal.index', compact(
-            'jadwalKegiatan', 'hakAkses', 'filterTarget', 'summary'
+            'jadwalKegiatan',
+            'hakAkses',
+            'filterTarget',
+            'summary'
         ));
     }
 }

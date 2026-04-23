@@ -1,7 +1,7 @@
 <?php
 /**
  * PATH   : app/Http/Controllers/Admin/KaderController.php
- * FUNGSI : CRUD akun kader — login via email, simpan ke tabel kaders
+ * FUNGSI : CRUD akun kader — login via email, simpan ke tabel kaders & profiles terintegrasi
  */
 
 namespace App\Http\Controllers\Admin;
@@ -15,7 +15,6 @@ use App\Models\User;
 
 class KaderController extends Controller
 {
-    // ── INDEX ───────────────────────────────────
     public function index(Request $request)
     {
         $query = User::with(['profile', 'kader'])->where('role', 'kader');
@@ -38,20 +37,21 @@ class KaderController extends Controller
         return view('admin.kaders.index', compact('kaders', 'stats'));
     }
 
-    // ── CREATE ──────────────────────────────────
     public function create()
     {
         return view('admin.kaders.create');
     }
 
-    // ── STORE ───────────────────────────────────
     public function store(Request $request)
     {
+        // Penambahan validasi tempat_lahir & tanggal_lahir
         $request->validate([
             'full_name'         => 'required|string|max:191',
             'email'             => 'required|email|unique:users,email',
             'nik'               => 'required|digits:16|unique:users,nik|unique:profiles,nik',
             'jenis_kelamin'     => 'required|in:L,P',
+            'tempat_lahir'      => 'nullable|string|max:100',
+            'tanggal_lahir'     => 'required|date',
             'telepon'           => 'required|string|max:20',
             'alamat'            => 'required|string',
             'jabatan'           => 'required|string|max:191',
@@ -77,16 +77,19 @@ class KaderController extends Controller
                 'status'   => $request->status,
             ]);
 
+            // Simpan Profil Lengkap
             $user->profile()->create([
                 'user_id'       => $user->id,
                 'full_name'     => $request->full_name,
                 'nik'           => $request->nik,
                 'jenis_kelamin' => $request->jenis_kelamin,
+                'tempat_lahir'  => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
                 'telepon'       => $request->telepon,
                 'alamat'        => $request->alamat,
             ]);
 
-            // Simpan ke tabel kaders
+            // Simpan Data Spesifik Kader
             DB::table('kaders')->insert([
                 'user_id'           => $user->id,
                 'jabatan'           => $request->jabatan,
@@ -110,21 +113,18 @@ class KaderController extends Controller
             ->with('user_email', $request->email);
     }
 
-    // ── SHOW ────────────────────────────────────
     public function show($id)
     {
         $kader = User::with(['profile', 'kader'])->where('role', 'kader')->findOrFail($id);
         return view('admin.kaders.show', compact('kader'));
     }
 
-    // ── EDIT ────────────────────────────────────
     public function edit($id)
     {
         $kader = User::with(['profile', 'kader'])->where('role', 'kader')->findOrFail($id);
         return view('admin.kaders.edit', compact('kader'));
     }
 
-    // ── UPDATE ──────────────────────────────────
     public function update(Request $request, $id)
     {
         $kader = User::with(['profile', 'kader'])->where('role', 'kader')->findOrFail($id);
@@ -132,6 +132,8 @@ class KaderController extends Controller
         $request->validate([
             'full_name'         => 'required|string|max:191',
             'jenis_kelamin'     => 'required|in:L,P',
+            'tempat_lahir'      => 'nullable|string|max:100',
+            'tanggal_lahir'     => 'required|date',
             'telepon'           => 'required|string|max:20',
             'alamat'            => 'required|string',
             'jabatan'           => 'required|string|max:191',
@@ -147,21 +149,27 @@ class KaderController extends Controller
             $profileData = [
                 'full_name'     => $request->full_name,
                 'jenis_kelamin' => $request->jenis_kelamin,
+                'tempat_lahir'  => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
                 'telepon'       => $request->telepon,
                 'alamat'        => $request->alamat,
             ];
+            
             if ($kader->profile) {
                 $kader->profile->update($profileData);
             } else {
                 $kader->profile()->create(array_merge($profileData, ['user_id' => $kader->id]));
             }
 
-            DB::table('kaders')->where('user_id', $kader->id)->update([
-                'jabatan'           => $request->jabatan,
-                'tanggal_bergabung' => $request->tanggal_bergabung,
-                'status_kader'      => $request->status_kader,
-                'updated_at'        => now(),
-            ]);
+            DB::table('kaders')->updateOrInsert(
+                ['user_id' => $kader->id],
+                [
+                    'jabatan'           => $request->jabatan,
+                    'tanggal_bergabung' => $request->tanggal_bergabung,
+                    'status_kader'      => $request->status_kader,
+                    'updated_at'        => now(),
+                ]
+            );
 
             DB::commit();
         } catch (\Throwable $e) {
@@ -173,7 +181,6 @@ class KaderController extends Controller
             ->with('success', 'Data kader berhasil diperbarui.');
     }
 
-    // ── DESTROY ─────────────────────────────────
     public function destroy($id)
     {
         $kader = User::where('role', 'kader')->findOrFail($id);
@@ -185,7 +192,6 @@ class KaderController extends Controller
             ->with('success', "Akun kader {$name} berhasil dihapus.");
     }
 
-    // ── RESET PASSWORD ───────────────────────────
     public function resetPassword($id)
     {
         $kader    = User::where('role', 'kader')->findOrFail($id);
@@ -200,7 +206,6 @@ class KaderController extends Controller
             ->with('reset_email', $kader->email);
     }
 
-    // ── HELPERS ─────────────────────────────────
     private function getStats(): array
     {
         try {

@@ -1,7 +1,7 @@
 <?php
 /**
  * PATH   : app/Http/Controllers/Admin/BidanController.php
- * FUNGSI : CRUD akun bidan — login via email
+ * FUNGSI : CRUD akun bidan — login via email, data profil terintegrasi penuh
  */
 
 namespace App\Http\Controllers\Admin;
@@ -47,11 +47,17 @@ class BidanController extends Controller
     // ── STORE ───────────────────────────────────
     public function store(Request $request)
     {
+        // 1. Validasi semua field yang ada di form View
         $request->validate([
-            'full_name' => 'required|string|max:191',
-            'email'     => 'required|email|unique:users,email',
-            'nik'       => 'required|digits:16|unique:users,nik|unique:profiles,nik',
-            'status'    => 'required|in:active,inactive',
+            'name'          => 'required|string|max:191',
+            'email'         => 'required|email|unique:users,email',
+            'nik'           => 'required|digits:16|unique:users,nik|unique:profiles,nik',
+            'jenis_kelamin' => 'required|in:L,P',
+            'telepon'       => 'nullable|string|max:20',
+            'tempat_lahir'  => 'nullable|string|max:100',
+            'tanggal_lahir' => 'required|date',
+            'alamat'        => 'nullable|string',
+            'status'        => 'required|in:active,inactive',
         ], [
             'email.unique' => 'Email ini sudah digunakan.',
             'nik.digits'   => 'NIK harus 16 digit angka.',
@@ -62,8 +68,9 @@ class BidanController extends Controller
 
         DB::beginTransaction();
         try {
+            // 2. Simpan ke tabel Users (Data Login)
             $user = User::create([
-                'name'     => $request->full_name,
+                'name'     => $request->name,
                 'email'    => $request->email,
                 'nik'      => $request->nik,
                 'password' => Hash::make($password),
@@ -71,10 +78,16 @@ class BidanController extends Controller
                 'status'   => $request->status,
             ]);
 
+            // 3. Simpan ke tabel Profiles (Biodata Lengkap)
             $user->profile()->create([
-                'user_id'   => $user->id,
-                'full_name' => $request->full_name,
-                'nik'       => $request->nik,
+                'user_id'       => $user->id,
+                'full_name'     => $request->name,
+                'nik'           => $request->nik,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'telepon'       => $request->telepon,
+                'tempat_lahir'  => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'alamat'        => $request->alamat,
             ]);
 
             DB::commit();
@@ -87,7 +100,7 @@ class BidanController extends Controller
         return redirect()->route('admin.bidans.index')
             ->with('success', 'Akun bidan berhasil dibuat.')
             ->with('generated_password', $password)
-            ->with('user_name', $request->full_name)
+            ->with('user_name', $request->name)
             ->with('user_email', $request->email);
     }
 
@@ -110,19 +123,40 @@ class BidanController extends Controller
     {
         $bidan = User::with('profile')->where('role', 'bidan')->findOrFail($id);
 
+        // 1. Validasi Update (Email & NIK tidak divalidasi karena readonly di view)
         $request->validate([
-            'full_name' => 'required|string|max:191',
-            'status'    => 'required|in:active,inactive',
+            'name'          => 'required|string|max:191',
+            'jenis_kelamin' => 'required|in:L,P',
+            'telepon'       => 'nullable|string|max:20',
+            'tempat_lahir'  => 'nullable|string|max:100',
+            'tanggal_lahir' => 'required|date',
+            'alamat'        => 'nullable|string',
+            'status'        => 'required|in:active,inactive',
         ]);
 
         DB::beginTransaction();
         try {
-            $bidan->update(['name' => $request->full_name, 'status' => $request->status]);
+            // 2. Update Nama Utama & Status Login
+            $bidan->update([
+                'name'   => $request->name, 
+                'status' => $request->status
+            ]);
+
+            // 3. Update Seluruh Biodata
+            $profileData = [
+                'full_name'     => $request->name,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'telepon'       => $request->telepon,
+                'tempat_lahir'  => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'alamat'        => $request->alamat,
+            ];
 
             if ($bidan->profile) {
-                $bidan->profile->update(['full_name' => $request->full_name]);
+                $bidan->profile->update($profileData);
             } else {
-                $bidan->profile()->create(['user_id' => $bidan->id, 'full_name' => $request->full_name]);
+                // Jika entah kenapa profilenya belum ada, buat baru
+                $bidan->profile()->create(array_merge($profileData, ['user_id' => $bidan->id]));
             }
             DB::commit();
         } catch (\Throwable $e) {
@@ -146,7 +180,6 @@ class BidanController extends Controller
     }
 
     // ── RESET PASSWORD ───────────────────────────
-    // Default: 6 digit terakhir NIK + "Bdn!"
     public function resetPassword($id)
     {
         $bidan    = User::where('role', 'bidan')->findOrFail($id);

@@ -1,159 +1,146 @@
 
 
-<?php $__env->startSection('title', 'Jadwal Posyandu'); ?>
-
-<?php $__env->startPush('styles'); ?>
-<style>
-    .animate-fade-in-up { opacity: 0; animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    
-    /* Scrollbar horizontal untuk menu filter */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    
-    /* Efek Kartu Jadwal */
-    .schedule-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .schedule-card:hover { transform: translateY(-4px); box-shadow: 0 15px 30px -10px rgba(20, 184, 166, 0.2); border-color: #99f6e4; }
-    
-    /* Badge Tanggal Khusus */
-    .date-badge-upcoming { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); }
-    .date-badge-past { background: linear-gradient(135deg, #64748b 0%, #475569 100%); }
-</style>
-<?php $__env->stopPush(); ?>
-
 <?php $__env->startSection('content'); ?>
-<div class="max-w-4xl mx-auto pb-12 w-full">
-
+<div class="p-4 md:p-8 font-poppins bg-[#f8fafc] min-h-screen">
     
-    <div class="animate-fade-in-up bg-white rounded-[28px] p-6 sm:p-8 shadow-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 relative overflow-hidden">
-        <div class="absolute -right-10 -top-10 w-40 h-40 bg-teal-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
-        <div class="relative z-10">
-            <h2 class="text-2xl sm:text-3xl font-black text-slate-800 font-poppins tracking-tight mb-2">Agenda Posyandu</h2>
-            <p class="text-[13px] sm:text-[14px] font-medium text-slate-500 max-w-md leading-relaxed">Pantau jadwal pemeriksaan kesehatan, imunisasi, dan kegiatan posyandu lainnya di desa Anda.</p>
+    <div class="mb-8">
+        <div class="inline-flex items-center gap-3 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-100 mb-4">
+            <span class="w-2.5 h-2.5 rounded-full bg-teal-500 animate-pulse"></span>
+            <span class="text-[11px] font-black tracking-widest uppercase text-slate-600">Agenda Posyandu</span>
         </div>
-        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-[18px] bg-teal-50 text-teal-600 flex items-center justify-center text-3xl shadow-sm border border-teal-100 shrink-0 relative z-10">
-            <i class="fas fa-calendar-alt"></i>
-        </div>
+        <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Jadwal Kegiatan Anda 📅</h1>
+        <p class="text-sm font-medium text-slate-500 mt-2 max-w-2xl leading-relaxed">Berikut adalah daftar jadwal Posyandu yang relevan dengan Anda dan keluarga. Pastikan untuk datang tepat waktu.</p>
     </div>
 
-    
-    <div class="animate-fade-in-up flex gap-2 overflow-x-auto no-scrollbar pb-4 mb-4" style="animation-delay: 0.1s;">
-        <a href="?filter=semua" class="smooth-route shrink-0 px-6 py-3 rounded-full text-[12px] font-black tracking-widest uppercase transition-all <?php echo e($filterTarget == 'semua' ? 'bg-teal-600 text-white shadow-[0_8px_20px_rgba(13,148,136,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:bg-teal-50 hover:text-teal-600'); ?>">
-            Semua <span class="ml-1 opacity-70">(<?php echo e($summary['semua'] ?? 0); ?>)</span>
-        </a>
+    <div class="flex overflow-x-auto custom-scrollbar pb-4 mb-6 gap-3">
         
-        <?php if(in_array('balita', $hakAkses)): ?>
-        <a href="?filter=balita" class="smooth-route shrink-0 px-6 py-3 rounded-full text-[12px] font-black tracking-widest uppercase transition-all <?php echo e($filterTarget == 'balita' ? 'bg-rose-500 text-white shadow-[0_8px_20px_rgba(244,63,94,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:bg-rose-50 hover:text-rose-600'); ?>">
-            Balita <span class="ml-1 opacity-70">(<?php echo e($summary['balita'] ?? 0); ?>)</span>
+        <a href="<?php echo e(route('user.jadwal.index', ['target' => 'semua'])); ?>" 
+           class="whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-xl border font-bold text-xs transition-all <?php echo e($filterTarget == 'semua' ? 'bg-teal-600 text-white border-teal-600 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300 hover:bg-teal-50'); ?>">
+            Semua Jadwal
+            <span class="px-2 py-0.5 rounded-md text-[10px] <?php echo e($filterTarget == 'semua' ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-500'); ?>"><?php echo e($summary['semua']); ?></span>
         </a>
+
+        <?php if(in_array('balita', $hakAkses)): ?>
+            <a href="<?php echo e(route('user.jadwal.index', ['target' => 'balita'])); ?>" 
+               class="whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-xl border font-bold text-xs transition-all <?php echo e($filterTarget == 'balita' ? 'bg-sky-500 text-white border-sky-500 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-sky-300 hover:bg-sky-50'); ?>">
+                <i class="fas fa-baby <?php echo e($filterTarget == 'balita' ? 'text-white' : 'text-sky-500'); ?>"></i> Balita
+                <span class="px-2 py-0.5 rounded-md text-[10px] <?php echo e($filterTarget == 'balita' ? 'bg-sky-400 text-white' : 'bg-slate-100 text-slate-500'); ?>"><?php echo e($summary['balita']); ?></span>
+            </a>
+        <?php endif; ?>
+
+        <?php if(in_array('ibu_hamil', $hakAkses)): ?>
+            <a href="<?php echo e(route('user.jadwal.index', ['target' => 'ibu_hamil'])); ?>" 
+               class="whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-xl border font-bold text-xs transition-all <?php echo e($filterTarget == 'ibu_hamil' ? 'bg-pink-500 text-white border-pink-500 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-pink-300 hover:bg-pink-50'); ?>">
+                <i class="fas fa-female <?php echo e($filterTarget == 'ibu_hamil' ? 'text-white' : 'text-pink-500'); ?>"></i> Ibu Hamil
+                <span class="px-2 py-0.5 rounded-md text-[10px] <?php echo e($filterTarget == 'ibu_hamil' ? 'bg-pink-400 text-white' : 'bg-slate-100 text-slate-500'); ?>"><?php echo e($summary['ibu_hamil']); ?></span>
+            </a>
         <?php endif; ?>
 
         <?php if(in_array('remaja', $hakAkses)): ?>
-        <a href="?filter=remaja" class="smooth-route shrink-0 px-6 py-3 rounded-full text-[12px] font-black tracking-widest uppercase transition-all <?php echo e($filterTarget == 'remaja' ? 'bg-indigo-500 text-white shadow-[0_8px_20px_rgba(99,102,241,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600'); ?>">
-            Remaja <span class="ml-1 opacity-70">(<?php echo e($summary['remaja'] ?? 0); ?>)</span>
-        </a>
+            <a href="<?php echo e(route('user.jadwal.index', ['target' => 'remaja'])); ?>" 
+               class="whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-xl border font-bold text-xs transition-all <?php echo e($filterTarget == 'remaja' ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50'); ?>">
+                <i class="fas fa-user-graduate <?php echo e($filterTarget == 'remaja' ? 'text-white' : 'text-indigo-500'); ?>"></i> Remaja
+                <span class="px-2 py-0.5 rounded-md text-[10px] <?php echo e($filterTarget == 'remaja' ? 'bg-indigo-400 text-white' : 'bg-slate-100 text-slate-500'); ?>"><?php echo e($summary['remaja']); ?></span>
+            </a>
         <?php endif; ?>
 
         <?php if(in_array('lansia', $hakAkses)): ?>
-        <a href="?filter=lansia" class="smooth-route shrink-0 px-6 py-3 rounded-full text-[12px] font-black tracking-widest uppercase transition-all <?php echo e($filterTarget == 'lansia' ? 'bg-amber-500 text-white shadow-[0_8px_20px_rgba(245,158,11,0.3)]' : 'bg-white text-slate-500 border border-slate-200 hover:bg-amber-50 hover:text-amber-600'); ?>">
-            Lansia <span class="ml-1 opacity-70">(<?php echo e($summary['lansia'] ?? 0); ?>)</span>
-        </a>
+            <a href="<?php echo e(route('user.jadwal.index', ['target' => 'lansia'])); ?>" 
+               class="whitespace-nowrap flex items-center gap-2 px-5 py-2.5 rounded-xl border font-bold text-xs transition-all <?php echo e($filterTarget == 'lansia' ? 'bg-orange-500 text-white border-orange-500 shadow-md' : 'bg-white text-slate-600 border-slate-200 hover:border-orange-300 hover:bg-orange-50'); ?>">
+                <i class="fas fa-wheelchair <?php echo e($filterTarget == 'lansia' ? 'text-white' : 'text-orange-500'); ?>"></i> Lansia
+                <span class="px-2 py-0.5 rounded-md text-[10px] <?php echo e($filterTarget == 'lansia' ? 'bg-orange-400 text-white' : 'bg-slate-100 text-slate-500'); ?>"><?php echo e($summary['lansia']); ?></span>
+            </a>
         <?php endif; ?>
     </div>
 
-    
-    <div class="space-y-5 animate-fade-in-up" style="animation-delay: 0.2s;">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <?php $__empty_1 = true; $__currentLoopData = $jadwalKegiatan; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $jadwal): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
             <?php
                 $tgl = \Carbon\Carbon::parse($jadwal->tanggal);
-                $isPast = $tgl->isPast() && !$tgl->isToday();
-                $isToday = $tgl->isToday();
+                $isHariIni = $tgl->isToday();
+                $isBesok = $tgl->isTomorrow();
+                $isTerlewat = $tgl->isPast() && !$isHariIni;
                 
-                // Styling dinamis
-                $cardOpacity = $isPast ? 'opacity-70 bg-slate-50 border-slate-200' : 'bg-white border-slate-200 schedule-card';
-                $badgeBg = $isPast ? 'date-badge-past' : 'date-badge-upcoming';
+                // Styling warna berdasarkan target peserta
+                $targetColor = 'text-teal-600 bg-teal-50';
+                $targetLabel = 'Umum / Semua';
+                if($jadwal->target_peserta == 'balita') { $targetColor = 'text-sky-600 bg-sky-50'; $targetLabel = 'Posyandu Balita'; }
+                if($jadwal->target_peserta == 'ibu_hamil') { $targetColor = 'text-pink-600 bg-pink-50'; $targetLabel = 'Ibu Hamil'; }
+                if($jadwal->target_peserta == 'remaja') { $targetColor = 'text-indigo-600 bg-indigo-50'; $targetLabel = 'Posyandu Remaja'; }
+                if($jadwal->target_peserta == 'lansia') { $targetColor = 'text-orange-600 bg-orange-50'; $targetLabel = 'Posyandu Lansia'; }
             ?>
 
-            <div class="<?php echo e($cardOpacity); ?> border rounded-[24px] p-4 sm:p-5 flex flex-col sm:flex-row gap-5 relative overflow-hidden">
+            <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all flex flex-col relative group <?php echo e($isTerlewat ? 'opacity-70 grayscale-[30%]' : ''); ?>">
                 
-                
-                <div class="<?php echo e($badgeBg); ?> w-full sm:w-24 h-20 sm:h-28 rounded-[18px] flex flex-row sm:flex-col items-center justify-center text-white shadow-inner shrink-0 gap-3 sm:gap-0 px-6 sm:px-0">
-                    <span class="text-[11px] sm:text-[12px] font-black uppercase tracking-widest opacity-80 mb-0 sm:mb-1"><?php echo e($tgl->translatedFormat('M')); ?></span>
-                    <span class="text-3xl sm:text-4xl font-black font-poppins leading-none"><?php echo e($tgl->format('d')); ?></span>
-                    <div class="hidden sm:block w-8 h-px bg-white/20 my-1.5"></div>
-                    <span class="text-[10px] font-bold mt-0 sm:mt-0.5 opacity-80"><?php echo e($tgl->format('Y')); ?></span>
-                </div>
-
-                
-                <div class="flex-1 min-w-0 py-1 flex flex-col justify-center">
-                    
-                    
-                    <div class="flex flex-wrap items-center gap-2 mb-2">
-                        <span class="px-2.5 py-1 bg-slate-100 text-slate-500 border border-slate-200 rounded-md text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                            <i class="fas fa-users"></i> <?php echo e(str_replace('_', ' ', $jadwal->target_peserta)); ?>
-
-                        </span>
-                        
-                        <?php if($isToday): ?>
-                            <span class="px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-100 rounded-md text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 animate-pulse">
-                                <i class="fas fa-exclamation-circle"></i> Hari Ini
-                            </span>
-                        <?php endif; ?>
-                        
-                        <?php if($isPast): ?>
-                            <span class="px-2.5 py-1 bg-slate-200 text-slate-600 rounded-md text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                                <i class="fas fa-history"></i> Telah Selesai
-                            </span>
-                        <?php endif; ?>
+                <?php if($isHariIni): ?>
+                    <div class="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl z-10 shadow-sm">
+                        HARI INI
                     </div>
-                    
-                    
-                    <h3 class="text-[16px] sm:text-[18px] font-black text-slate-800 font-poppins leading-snug mb-3 pr-4 <?php echo e($isPast ? 'text-slate-600' : ''); ?>">
-                        <?php echo e($jadwal->judul); ?>
+                <?php elseif($isBesok): ?>
+                    <div class="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl z-10 shadow-sm">
+                        BESOK
+                    </div>
+                <?php elseif($isTerlewat): ?>
+                    <div class="absolute top-0 right-0 bg-slate-200 text-slate-500 text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl z-10">
+                        Selesai
+                    </div>
+                <?php endif; ?>
 
-                    </h3>
-                    
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px] font-bold text-slate-500">
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0"><i class="far fa-clock text-slate-400"></i></div>
-                            <span><?php echo e(date('H:i', strtotime($jadwal->waktu_mulai))); ?> - <?php echo e(date('H:i', strtotime($jadwal->waktu_selesai))); ?> WIB</span>
+                <div class="p-6 flex-1 flex flex-col">
+                    <div class="flex items-start gap-4 mb-5">
+                        <div class="w-16 h-16 rounded-2xl <?php echo e($isHariIni ? 'bg-teal-500 text-white shadow-md' : ($isTerlewat ? 'bg-slate-100 text-slate-400' : 'bg-slate-50 text-slate-700 border border-slate-200')); ?> flex flex-col items-center justify-center shrink-0">
+                            <span class="text-[11px] font-black uppercase tracking-wider"><?php echo e($tgl->translatedFormat('M')); ?></span>
+                            <span class="text-2xl font-black leading-none mt-0.5"><?php echo e($tgl->format('d')); ?></span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shrink-0"><i class="fas fa-map-marker-alt text-rose-400"></i></div>
-                            <span class="truncate pr-2"><?php echo e($jadwal->lokasi); ?></span>
+                        
+                        <div>
+                            <span class="inline-block px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider mb-2 <?php echo e($targetColor); ?>"><?php echo e($targetLabel); ?></span>
+                            <h3 class="text-base font-black text-slate-800 leading-tight group-hover:text-teal-600 transition-colors"><?php echo e($jadwal->judul); ?></h3>
                         </div>
                     </div>
 
-                    
-                    <?php if($jadwal->deskripsi): ?>
-                        <div class="mt-4 p-3.5 bg-slate-50 rounded-xl text-[11px] font-medium text-slate-600 leading-relaxed border border-slate-100/80 relative">
-                            <i class="fas fa-info-circle absolute left-3.5 top-3.5 text-slate-300"></i>
-                            <span class="pl-6 block"><?php echo e($jadwal->deskripsi); ?></span>
+                    <div class="space-y-3 mt-auto pt-4 border-t border-slate-100">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                                <i class="far fa-clock text-[11px]"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Waktu Pelaksanaan</p>
+                                <p class="text-xs font-bold text-slate-700 mt-0.5"><?php echo e(\Carbon\Carbon::parse($jadwal->waktu_mulai)->format('H:i')); ?> - <?php echo e($jadwal->waktu_selesai ? \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') : 'Selesai'); ?></p>
+                            </div>
                         </div>
-                    <?php endif; ?>
-                    
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
+                                <i class="fas fa-map-marker-alt text-[11px]"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lokasi / Tempat</p>
+                                <p class="text-xs font-bold text-slate-700 mt-0.5"><?php echo e($jadwal->lokasi); ?></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-            
-            <div class="text-center py-20 px-4 bg-white border border-slate-100 rounded-[32px] shadow-sm">
-                <div class="w-24 h-24 bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center mx-auto mb-5 text-4xl text-slate-300 shadow-inner">
-                    <i class="fas fa-calendar-times"></i>
+            <div class="col-span-full py-16 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                <div class="w-20 h-20 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center text-4xl mb-4 shadow-sm">
+                    <i class="far fa-calendar-times"></i>
                 </div>
-                <h4 class="text-[16px] font-black text-slate-800 font-poppins mb-1">Agenda Kosong</h4>
-                <p class="text-[13px] font-medium text-slate-500 max-w-sm mx-auto">Belum ada jadwal kegiatan posyandu yang diterbitkan oleh Bidan Desa untuk saat ini.</p>
+                <h3 class="text-lg font-black text-slate-700 mb-1">Jadwal Kosong</h3>
+                <p class="text-sm font-medium text-slate-500 text-center max-w-sm leading-relaxed">Belum ada agenda Posyandu untuk kategori yang Anda pilih saat ini.</p>
+                <?php if($filterTarget != 'semua'): ?>
+                    <a href="<?php echo e(route('user.jadwal.index')); ?>" class="mt-4 text-xs font-bold text-teal-600 hover:text-teal-700 bg-teal-50 px-4 py-2 rounded-xl">Lihat Semua Jadwal</a>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
+    </div>
 
-        
-        <?php if($jadwalKegiatan->hasPages()): ?>
+    <?php if($jadwalKegiatan->hasPages()): ?>
         <div class="mt-8">
-            <?php echo e($jadwalKegiatan->appends(request()->query())->links()); ?>
+            <?php echo e($jadwalKegiatan->links()); ?>
 
         </div>
-        <?php endif; ?>
-    </div>
+    <?php endif; ?>
 
 </div>
 <?php $__env->stopSection(); ?>

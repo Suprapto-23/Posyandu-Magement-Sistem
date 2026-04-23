@@ -1,254 +1,148 @@
 @extends('layouts.user')
 
-@section('title', 'Riwayat Imunisasi')
-
-@push('styles')
-<style>
-/* ═══════════════════════════════════════
-   IMUNISASI — Professional Redesign
-   ═══════════════════════════════════════ */
-
-.imun-wrap {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 .25rem;
-}
-
-/* ── Page Header ── */
-.imun-page-header {
-    display: flex; align-items: center;
-    gap: 1rem; margin-bottom: 2rem;
-}
-.imun-page-icon {
-    width: 50px; height: 50px; border-radius: 14px;
-    background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 1.2rem; flex-shrink: 0;
-    box-shadow: 0 6px 18px rgba(14,165,233,.3);
-}
-.imun-page-title {
-    font-size: 1.3rem; font-weight: 800; color: #0f172a;
-    margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;
-}
-.imun-page-sub { font-size: .8rem; color: #94a3b8; margin-top: .2rem; }
-
-/* ── Summary Strip ── */
-.imun-summary {
-    display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;
-}
-.imun-sum-card {
-    flex: 1; min-width: 140px;
-    background: #fff; border: 1px solid #e8f4f2;
-    border-radius: 16px; padding: 1rem 1.2rem;
-    box-shadow: 0 2px 12px rgba(0,0,0,.05);
-    position: relative; overflow: hidden;
-}
-.imun-sum-card .ss-stripe {
-    position: absolute; left: 0; top: 0; bottom: 0;
-    width: 4px; border-radius: 4px 0 0 4px;
-}
-.imun-sum-card .ss-label {
-    font-size: .63rem; font-weight: 700; letter-spacing: .08em;
-    text-transform: uppercase; color: #94a3b8; margin-bottom: .35rem;
-}
-.imun-sum-card .ss-val {
-    font-size: 1.6rem; font-weight: 900; color: #0f172a;
-    font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1;
-}
-.imun-sum-card .ss-icon {
-    position: absolute; right: .9rem; top: 50%;
-    transform: translateY(-50%);
-    font-size: 2rem; opacity: .06;
-}
-
-/* ── Main Card ── */
-.imun-card {
-    background: #fff;
-    border: 1px solid #e8f4f2;
-    border-radius: 20px;
-    box-shadow: 0 4px 24px rgba(13,148,136,.07);
-    overflow: hidden;
-}
-.imun-card-header {
-    padding: 1.1rem 1.5rem;
-    border-bottom: 1px solid #f1f5f9;
-    display: flex; align-items: center; justify-content: space-between;
-}
-.imun-card-title {
-    font-size: .92rem; font-weight: 800; color: #0f172a; margin: 0;
-    display: flex; align-items: center; gap: .55rem;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-}
-.imun-title-icon {
-    width: 30px; height: 30px; border-radius: 8px;
-    background: linear-gradient(135deg, #0ea5e9, #14b8a6);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: .75rem;
-}
-
-/* Table */
-.imun-table { width: 100%; border-collapse: collapse; }
-.imun-table thead tr { background: #f8fafc; }
-.imun-table thead th {
-    padding: .8rem 1rem;
-    font-size: .65rem; font-weight: 700; letter-spacing: .08em;
-    text-transform: uppercase; color: #94a3b8;
-    border-bottom: 1px solid #f1f5f9; white-space: nowrap;
-}
-.imun-table thead th:first-child { padding-left: 1.5rem; }
-.imun-table tbody tr { border-bottom: 1px solid #f8fafc; transition: background .12s; }
-.imun-table tbody tr:last-child { border-bottom: none; }
-.imun-table tbody tr:hover { background: #f0fdfa; }
-.imun-table tbody td { padding: .95rem 1rem; font-size: .84rem; color: #334155; vertical-align: middle; }
-.imun-table tbody td:first-child { padding-left: 1.5rem; }
-
-/* Jenis badge */
-.imun-jenis {
-    display: inline-flex; align-items: center; gap: .3rem;
-    padding: .28rem .7rem; border-radius: 50px;
-    font-size: .73rem; font-weight: 700;
-    background: #ccfbf1; color: #0d9488; border: 1px solid #99f6e4;
-}
-
-/* Dosis badge */
-.imun-dosis {
-    display: inline-flex; align-items: center; gap: .3rem;
-    padding: .2rem .55rem; border-radius: 50px;
-    font-size: .68rem; font-weight: 600;
-    background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;
-    margin-left: .35rem;
-}
-
-/* Penyelenggara cell */
-.imun-peny {
-    display: flex; align-items: center; gap: .55rem;
-}
-.imun-peny-icon {
-    width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
-    background: #f0fdfa; border: 1px solid #ccfbf1;
-    display: flex; align-items: center; justify-content: center;
-    color: #0d9488; font-size: .7rem;
-}
-
-/* Count badge */
-.imun-count {
-    display: inline-flex; align-items: center; gap: .3rem;
-    padding: .27rem .7rem; border-radius: 50px;
-    font-size: .72rem; font-weight: 600;
-    background: #ccfbf1; color: #0d9488; border: 1px solid #99f6e4;
-}
-
-/* Empty state */
-.imun-empty { text-align: center; padding: 3.5rem 1.5rem; }
-.imun-empty-icon {
-    width: 68px; height: 68px; border-radius: 18px;
-    background: #f0fdfa; border: 1.5px solid #ccfbf1;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.7rem; color: #5eead4; margin: 0 auto .9rem;
-}
-.imun-empty h6 { font-weight: 800; color: #0f172a; margin-bottom: .35rem; font-size: .92rem; }
-.imun-empty p  { color: #94a3b8; font-size: .82rem; margin: 0; }
-</style>
-@endpush
-
 @section('content')
-<div class="imun-wrap animate-fade-in">
+@php
+    // Kalkulasi statistik cepat
+    $totalVaksin = $riwayatImunisasi->count();
+    $anakTerlindungi = $riwayatImunisasi->pluck('kunjungan.pasien_id')->unique()->count();
+@endphp
 
-    {{-- ── Page Header ── --}}
-    <div class="imun-page-header">
-        <div class="imun-page-icon"><i class="fas fa-syringe"></i></div>
-        <div>
-            <h1 class="imun-page-title">Riwayat Imunisasi</h1>
-            <div class="imun-page-sub">Daftar vaksinasi buah hati Anda</div>
+<div class="p-4 md:p-8 font-poppins bg-[#f8fafc] min-h-screen space-y-6">
+    
+    <div class="relative bg-gradient-to-r from-emerald-500 to-teal-400 rounded-[2rem] p-8 md:p-10 shadow-[0_10px_30px_-10px_rgba(16,185,129,0.4)] overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+        
+        <div class="absolute -right-10 -bottom-10 opacity-20 pointer-events-none">
+            <i class="fas fa-shield-virus text-[12rem] text-white"></i>
+        </div>
+        
+        <div class="relative z-10 text-white w-full md:w-2/3">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest mb-4 border border-white/30 shadow-sm">
+                <i class="fas fa-check-circle text-emerald-200"></i>
+                Data Resmi Posyandu
+            </div>
+            
+            <h1 class="text-3xl md:text-4xl font-black mb-3 tracking-tight">Buku Imunisasi Digital</h1>
+            <p class="text-emerald-50 font-medium text-sm md:text-base leading-relaxed opacity-90 max-w-xl">
+                Catatan perlindungan kekebalan tubuh anak Anda. Semua data di bawah ini telah divalidasi dan disahkan secara medis oleh Bidan.
+            </p>
+        </div>
+
+        <div class="relative z-10 shrink-0 hidden md:block">
+            <a href="{{ route('user.balita.index') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-600 font-bold rounded-xl shadow-lg hover:scale-105 transition-transform">
+                <i class="fas fa-baby-carriage"></i> Lihat KMS Anak
+            </a>
         </div>
     </div>
 
-    {{-- ── Summary Strip ── --}}
-    <div class="imun-summary">
-        <div class="imun-sum-card">
-            <div class="ss-stripe" style="background:linear-gradient(180deg,#14b8a6,#5eead4);"></div>
-            <i class="fas fa-syringe ss-icon" style="color:#14b8a6;"></i>
-            <div class="ss-label">Total Imunisasi</div>
-            <div class="ss-val">{{ $riwayatImunisasi->count() }}</div>
-        </div>
-        <div class="imun-sum-card">
-            <div class="ss-stripe" style="background:linear-gradient(180deg,#0ea5e9,#38bdf8);"></div>
-            <i class="fas fa-vial ss-icon" style="color:#0ea5e9;"></i>
-            <div class="ss-label">Jenis Vaksin</div>
-            <div class="ss-val">{{ $riwayatImunisasi->pluck('jenis_imunisasi')->unique()->count() }}</div>
-        </div>
-        @if($riwayatImunisasi->count() > 0)
-        <div class="imun-sum-card">
-            <div class="ss-stripe" style="background:linear-gradient(180deg,#8b5cf6,#a78bfa);"></div>
-            <i class="fas fa-calendar-check ss-icon" style="color:#8b5cf6;"></i>
-            <div class="ss-label">Terakhir</div>
-            <div class="ss-val" style="font-size:1rem;padding-top:.15rem;">
-                {{ \Carbon\Carbon::parse($riwayatImunisasi->sortByDesc('tanggal_imunisasi')->first()->tanggal_imunisasi)->format('d M Y') }}
+    @if($totalVaksin > 0)
+    <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white p-5 md:p-6 rounded-3xl border border-emerald-100 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shrink-0">
+                <i class="fas fa-syringe"></i>
+            </div>
+            <div>
+                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Total Vaksin</p>
+                <h3 class="text-2xl font-black text-slate-800">{{ $totalVaksin }} <span class="text-xs text-slate-500 font-medium">Dosis</span></h3>
             </div>
         </div>
-        @endif
+        <div class="bg-white p-5 md:p-6 rounded-3xl border border-teal-100 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-teal-50 text-teal-500 flex items-center justify-center text-xl shrink-0">
+                <i class="fas fa-child"></i>
+            </div>
+            <div>
+                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Terlindungi</p>
+                <h3 class="text-2xl font-black text-slate-800">{{ $anakTerlindungi }} <span class="text-xs text-slate-500 font-medium">Anak</span></h3>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 lg:p-8 relative">
+        <div class="flex items-center justify-between mb-8 border-b border-slate-100 pb-4">
+            <h2 class="text-[13px] font-black text-slate-800 uppercase tracking-widest"><i class="fas fa-history text-emerald-500 mr-2"></i> Riwayat Pemberian Vaksin</h2>
+        </div>
+
+        <div class="relative">
+            @forelse($riwayatImunisasi as $imun)
+                @php
+                    $anak = $imun->kunjungan->pasien ?? null;
+                    $namaAnak = $anak ? $anak->nama_lengkap : 'Data Anak';
+                    $iconAnak = ($anak && $anak->jenis_kelamin == 'L') ? 'fa-child text-blue-500' : 'fa-child text-pink-500';
+                    $bgColor = ($anak && $anak->jenis_kelamin == 'L') ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-pink-50 text-pink-700 border-pink-100';
+                @endphp
+
+                <div class="mb-6 last:mb-0 relative pl-8 md:pl-12 py-2 group">
+                    
+                    <div class="absolute left-[11px] md:left-[19px] top-0 bottom-0 w-[2px] bg-emerald-100 group-last:bg-transparent group-last:bottom-auto group-last:h-full"></div>
+                    
+                    <div class="absolute left-0 md:left-2 top-6 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center ring-4 ring-white shadow-md z-10">
+                        <i class="fas fa-check text-[10px]"></i>
+                    </div>
+                    
+                    <div class="bg-white border border-slate-200 hover:border-emerald-300 rounded-2xl p-5 transition-all shadow-sm hover:shadow-md flex flex-col lg:flex-row gap-5 lg:items-center relative overflow-hidden">
+                        
+                        <i class="fas fa-award absolute -right-4 -bottom-4 text-7xl text-emerald-50 opacity-50 pointer-events-none"></i>
+                        
+                        <div class="lg:w-1/3 shrink-0 border-b lg:border-b-0 lg:border-r border-slate-100 pb-4 lg:pb-0 lg:pr-6 relative z-10 flex flex-col justify-center">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Diberikan Pada</p>
+                            <h4 class="text-sm font-black text-slate-800">{{ \Carbon\Carbon::parse($imun->tanggal_imunisasi)->translatedFormat('l, d F Y') }}</h4>
+                            
+                            <div class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border {{ $bgColor }}">
+                                <i class="fas {{ $iconAnak }} text-[11px]"></i>
+                                <span class="text-[11px] font-bold truncate max-w-[150px]">{{ $namaAnak }}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 relative z-10">
+                            <h3 class="text-lg md:text-xl font-black text-emerald-600 mb-2">{{ $imun->jenis_imunisasi ?? $imun->nama_vaksin ?? 'Vaksin Imunisasi' }}</h3>
+                            
+                            @if($imun->keterangan)
+                                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 inline-block w-full">
+                                    <p class="text-xs font-medium text-slate-600 leading-relaxed">
+                                        <i class="fas fa-quote-left text-slate-300 mr-1"></i> {{ $imun->keterangan }}
+                                    </p>
+                                </div>
+                            @else
+                                <p class="text-xs font-medium text-slate-400 italic">Telah diberikan sesuai jadwal. Tidak ada catatan tambahan.</p>
+                            @endif
+                        </div>
+
+                        <div class="shrink-0 relative z-10 self-start lg:self-center mt-2 lg:mt-0">
+                            <div class="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-xl">
+                                <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">
+                                    <i class="fas fa-user-md"></i>
+                                </div>
+                                <div class="text-left">
+                                    <p class="text-[9px] font-black uppercase tracking-widest text-emerald-600">Disahkan Oleh</p>
+                                    <p class="text-xs font-bold text-slate-800">Bidan Posyandu</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            @empty
+                <div class="py-16 flex flex-col items-center justify-center text-center">
+                    <div class="w-20 h-20 bg-emerald-50 text-emerald-400 rounded-full flex items-center justify-center text-4xl shadow-sm mb-5 relative">
+                        <i class="fas fa-shield-virus relative z-10"></i>
+                        <span class="absolute top-0 right-0 w-5 h-5 bg-rose-500 rounded-full border-2 border-white text-white flex items-center justify-center text-[10px] font-black">!</span>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-700 mb-2">Belum Ada Rekam Imunisasi</h3>
+                    <p class="text-sm font-medium text-slate-500 max-w-md leading-relaxed">
+                        Kami tidak menemukan catatan imunisasi yang divalidasi oleh Bidan. Pastikan Anda rutin membawa anak ke Posyandu untuk mendapatkan imunisasi dasar lengkap.
+                    </p>
+                    <a href="{{ route('user.jadwal.index') }}" class="mt-6 text-xs font-bold text-white bg-emerald-500 hover:bg-emerald-600 px-6 py-3 rounded-xl transition-colors shadow-sm">
+                        Cek Jadwal Posyandu Terdekat
+                    </a>
+                </div>
+            @endforelse
+        </div>
     </div>
 
-    {{-- ── Table Card ── --}}
-    <div class="imun-card">
-        <div class="imun-card-header">
-            <h6 class="imun-card-title">
-                <div class="imun-title-icon"><i class="fas fa-list-ul"></i></div>
-                Data Vaksinasi
-            </h6>
-            <span class="imun-count">{{ $riwayatImunisasi->count() }} Catatan</span>
-        </div>
-        <div class="table-responsive">
-            <table class="imun-table">
-                <thead>
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>Jenis Imunisasi</th>
-                        <th>Vaksin &amp; Dosis</th>
-                        <th>Penyelenggara</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($riwayatImunisasi as $imun)
-                    <tr>
-                        <td>
-                            <span style="font-weight:700;color:#0f172a;">
-                                {{ \Carbon\Carbon::parse($imun->tanggal_imunisasi)->format('d M Y') }}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="imun-jenis">
-                                <i class="fas fa-shield-virus" style="font-size:.7rem;"></i>
-                                {{ $imun->jenis_imunisasi }}
-                            </span>
-                        </td>
-                        <td>
-                            <span style="font-weight:600;color:#0f172a;">{{ $imun->vaksin ?? '—' }}</span>
-                            @if($imun->dosis ?? false)
-                            <span class="imun-dosis">Dosis {{ $imun->dosis }}</span>
-                            @endif
-                        </td>
-                        <td>
-                            <div class="imun-peny">
-                                <div class="imun-peny-icon"><i class="fas fa-hospital-alt"></i></div>
-                                <span>{{ $imun->penyelenggara ?? 'Posyandu' }}</span>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="4">
-                            <div class="imun-empty">
-                                <div class="imun-empty-icon"><i class="fas fa-syringe"></i></div>
-                                <h6>Belum Ada Data Imunisasi</h6>
-                                <p>Belum ada catatan imunisasi yang tersimpan.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+    <div class="md:hidden pt-4">
+        <a href="{{ route('user.balita.index') }}" class="flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-white border border-slate-200 text-emerald-600 text-sm font-bold rounded-xl shadow-sm">
+            <i class="fas fa-arrow-left"></i> Kembali ke KMS Anak
+        </a>
     </div>
 
 </div>

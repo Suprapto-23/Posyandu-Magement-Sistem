@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',        // <--- INI YANG BENAR (Sesuai database Anda)
         'email',
         'password',
+        'nik',
         'role',
         'status',
         'last_login_at',

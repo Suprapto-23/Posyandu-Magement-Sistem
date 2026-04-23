@@ -6,12 +6,25 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Models\Notifikasi; // Memastikan kita memakai model database yang benar
+use App\Models\Notifikasi;
 
+/**
+ * NotifikasiController (User/Warga)
+ *
+ * PERBAIKAN [BUG-6]:
+ * View notifikasi/index.blade.php membutuhkan variabel:
+ *   - $notifikasis  (sudah ada)
+ *   - $filter       (sudah ada)
+ *   - $allCount     (BARU — jumlah total semua notif)
+ *   - $unreadCount  (BARU — jumlah belum dibaca, untuk badge)
+ * Controller lama tidak mengirim $allCount dan $unreadCount
+ * sehingga badge "Belum Dibaca" selalu kosong.
+ */
 class NotifikasiController extends Controller
 {
     /**
-     * Halaman Utama Kotak Masuk Warga
+     * Halaman Kotak Masuk.
+     * Route: GET /user/notifikasi → user.notifikasi.index
      */
     public function index(Request $request)
     {
@@ -19,30 +32,45 @@ class NotifikasiController extends Controller
         $filter = $request->get('filter', 'semua');
 
         try {
-            // Kita wajib pakai Notifikasi karena broadcast Bidan masuk ke sini
             $query = Notifikasi::where('user_id', $user->id)->latest();
 
+            // Filter tab
             if ($filter === 'belum') {
                 $query->where('is_read', false);
             } elseif ($filter === 'sudah') {
                 $query->where('is_read', true);
             }
 
-            // PENTING: Variabel harus bernama $notifikasis (pakai 's') agar View tidak error
             $notifikasis = $query->paginate(15)->withQueryString();
 
-            return view('user.notifikasi.index', compact('notifikasis', 'filter'));
+            // [BUG-6 FIX] Tambahkan allCount dan unreadCount
+            $allCount    = Notifikasi::where('user_id', $user->id)->count();
+            $unreadCount = Notifikasi::where('user_id', $user->id)
+                ->where('is_read', false)
+                ->count();
+
+            return view('user.notifikasi.index', compact(
+                'notifikasis',
+                'filter',
+                'allCount',
+                'unreadCount'
+            ));
 
         } catch (\Throwable $e) {
             Log::warning('NotifikasiController::index error: ' . $e->getMessage());
+
             $notifikasis = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
-            return view('user.notifikasi.index', compact('notifikasis', 'filter'))->with('error', 'Gagal memuat pesan.');
+            $allCount    = 0;
+            $unreadCount = 0;
+
+            return view('user.notifikasi.index', compact('notifikasis', 'filter', 'allCount', 'unreadCount'))
+                ->with('error', 'Gagal memuat pesan.');
         }
     }
 
     /**
-     * AJAX Endpoint — Polling setiap N detik dari JS
-     * (Hanya mengirimkan angka jumlah pesan baru agar server super ringan)
+     * AJAX polling — hanya return jumlah unread.
+     * Route: GET /user/notifikasi/fetch → user.notifikasi.fetch
      */
     public function fetchRecent()
     {
@@ -51,32 +79,31 @@ class NotifikasiController extends Controller
                 ->where('is_read', false)
                 ->count();
 
-            return response()->json([
-                'unreadCount' => $unreadCount
-            ]);
+            return response()->json(['unreadCount' => $unreadCount]);
         } catch (\Throwable $e) {
             return response()->json(['unreadCount' => 0]);
         }
     }
 
     /**
-     * Tandai satu notifikasi sudah dibaca
+     * Tandai satu notifikasi sudah dibaca.
+     * Route: POST /user/notifikasi/{id}/read → user.notifikasi.read
      */
     public function markRead(Request $request, $id)
     {
         try {
-            $notif = Notifikasi::where('user_id', Auth::id())->findOrFail($id);
-            $notif->update(['is_read' => true]);
-
+            Notifikasi::where('user_id', Auth::id())
+                ->where('id', $id)
+                ->update(['is_read' => true]);
         } catch (\Throwable $e) {
             Log::warning('NotifikasiController::markRead error: ' . $e->getMessage());
         }
-
         return back();
     }
 
     /**
-     * Tandai SEMUA notifikasi sudah dibaca (Sapu Bersih)
+     * Tandai semua notifikasi sudah dibaca.
+     * Route: POST /user/notifikasi/mark-all-read → user.notifikasi.markall
      */
     public function markAllRead()
     {
@@ -84,12 +111,10 @@ class NotifikasiController extends Controller
             Notifikasi::where('user_id', Auth::id())
                 ->where('is_read', false)
                 ->update(['is_read' => true]);
-                
         } catch (\Throwable $e) {
             Log::warning('NotifikasiController::markAllRead error: ' . $e->getMessage());
             return back()->with('error', 'Gagal memproses permintaan.');
         }
-
         return back()->with('success', 'Semua pesan telah ditandai dibaca.');
     }
 }

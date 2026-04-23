@@ -3,251 +3,177 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Traits\DetectsUserPeran;
+use App\Models\JadwalPosyandu;
+use App\Models\Notifikasi;
+use App\Models\Pemeriksaan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
-use Illuminate\Support\Str;
 
-use App\Models\User;
-use App\Models\Balita;
-use App\Models\Remaja;
-use App\Models\Lansia;
-use App\Models\JadwalPosyandu;
-use App\Models\Notifikasi;
-use App\Models\Pemeriksaan;
-
+/**
+ * DashboardController (User/Warga)
+ *
+ * Dashboard "universal" — ditampilkan jika:
+ * - User punya multi-peran (orang_tua sekaligus lansia, dst.)
+ * - User belum terdaftar (umum) → minta isi NIK
+ * - User role bumil (belum ada halaman spesifik)
+ *
+ * Untuk user single-peran, HomeController sudah redirect
+ * ke halaman spesifik mereka (balita/remaja/lansia) SEBELUM
+ * mencapai dashboard ini. Jadi dashboard ini adalah fallback.
+ *
+ * CATATAN: Tidak ada auto-detection sistem pakar di sini.
+ * Semua data yang ditampilkan adalah data yang sudah divalidasi bidan.
+ */
 class DashboardController extends Controller
 {
+    use DetectsUserPeran;
+
     public function index()
     {
         $user = Auth::user();
 
-        // ✅ FIX 1: Wrap semua query dalam try-catch
-        // Jika ada tabel belum ada / error query → tidak redirect ke login
-        try {
-            $dataPeran  = $this->getPeranUser($user);
-            $peranUser  = $dataPeran['roles'];
-            $nikUser    = $dataPeran['nik'];
-        } catch (\Exception $e) {
-            Log::error('DashboardController@getPeranUser: ' . $e->getMessage());
-            $peranUser = ['umum'];
-            $nikUser   = null;
-        }
+        // Gunakan trait untuk deteksi context
+        $ctx = $this->getUserContext($user);
 
-        $dataAnak   = collect();
-        $dataRemaja = null;
-        $dataLansia = null;
+        $peranUser  = $ctx['peran'];
+        $nikUser    = $ctx['nik'];
+        $dataAnak   = $ctx['balitas'];
+        $dataRemaja = $ctx['remaja'];
+        $dataLansia = $ctx['lansia'];
+        $dataBumil  = $ctx['bumil'];
+
+        // Grafik pertumbuhan untuk balita pertama (jika ada)
         $grafikData = [];
-
-        if ($nikUser) {
-            try {
-                if (in_array('orang_tua', $peranUser)) {
-                    $dataAnak = Balita::where(function($q) use ($nikUser) {
-                        $q->where('nik_ibu', $nikUser)->orWhere('nik_ayah', $nikUser);
-                    })->orderBy('tanggal_lahir', 'desc')->get();
-
-                    if ($dataAnak->isNotEmpty()) {
-                        $grafikData = $this->getGrafikBalita($dataAnak->first()->id);
-                    }
-                }
-            } catch (\Exception $e) {
-                Log::error('Dashboard balita error: ' . $e->getMessage());
-            }
-
-            try {
-                if (in_array('remaja', $peranUser)) {
-                    $dataRemaja = Remaja::where('nik', $nikUser)->first();
-                }
-            } catch (\Exception $e) {
-                Log::error('Dashboard remaja error: ' . $e->getMessage());
-            }
-
-            try {
-                if (in_array('lansia', $peranUser)) {
-                    $dataLansia = Lansia::where('nik', $nikUser)->first();
-                }
-            } catch (\Exception $e) {
-                Log::error('Dashboard lansia error: ' . $e->getMessage());
-            }
+        if ($dataAnak->isNotEmpty()) {
+            $grafikData = $this->getGrafikBalita($dataAnak->first()->id);
         }
 
-        // ✅ FIX 2: Jadwal dengan try-catch
+        // Jadwal posyandu terdekat (disesuaikan target peserta)
         $jadwalTerdekat = collect();
         try {
-            $jadwalTerdekat = $this->getJadwalQuery($peranUser)->take(5)->get();
-        } catch (\Exception $e) {
-            Log::error('Dashboard jadwal error: ' . $e->getMessage());
+            $jadwalTerdekat = $this->buildJadwalQuery($peranUser)->take(5)->get();
+        } catch (\Throwable $e) {
+            Log::warning('Dashboard jadwal error: ' . $e->getMessage());
         }
 
-        // ✅ FIX 3: Notifikasi dengan try-catch + cek tabel ada
+        // Notifikasi terbaru (5 terakhir)
         $notifikasiTerbaru          = collect();
         $totalNotifikasiBelumDibaca = 0;
-
         try {
             if (Schema::hasTable('notifikasis')) {
                 $notifikasiTerbaru = Notifikasi::where('user_id', $user->id)
-                    ->latest()->take(5)->get();
+                    ->latest()
+                    ->take(5)
+                    ->get()
+                    ->map(fn($n) => [
+                        'id'       => $n->id,
+                        'judul'    => $n->judul ?? 'Pemberitahuan',
+                        'pesan'    => \Illuminate\Support\Str::limit($n->pesan ?? '', 80),
+                        'waktu'    => $n->created_at->diffForHumans(),
+                        // PERBAIKAN: gunakan is_read (boolean), BUKAN read_at
+                        'is_read'  => (bool) $n->is_read,
+                    ]);
 
                 $totalNotifikasiBelumDibaca = Notifikasi::where('user_id', $user->id)
-                    ->whereNull('read_at')->count();
+                    ->where('is_read', false)
+                    ->count();
             }
-        } catch (\Exception $e) {
-            Log::error('Dashboard notifikasi error: ' . $e->getMessage());
-            // Jangan redirect — biarkan kosong saja
+        } catch (\Throwable $e) {
+            Log::warning('Dashboard notifikasi error: ' . $e->getMessage());
         }
 
-        $statistik = [
-            'total_anak' => $dataAnak->count(),
-            'notifikasi' => $totalNotifikasiBelumDibaca,
-        ];
-
-        $pesanError = empty($nikUser)
-            ? 'NIK belum terdaftar di sistem. Mohon lengkapi profil atau hubungi kader.'
-            : null;
+        // Pesan error jika NIK belum terdaftar
+        $pesanError = null;
+        if (in_array('umum', $peranUser)) {
+            $pesanError = empty($nikUser)
+                ? 'NIK belum diisi. Lengkapi profil Anda agar data kesehatan dari Posyandu dapat ditampilkan.'
+                : 'NIK ' . $nikUser . ' belum terdaftar di Posyandu. Hubungi kader untuk pendaftaran.';
+        }
 
         return view('user.dashboard', compact(
-            'user', 'peranUser', 'dataAnak', 'dataRemaja', 'dataLansia',
-            'grafikData', 'jadwalTerdekat', 'notifikasiTerbaru',
-            'totalNotifikasiBelumDibaca', 'statistik', 'pesanError'
+            'user',
+            'peranUser',
+            'nikUser',
+            'dataAnak',
+            'dataRemaja',
+            'dataLansia',
+            'dataBumil',
+            'grafikData',
+            'jadwalTerdekat',
+            'notifikasiTerbaru',
+            'totalNotifikasiBelumDibaca',
+            'pesanError'
         ));
     }
 
     /**
-     * ✅ FIX 4: AJAX polling — WAJIB return JSON, JANGAN pernah redirect
-     * Ini penyebab utama redirect loop — kalau ini throw exception,
-     * Laravel redirect ke /login, lalu JS polling terus → loop tak berenti
+     * AJAX: polling notifikasi (dipanggil setiap N detik dari frontend).
+     * WAJIB return JSON — jangan redirect agar tidak loop.
      */
-    public function getLatestNotifications()
+    public function getStats()
     {
-        // Pastikan ini AJAX request
         if (!request()->expectsJson() && !request()->ajax()) {
-            return response()->json(['status' => 'error', 'message' => 'Invalid request'], 400);
+            return response()->json(['status' => 'error'], 400);
         }
 
         try {
             $user = auth()->user();
-
-            // Jika session habis / tidak ada user → return kosong, BUKAN redirect
             if (!$user) {
-                return response()->json([
-                    'status'      => 'unauthenticated',
-                    'notifikasi'  => [],
-                    'unread_count'=> 0,
-                ], 200); // ← 200 bukan 401, supaya JS tidak error
+                return response()->json(['status' => 'unauthenticated', 'unread_count' => 0]);
             }
 
-            // Cek tabel ada dulu
-            if (!Schema::hasTable('notifikasis')) {
-                return response()->json([
-                    'status'      => 'success',
-                    'notifikasi'  => [],
-                    'unread_count'=> 0,
-                ]);
+            $count = 0;
+            if (Schema::hasTable('notifikasis')) {
+                $count = Notifikasi::where('user_id', $user->id)
+                    ->where('is_read', false)
+                    ->count();
             }
 
-            $notifikasi = Notifikasi::where('user_id', $user->id)
-                ->latest()
-                ->take(5)
-                ->get()
-                ->map(fn($n) => [
-                    'id'      => $n->id,
-                    'judul'   => $n->judul,
-                    'pesan'   => Str::limit($n->pesan, 80),
-                    'waktu'   => $n->created_at->diffForHumans(),
-                    'is_read' => $n->read_at !== null,
-                    'type'    => $n->type ?? 'info',
-                ]);
+            return response()->json(['status' => 'success', 'unread_count' => $count]);
 
-            $unreadCount = Notifikasi::where('user_id', $user->id)
-                ->whereNull('read_at')->count();
-
-            return response()->json([
-                'status'      => 'success',
-                'notifikasi'  => $notifikasi,
-                'unread_count'=> $unreadCount,
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('getLatestNotifications error: ' . $e->getMessage());
-
-            // ✅ KRUSIAL: Jangan throw, jangan redirect → return JSON kosong
-            return response()->json([
-                'status'      => 'success',
-                'notifikasi'  => [],
-                'unread_count'=> 0,
-            ], 200);
+        } catch (\Throwable $e) {
+            Log::error('getStats error: ' . $e->getMessage());
+            return response()->json(['status' => 'success', 'unread_count' => 0]);
         }
     }
 
-    public function notifikasi()
-    {
-        $user = auth()->user();
+    // ─── Private Helpers ────────────────────────────────────────────────────
 
-        try {
-            $notifikasi = Notifikasi::where('user_id', $user->id)
-                ->latest()->paginate(10);
-
-            Notifikasi::where('user_id', $user->id)
-                ->whereNull('read_at')
-                ->update(['read_at' => now()]);
-        } catch (\Exception $e) {
-            Log::error('Notifikasi page error: ' . $e->getMessage());
-            $notifikasi = collect()->paginate(10) ?? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
-        }
-
-        return view('user.notifikasi.index', compact('notifikasi'));
-    }
-
-    // ==========================================
-    // PRIVATE HELPERS
-    // ==========================================
-
-    private function getPeranUser($user): array
-    {
-        $roles = [];
-        $nik   = $user->nik ?? ($user->profile->nik ?? null);
-
-        if ($nik) {
-            if (Balita::where('nik_ibu', $nik)->orWhere('nik_ayah', $nik)->exists()) {
-                $roles[] = 'orang_tua';
-            }
-            if (Remaja::where('nik', $nik)->exists()) $roles[] = 'remaja';
-            if (Lansia::where('nik', $nik)->exists())  $roles[] = 'lansia';
-        }
-
-        if (empty($roles)) $roles[] = 'umum';
-
-        return ['nik' => $nik, 'roles' => $roles];
-    }
-
-    private function getJadwalQuery($peranUser)
+    private function buildJadwalQuery(array $peranUser)
     {
         $targets = ['semua'];
         if (in_array('orang_tua', $peranUser)) $targets[] = 'balita';
         if (in_array('remaja', $peranUser))    $targets[] = 'remaja';
         if (in_array('lansia', $peranUser))    $targets[] = 'lansia';
+        if (in_array('bumil', $peranUser))     $targets[] = 'ibu_hamil';
 
         return JadwalPosyandu::where('status', 'aktif')
             ->whereIn('target_peserta', $targets)
             ->orderBy('tanggal', 'desc');
     }
 
-    private function getGrafikBalita($balitaId): array
+    private function getGrafikBalita(int $balitaId): array
     {
-        $riwayat = Pemeriksaan::where('pasien_id', $balitaId)
-            ->where('kategori_pasien', 'balita')
-            ->orderBy('tanggal_periksa', 'asc')
-            ->take(12)
-            ->get();
+        try {
+            $riwayat = Pemeriksaan::where('pasien_id', $balitaId)
+                ->where('kategori_pasien', 'balita')
+                ->where('status_verifikasi', 'verified')
+                ->orderBy('tanggal_periksa', 'asc')
+                ->take(12)
+                ->get();
 
-        if ($riwayat->isEmpty()) return [];
+            if ($riwayat->isEmpty()) return [];
 
-        return [
-            'labels' => $riwayat->map(fn($i) => Carbon::parse($i->tanggal_periksa)->format('d M y'))->toArray(),
-            'berat'  => $riwayat->pluck('berat_badan')->toArray(),
-            'tinggi' => $riwayat->pluck('tinggi_badan')->toArray(),
-        ];
+            return [
+                'labels' => $riwayat->map(fn($i) => Carbon::parse($i->tanggal_periksa)->format('M y'))->toArray(),
+                'berat'  => $riwayat->pluck('berat_badan')->map(fn($v) => (float) $v)->toArray(),
+                'tinggi' => $riwayat->pluck('tinggi_badan')->map(fn($v) => (float) $v)->toArray(),
+            ];
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 }

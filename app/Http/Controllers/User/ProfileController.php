@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Profile; // Pastikan Model Profile di-import
 
+/**
+ * ProfileController (User/Warga)
+ * [BUG-11 FIX] Kolom 'full_name' ADA di tabel profiles → wajib diisi.
+ */
 class ProfileController extends Controller
 {
     public function edit()
     {
-        // Load relasi profile
         $user = Auth::user()->load('profile');
         return view('user.profile.edit', compact('user'));
     }
@@ -19,39 +22,38 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
-        
+
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            // Validasi data profil tambahan
-            'nik' => 'nullable|numeric|digits:16',
-            'tempat_lahir' => 'nullable|string|max:100',
-            'tanggal_lahir' => 'nullable|date',
-            'alamat' => 'nullable|string',
-            'telepon' => 'nullable|numeric',
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|max:255|unique:users,email,' . $user->id,
+            'nik'           => 'nullable|digits:16',
+            'tempat_lahir'  => 'nullable|string|max:100',
+            'tanggal_lahir' => 'nullable|date|before:today',
+            'jenis_kelamin' => 'nullable|in:L,P',
+            'alamat'        => 'nullable|string|max:500',
+            'telepon'       => 'nullable|string|max:15|regex:/^[0-9]+$/',
         ]);
 
-        // 1. Update Tabel Users (Login Info)
         $user->update([
-            'name' => $request->name,
+            'name'  => $request->name,
             'email' => $request->email,
-            'nik' => $request->nik, // Update NIK di user juga agar sinkron
+            'nik'   => $request->nik ?: null,
         ]);
 
-        // 2. Update atau Create Tabel Profiles (Detail Info)
+        // full_name ADA di tabel profiles (NOT NULL) — wajib diisi
         Profile::updateOrCreate(
             ['user_id' => $user->id],
             [
-                'full_name' => $request->name,
-                'nik' => $request->nik,
-                'tempat_lahir' => $request->tempat_lahir,
+                'full_name'     => $request->name,
+                'nik'           => $request->nik ?: null,
+                'jenis_kelamin' => $request->jenis_kelamin ?? 'L',
+                'tempat_lahir'  => $request->tempat_lahir,
                 'tanggal_lahir' => $request->tanggal_lahir,
-                'jenis_kelamin' => $request->jenis_kelamin ?? 'L', // Default atau dari form
-                'alamat' => $request->alamat,
-                'telepon' => $request->telepon,
+                'alamat'        => $request->alamat,
+                'telepon'       => $request->telepon,
             ]
         );
 
-        return back()->with('success', 'Profil dan data diri berhasil diperbarui.');
+        return back()->with('success', 'Profil berhasil diperbarui.');
     }
 }
