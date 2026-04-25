@@ -42,11 +42,12 @@
         @csrf
         
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {{-- PANEL KIRI: Upload File --}}
             <div class="lg:col-span-8 bg-white rounded-[32px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 md:p-10 relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full pointer-events-none -z-10"></div>
                 
                 <div class="flex items-center gap-4 mb-8 border-b border-slate-100 pb-5">
-                    <span class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-indigo-200">1</span>
+                    <span class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-indigo-200 shrink-0">1</span>
                     <h3 class="text-xl font-black text-slate-800 font-poppins">Pilih File Master</h3>
                 </div>
 
@@ -54,7 +55,8 @@
                     <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3">Kategori Database Target <span class="text-rose-500">*</span></label>
                     <select name="jenis_data" id="jenis_data" required class="w-full bg-slate-50 border-2 border-slate-200 text-slate-800 text-[14px] rounded-2xl px-5 py-4 outline-none font-bold focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all cursor-pointer">
                         <option value="">-- Pilih Tujuan Modul --</option>
-                        <option value="balita" {{ old('jenis_data', $type ?? '') == 'balita' ? 'selected' : '' }}>👶 Modul Data Bayi / Balita</option>
+                        <option value="balita" {{ old('jenis_data', $type ?? '') == 'balita' ? 'selected' : '' }}>👶 Modul Data Anak & Balita</option>
+                        <option value="ibu_hamil" {{ old('jenis_data', $type ?? '') == 'ibu_hamil' ? 'selected' : '' }}>🤰 Modul Data Ibu Hamil</option>
                         <option value="remaja" {{ old('jenis_data', $type ?? '') == 'remaja' ? 'selected' : '' }}>🎓 Modul Data Remaja</option>
                         <option value="lansia" {{ old('jenis_data', $type ?? '') == 'lansia' ? 'selected' : '' }}>🧓 Modul Data Lansia</option>
                     </select>
@@ -73,17 +75,18 @@
                         <p class="text-[13px] font-medium text-slate-500 mb-4" id="fileDescDisplay">atau klik untuk menelusuri komputer Anda</p>
                         
                         <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-200/50 text-slate-600 rounded-lg text-[10px] font-bold uppercase tracking-widest">
-                            <i class="fas fa-info-circle"></i> Maksimal 10 MB
+                            <i class="fas fa-info-circle"></i> Maksimal 10 MB (.xlsx disarankan)
                         </div>
                     </div>
                 </div>
             </div>
 
+            {{-- PANEL KANAN: Pengaturan & Template --}}
             <div class="lg:col-span-4 bg-slate-50/80 rounded-[32px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 md:p-10 relative overflow-hidden flex flex-col">
                 <div class="absolute right-0 top-0 w-40 h-40 bg-violet-500/10 rounded-bl-full pointer-events-none blur-2xl"></div>
                 
                 <div class="flex items-center gap-4 mb-8 border-b border-slate-200 pb-5 relative z-10">
-                    <span class="w-10 h-10 rounded-full bg-violet-500 text-white flex items-center justify-center font-black shadow-md shadow-violet-200">2</span>
+                    <span class="w-10 h-10 rounded-full bg-violet-500 text-white flex items-center justify-center font-black shadow-md shadow-violet-200 shrink-0">2</span>
                     <h3 class="text-xl font-black text-slate-800 font-poppins">Pengaturan</h3>
                 </div>
 
@@ -98,20 +101,20 @@
                             <label for="smart_import" class="toggle-label block overflow-hidden h-6 rounded-full bg-indigo-500 cursor-pointer transition-colors duration-300"></label>
                         </div>
                     </div>
-                    <p class="text-[12px] font-medium text-slate-500 leading-relaxed">Sistem akan membaca dan mencocokkan nama kolom Excel Anda dengan database secara otomatis, apa pun bahasanya.</p>
+                    <p class="text-[12px] font-medium text-slate-500 leading-relaxed">Sistem akan membaca dan mencocokkan nama kolom Excel Anda dengan database secara otomatis.</p>
                 </div>
 
                 <div class="bg-amber-50 p-6 rounded-2xl border border-amber-200 shadow-sm relative z-10 mt-auto hover:bg-amber-100 transition-colors">
-                    <h4 class="font-black text-amber-900 text-[13px] mb-2"><i class="fas fa-exclamation-triangle mr-1"></i> Mode Konvensional</h4>
-                    <p class="text-[11px] font-medium text-amber-700 leading-relaxed mb-4">Matikan fitur AI di atas jika Anda ingin menggunakan template kaku resmi dari kami.</p>
-                    <button type="button" onclick="downloadTemplate()" class="w-full py-3 bg-white border border-amber-300 text-amber-700 font-bold text-[12px] rounded-xl hover:bg-amber-50 transition-colors flex items-center justify-center gap-2">
-                        <i class="fas fa-download"></i> Unduh Template Resmi
+                    <h4 class="font-black text-amber-900 text-[13px] mb-2"><i class="fas fa-exclamation-triangle mr-1"></i> Template Standar</h4>
+                    <p class="text-[11px] font-medium text-amber-700 leading-relaxed mb-4">Pilih Kategori Database di sebelah kiri, lalu unduh template resmi jika Anda tidak menggunakan AI.</p>
+                    <button type="button" onclick="downloadTemplate()" class="w-full py-3 bg-white border border-amber-300 text-amber-700 font-bold text-[12px] rounded-xl hover:bg-amber-50 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fas fa-file-download"></i> Unduh Template
                     </button>
                 </div>
             </div>
         </div>
         
-        {{-- BOTTOM ACTION BAR (Posisi Anteng di Bawah Grid) --}}
+        {{-- BOTTOM ACTION BAR --}}
         <div class="mt-8 bg-white border border-slate-200 p-6 md:p-8 rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] flex flex-col sm:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-4 hidden sm:flex">
                 <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl shrink-0"><i class="fas fa-shield-check"></i></div>
@@ -121,9 +124,9 @@
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                <a href="{{ route('kader.import.index') }}" class="loader-trigger w-full sm:w-auto px-6 py-4 bg-slate-100 text-slate-600 font-black text-[12px] rounded-[16px] hover:bg-slate-200 transition-colors text-center uppercase tracking-widest">Batal</a>
+                <a href="{{ route('kader.import.history') }}" class="loader-trigger w-full sm:w-auto px-6 py-4 bg-slate-100 text-slate-600 font-black text-[12px] rounded-[16px] hover:bg-slate-200 transition-colors text-center uppercase tracking-widest">Lihat Log History</a>
                 <button type="submit" id="btnProses" class="btn-press w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-[12px] rounded-[16px] hover:shadow-[0_8px_20px_rgba(79,70,229,0.4)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
-                    <i class="fas fa-bolt text-lg"></i> Mulai Impor Data
+                    <i class="fas fa-bolt text-lg"></i> Eksekusi Impor Data
                 </button>
             </div>
         </div>
@@ -133,6 +136,7 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // 1. Logika Drag & Drop File Modern
     const dropArea = document.getElementById('dropArea');
     const fileInput = document.getElementById('file');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
@@ -164,35 +168,38 @@
         }
     }
 
+    // 2. ✨ FIX BUG ROUTE TEMPLATE ✨
     function downloadTemplate() {
         const jenisData = document.getElementById('jenis_data').value;
         if (!jenisData) {
             Swal.fire({
-                icon: 'warning', title: 'Oops...', text: 'Silakan pilih Kategori Database terlebih dahulu di kotak atas!',
-                confirmButtonColor: '#4f46e5', confirmButtonText: 'Baik, Mengerti'
+                icon: 'warning', title: 'Perhatian!', text: 'Silakan pilih "Kategori Database Target" terlebih dahulu sebelum mengunduh template.',
+                confirmButtonColor: '#4f46e5', confirmButtonText: 'Mengerti', customClass: { popup: 'rounded-[28px]' }
             });
             document.getElementById('jenis_data').focus();
             return;
         }
         
-        // Fix Missing Parameter Route (Solusi Menggunakan Replace string)
-        let urlTemplate = "{{ route('kader.import.download-template', ':type') }}";
+        // Panggil route yang sesuai di web.php yaitu 'import.template'
+        let urlTemplate = "{{ route('kader.import.template', ':type') }}";
         window.location.href = urlTemplate.replace(':type', jenisData);
     }
 
+    // 3. Failsafe Form Submission dengan AJAX (Progress Mulus)
     document.getElementById('importForm').addEventListener('submit', async function(e) {
         e.preventDefault(); 
         
         if(!fileInput.files.length) {
-            Swal.fire({ icon: 'error', title: 'File Kosong', text: 'Anda belum memasukkan file Excel/CSV apapun!' });
+            Swal.fire({ icon: 'error', title: 'File Kosong', text: 'Silakan seret atau pilih file Excel terlebih dahulu.', customClass: { popup: 'rounded-[28px]' } });
             return;
         }
 
         Swal.fire({
-            title: 'AI Sedang Membaca Data...',
-            html: 'Mohon tunggu, sistem sedang memetakan kolom dan mengintegrasikan akun warga.',
+            title: 'AI Sedang Memproses...',
+            html: 'Mohon tunggu, sistem sedang memetakan kolom dan mengamankan integritas database.',
             allowOutsideClick: false, showConfirmButton: false,
-            willOpen: () => { Swal.showLoading(); }
+            willOpen: () => { Swal.showLoading(); },
+            customClass: { popup: 'rounded-[28px]' }
         });
 
         try {
@@ -206,21 +213,21 @@
 
             if (response.ok && result.status === 'success') {
                 Swal.fire({
-                    icon: 'success', title: 'Integrasi Berhasil!', text: result.message,
-                    confirmButtonColor: '#10b981', timer: 2000, timerProgressBar: true
+                    icon: 'success', title: 'Import Berhasil!', text: result.message,
+                    confirmButtonColor: '#10b981', timer: 2000, timerProgressBar: true, customClass: { popup: 'rounded-[28px]' }
                 }).then(() => {
-                    window.location.href = result.redirect; 
+                    window.location.href = result.redirect || "{{ route('kader.import.history') }}"; 
                 });
             } else {
                 Swal.fire({
-                    icon: 'error', title: 'Gagal Membaca Data', text: result.message || 'Cek format Excel Anda.',
-                    confirmButtonColor: '#f43f5e'
+                    icon: 'error', title: 'Kegagalan Sistem', text: result.message || 'Cek kembali format file Excel Anda.',
+                    confirmButtonColor: '#f43f5e', customClass: { popup: 'rounded-[28px]' }
                 });
             }
         } catch (error) {
             Swal.fire({
-                icon: 'error', title: 'Koneksi Terputus', text: 'Terjadi kesalahan jaringan saat memproses file. Coba gunakan file .xlsx.',
-                confirmButtonColor: '#f43f5e'
+                icon: 'error', title: 'Koneksi Terputus', text: 'Terjadi kesalahan jaringan atau server timeout. Coba kurangi jumlah baris di Excel Anda.',
+                confirmButtonColor: '#f43f5e', customClass: { popup: 'rounded-[28px]' }
             });
         }
     });

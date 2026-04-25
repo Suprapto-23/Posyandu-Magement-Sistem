@@ -26,19 +26,18 @@ class LaporanController extends Controller
     /**
      * Mesin Utama Generator PDF (Direct Download)
      */
-    public function generate(Request $request)
+  public function generate(Request $request)
     {
-        // 1. PENCEGAHAN MEMORY CRASH DOMPDF
         ini_set('memory_limit', '1024M'); 
         set_time_limit(300);
 
+        // Mengambil data dari request GET
         $type   = $request->get('type');
-        $bulan  = (int) $request->get('bulan', date('m'));
-        $tahun  = (int) $request->get('tahun', date('Y'));
-
+        $bulan  = (int) $request->get('bulan');
+        $tahun  = (int) $request->get('tahun');
         $validTypes = ['balita', 'ibu_hamil', 'remaja', 'lansia', 'imunisasi', 'kunjungan'];
         if (!in_array($type, $validTypes)) {
-            return back()->with('error', 'Kategori laporan tidak valid.');
+            return back()->with('error', 'Kategori laporan tidak valid di sistem.');
         }
 
         $namaBulan = \Carbon\Carbon::create()->month($bulan)->translatedFormat('F');
@@ -47,7 +46,7 @@ class LaporanController extends Controller
         // =======================================================
         // PDF EXPORT DATA GATHERING
         // =======================================================
-        $data = [];
+        $data = collect(); // Inisialisasi koleksi kosong
         
         if ($type === 'imunisasi') {
             $data = Imunisasi::with('kunjungan.pasien')
@@ -70,14 +69,23 @@ class LaporanController extends Controller
                 ->orderBy('tanggal_periksa', 'asc')
                 ->get();
 
-            // Inject relasi profil pasien (Nama & Jenis Kelamin)
+            // Inject relasi profil pasien (Nama & Jenis Kelamin) untuk PDF
             foreach ($data as $row) {
                 $row->nama_pasien   = $this->getNamaPasien($row->pasien_id, $row->kategori_pasien);
                 $row->jenis_kelamin = $this->getJkPasien($row->pasien_id, $row->kategori_pasien);
             }
         }
 
-        // 2. RENDER & PAKSA DOWNLOAD
+        // =======================================================
+        // FAILSAFE: CEK JIKA DATA KOSONG
+        // =======================================================
+        if ($data->isEmpty()) {
+            return back()->with('error', "Tidak ada catatan " . str_replace('_', ' ', $type) . " pada periode {$namaBulan} {$tahun}.");
+        }
+
+        // =======================================================
+        // RENDER & PAKSA DOWNLOAD
+        // =======================================================
         $pdf = Pdf::loadView("kader.laporan.templates.table-{$type}", compact('data', 'bulan', 'tahun', 'namaBulan'))
             ->setPaper('A4', 'landscape')
             ->setOption('isHtml5ParserEnabled', true);

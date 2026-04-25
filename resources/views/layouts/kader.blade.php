@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,20 +7,24 @@
     <meta name="theme-color" content="#ffffff">
     <title>@yield('title', 'Kader Workspace') — PosyanduCare</title>
     
-    {{-- ULTRA CLEAN FAVICON --}}
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5'/%3E%3Cstop offset='100%25' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='24' height='24' rx='6' fill='url(%23grad)'/%3E%3Cpath d='M5 12h3.5l2-4.5 3 9 2-4.5h3.5' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    {{-- ✨ FAVICON DEFINITIF (BASE64) - Ikon Hati/Medis Warna Indigo --}}
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGY0NmU1IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIwLjQyIDEwLjE4YTUuMiA1LjIgMCAwIDAtNy4zNy03LjM3bC0xLjA1IDEuMDUtMS4wNS0xLjA1YTUuMiA1LjIgMCAwIDAtNy4zNyA3LjM3bDEuMDUgMS4wNUwxMiAyMS4wNWw3LjM3LTcuMzcgMS4wNS0xLjA1eiIvPjwvc3ZnPg==">
     
+    {{-- Web Fonts Premium --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     
+    {{-- Icons & Engine --}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
     
     <style type="text/tailwindcss">
         @theme { 
-            --font-sans: 'Inter', sans-serif; 
+            --font-sans: 'Plus Jakarta Sans', sans-serif; 
             --font-poppins: 'Poppins', sans-serif; 
         }
         body { 
@@ -32,80 +36,61 @@
         h1, h2, h3, h4, h5, h6 { font-family: var(--font-poppins); }
         
         /* Scrollbar Premium */
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
 
-        /* UI Utilities */
-        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
-        .menu-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .submenu-grid { display: grid; transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Loading Bar SPA (NProgress Style) */
+        @keyframes loadingBar {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        .animate-loading-bar { animation: loadingBar 1s infinite ease-in-out; }
 
-        /* Spring Toast Animation */
-        @keyframes toastEnter { 0% { opacity: 0; transform: translateX(100%) scale(0.9); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
-        @keyframes toastLeave { 0% { opacity: 1; transform: translateX(0) scale(1); max-height: 100px; margin-bottom: 12px; } 100% { opacity: 0; transform: translateX(100%) scale(0.9); max-height: 0; margin-bottom: 0; padding: 0; border: 0; } }
-        .toast-show { animation: toastEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        .toast-hide { animation: toastLeave 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-        
-        /* Layout Smooth Shift */
-        .layout-shift { transition: margin 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Glass Panel Khusus Kader */
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
     </style>
     @stack('styles')
 </head>
 
-<body class="flex h-screen overflow-hidden selection:bg-indigo-100 selection:text-indigo-900">
+<body class="flex h-screen overflow-hidden selection:bg-indigo-200 selection:text-indigo-900" x-data="{ sidebarOpen: false, isNavigating: false, notifOpen: false, userOpen: false }">
 
-    {{-- NETWORK BANNER --}}
-    <div id="offlineBanner" class="fixed top-0 left-0 right-0 z-[99999] bg-rose-500 text-white text-[11px] font-black uppercase tracking-widest py-2 text-center transform -translate-y-full transition-transform duration-300 flex items-center justify-center gap-2 shadow-lg">
-        <i class="fas fa-wifi-slash animate-pulse"></i> Koneksi Terputus. Menunggu Jaringan...
+    {{-- ✨ TOP PROGRESS BAR (Tampil halus saat pindah menu) --}}
+    <div x-show="isNavigating" class="fixed top-0 left-0 w-full h-1 z-[9999] bg-indigo-100 overflow-hidden" style="display: none;">
+        <div class="h-full bg-indigo-600 animate-loading-bar w-1/3 rounded-full"></div>
     </div>
 
-    {{-- TOAST CONTAINER --}}
+    {{-- TOAST CONTAINER (Tetap Vanilla JS agar bisa dipanggil dari Controller) --}}
     <div id="toastContainer" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 w-full max-w-[340px] pointer-events-none"></div>
 
-    {{-- PAGE LOADER --}}
-    <div id="globalLoader" class="fixed inset-0 z-[9998] bg-slate-50/80 backdrop-blur-md flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="relative w-16 h-16 flex items-center justify-center mb-4">
-            <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
-            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
-                <i class="fas fa-heart-pulse text-indigo-600 animate-pulse text-lg"></i>
-            </div>
-        </div>
-        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Memuat Layar</p>
-    </div>
-
     {{-- MOBILE OVERLAY --}}
-    <div id="mobileOverlay" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0 xl:hidden"></div>
+    <div x-show="sidebarOpen" x-transition.opacity.duration.300ms @click="sidebarOpen = false" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 xl:hidden" style="display: none;"></div>
 
     @php 
         $route = request()->route()->getName();
         $isDataWarga = Str::startsWith($route, 'kader.data.');
         $isAbsensi = in_array($route, ['kader.absensi.index', 'kader.absensi.riwayat']);
         
-        $menuAktif = 'bg-indigo-50/80 text-indigo-700 font-bold shadow-[0_2px_10px_rgba(79,70,229,0.06)]';
-        $menuPasif = 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-medium';
-        $iconAktif = 'text-indigo-600';
+        $menuAktif = 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 font-bold scale-[1.02]';
+        $menuPasif = 'text-slate-500 hover:bg-slate-100 hover:text-indigo-600 font-semibold';
+        $iconAktif = 'text-white';
         $iconPasif = 'text-slate-400 group-hover:text-indigo-500 transition-colors';
     @endphp
 
-    {{-- ================================================================= --}}
     {{-- SIDEBAR NAVIGATION --}}
-    {{-- ================================================================= --}}
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-[280px] bg-white border-r border-slate-200/80 transform -translate-x-full xl:translate-x-0 transition-transform duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col shadow-2xl xl:shadow-none">
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-50 w-[280px] bg-white border-r border-slate-200/80 transform xl:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col shadow-2xl xl:shadow-none">
         
         {{-- Brand Logo --}}
         <div class="h-[76px] flex items-center px-6 border-b border-slate-100 shrink-0">
-            <div class="flex items-center gap-3 w-full">
-                <div class="w-10 h-10 rounded-[14px] bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shadow-[0_4px_12px_rgba(79,70,229,0.3)] shrink-0">
+            <div class="flex items-center gap-3 w-full cursor-pointer" onclick="window.location.href='{{ route('kader.dashboard') }}'">
+                <div class="w-10 h-10 rounded-[14px] bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-[0_4px_12px_rgba(79,70,229,0.3)] shrink-0 hover:rotate-6 transition-transform">
                     <i class="fas fa-heart-pulse text-[18px]"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <h1 class="text-[21px] font-black text-slate-800 tracking-tight truncate font-poppins">Kader<span class="text-indigo-600">Care</span></h1>
                 </div>
-                <button id="closeSidebarBtn" class="xl:hidden w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
+                <button @click.stop="sidebarOpen = false" class="xl:hidden w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
                     <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
@@ -114,98 +99,91 @@
         {{-- Navigasi Utama --}}
         <nav class="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar space-y-7">
             
-            {{-- Grup: Overview --}}
             <div>
-                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Overview</p>
-                <a href="{{ route('kader.dashboard') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ $route == 'kader.dashboard' ? $menuAktif : $menuPasif }}">
-                    <i class="fas fa-chart-pie w-5 text-center text-[16px] {{ $route == 'kader.dashboard' ? $iconAktif : $iconPasif }}"></i> 
-                    <span>Dashboard Utama</span>
+                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 font-poppins">Workspace Utama</p>
+                <a href="{{ route('kader.dashboard') }}" class="spa-route group flex items-center gap-3.5 px-4 py-3.5 rounded-[14px] text-[13px] transition-all {{ $route == 'kader.dashboard' ? $menuAktif : $menuPasif }}">
+                    <div class="w-5 flex justify-center"><i class="fas fa-chart-pie text-[16px] {{ $route == 'kader.dashboard' ? $iconAktif : $iconPasif }}"></i></div>
+                    <span class="tracking-wide">Dashboard Operasional</span>
                 </a>
             </div>
 
-            {{-- Grup: Pendaftaran --}}
             <div>
-                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Registrasi</p>
-                <div class="space-y-1">
-                    <button onclick="toggleSubmenu('menuPasien', 'iconPasien')" class="w-full group flex items-center justify-between px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ $isDataWarga ? $menuAktif : $menuPasif }}">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-users w-5 text-center text-[16px] {{ $isDataWarga ? $iconAktif : $iconPasif }}"></i> 
-                            <span>Database Warga</span>
+                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 font-poppins">Entitas Pasien</p>
+                <div class="space-y-1" x-data="{ openWarga: {{ $isDataWarga ? 'true' : 'false' }} }">
+                    <button @click="openWarga = !openWarga" class="w-full group flex items-center justify-between px-4 py-3.5 rounded-[14px] text-[13px] transition-all {{ $isDataWarga ? 'bg-slate-50 text-indigo-700 font-bold' : $menuPasif }}">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-5 flex justify-center"><i class="fas fa-users text-[16px] {{ $isDataWarga ? 'text-indigo-600' : $iconPasif }}"></i></div>
+                            <span class="tracking-wide">Database Warga</span>
                         </div>
-                        <i id="iconPasien" class="fas fa-chevron-down text-[10px] transition-transform duration-300 {{ $isDataWarga ? 'rotate-180 text-indigo-600' : 'text-slate-400 group-hover:text-indigo-500' }}"></i>
+                        <i class="fas fa-chevron-down text-[10px] transition-transform duration-300" :class="openWarga ? 'rotate-180 text-indigo-600' : 'text-slate-400'"></i>
                     </button>
                     
-                    <div id="menuPasien" class="submenu-grid {{ $isDataWarga ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]' }}">
-                        <div class="overflow-hidden">
-                            <div class="pl-[48px] pr-2 py-1 space-y-1 relative before:absolute before:left-[26px] before:top-3 before:bottom-3 before:w-[2px] before:bg-slate-100 before:rounded-full">
-                                @foreach([
-                                    ['route' => 'kader.data.balita.index', 'label' => 'Data Balita', 'active' => Str::startsWith($route, 'kader.data.balita')],
-                                    ['route' => 'kader.data.ibu-hamil.index', 'label' => 'Data Ibu Hamil', 'active' => Str::startsWith($route, 'kader.data.ibu-hamil')],
-                                    ['route' => 'kader.data.remaja.index', 'label' => 'Data Remaja', 'active' => Str::startsWith($route, 'kader.data.remaja')],
-                                    ['route' => 'kader.data.lansia.index', 'label' => 'Data Lansia', 'active' => Str::startsWith($route, 'kader.data.lansia')],
-                                ] as $item)
-                                    <a href="{{ route($item['route']) }}" class="smooth-route block px-4 py-2.5 text-[12.5px] rounded-xl menu-transition relative before:absolute before:left-[-25.5px] before:top-1/2 before:-translate-y-1/2 before:w-[7px] before:h-[7px] before:rounded-full {{ $item['active'] ? 'font-bold text-indigo-700 bg-white shadow-sm border border-slate-100 before:bg-indigo-500 before:ring-4 before:ring-indigo-100' : 'font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 before:bg-slate-200 hover:before:bg-indigo-300' }}">
-                                        {{ $item['label'] }}
-                                    </a>
-                                @endforeach
-                            </div>
+                    <div x-show="openWarga" x-collapse class="overflow-hidden">
+                        <div class="pl-[46px] pr-2 py-1.5 space-y-1 relative before:absolute before:left-[24px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100 before:rounded-full">
+                            @foreach([
+                                ['route' => 'kader.data.balita.index', 'label' => 'Data Balita', 'active' => Str::startsWith($route, 'kader.data.balita')],
+                                ['route' => 'kader.data.ibu-hamil.index', 'label' => 'Data Ibu Hamil', 'active' => Str::startsWith($route, 'kader.data.ibu-hamil')],
+                                ['route' => 'kader.data.remaja.index', 'label' => 'Data Remaja', 'active' => Str::startsWith($route, 'kader.data.remaja')],
+                                ['route' => 'kader.data.lansia.index', 'label' => 'Data Lansia', 'active' => Str::startsWith($route, 'kader.data.lansia')],
+                            ] as $item)
+                                <a href="{{ route($item['route']) }}" class="spa-route block px-4 py-2.5 text-[12px] rounded-xl transition-all relative before:absolute before:left-[-25.5px] before:top-1/2 before:-translate-y-1/2 before:w-[7px] before:h-[7px] before:rounded-full {{ $item['active'] ? 'font-bold text-indigo-700 bg-white shadow-sm border border-slate-100 before:bg-indigo-500 before:ring-4 before:ring-indigo-100' : 'font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 before:bg-slate-200' }}">
+                                    {{ $item['label'] }}
+                                </a>
+                            @endforeach
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Grup: Layanan --}}
             <div>
-                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Operasional</p>
-                <div class="space-y-1">
+                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 font-poppins">Tugas Lapangan</p>
+                <div class="space-y-1.5">
                     
-                    <button onclick="toggleSubmenu('menuAbsensi', 'iconAbsensi')" class="w-full group flex items-center justify-between px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ $isAbsensi ? $menuAktif : $menuPasif }}">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-clipboard-user w-5 text-center text-[16px] {{ $isAbsensi ? $iconAktif : $iconPasif }}"></i> 
-                            <span>Buku Kehadiran</span>
-                        </div>
-                        <i id="iconAbsensi" class="fas fa-chevron-down text-[10px] transition-transform duration-300 {{ $isAbsensi ? 'rotate-180 text-indigo-600' : 'text-slate-400 group-hover:text-indigo-500' }}"></i>
-                    </button>
-                    
-                    <div id="menuAbsensi" class="submenu-grid {{ $isAbsensi ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]' }}">
-                        <div class="overflow-hidden">
-                            <div class="pl-[48px] pr-2 py-1 space-y-1 relative before:absolute before:left-[26px] before:top-3 before:bottom-3 before:w-[2px] before:bg-slate-100 before:rounded-full">
-                                <a href="{{ route('kader.absensi.index') }}" class="smooth-route block px-4 py-2.5 text-[12.5px] rounded-xl menu-transition relative before:absolute before:left-[-25.5px] before:top-1/2 before:-translate-y-1/2 before:w-[7px] before:h-[7px] before:rounded-full {{ $route == 'kader.absensi.index' ? 'font-bold text-indigo-700 bg-white shadow-sm border border-slate-100 before:bg-indigo-500 before:ring-4 before:ring-indigo-100' : 'font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 before:bg-slate-200 hover:before:bg-indigo-300' }}">Input Presensi</a>
-                                <a href="{{ route('kader.absensi.riwayat') }}" class="smooth-route block px-4 py-2.5 text-[12.5px] rounded-xl menu-transition relative before:absolute before:left-[-25.5px] before:top-1/2 before:-translate-y-1/2 before:w-[7px] before:h-[7px] before:rounded-full {{ $route == 'kader.absensi.riwayat' ? 'font-bold text-indigo-700 bg-white shadow-sm border border-slate-100 before:bg-indigo-500 before:ring-4 before:ring-indigo-100' : 'font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 before:bg-slate-200 hover:before:bg-indigo-300' }}">Riwayat Arsip</a>
+                    <div x-data="{ openAbsensi: {{ $isAbsensi ? 'true' : 'false' }} }">
+                        <button @click="openAbsensi = !openAbsensi" class="w-full group flex items-center justify-between px-4 py-3.5 rounded-[14px] text-[13px] transition-all {{ $isAbsensi ? 'bg-slate-50 text-indigo-700 font-bold' : $menuPasif }}">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-5 flex justify-center"><i class="fas fa-clipboard-user text-[16px] {{ $isAbsensi ? 'text-indigo-600' : $iconPasif }}"></i></div>
+                                <span class="tracking-wide">Buku Kehadiran</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-[10px] transition-transform duration-300" :class="openAbsensi ? 'rotate-180 text-indigo-600' : 'text-slate-400'"></i>
+                        </button>
+                        <div x-show="openAbsensi" x-collapse class="overflow-hidden">
+                            <div class="pl-[46px] pr-2 py-1.5 space-y-1 relative before:absolute before:left-[24px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100 before:rounded-full">
+                                <a href="{{ route('kader.absensi.index') }}" class="spa-route block px-4 py-2.5 text-[12px] rounded-xl transition-all relative before:absolute before:left-[-25.5px] before:top-1/2 before:-translate-y-1/2 before:w-[7px] before:h-[7px] before:rounded-full {{ $route == 'kader.absensi.index' ? 'font-bold text-indigo-700 bg-white shadow-sm border border-slate-100 before:bg-indigo-500 before:ring-4 before:ring-indigo-100' : 'font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 before:bg-slate-200' }}">Input Presensi</a>
+                                <a href="{{ route('kader.absensi.riwayat') }}" class="spa-route block px-4 py-2.5 text-[12px] rounded-xl transition-all relative before:absolute before:left-[-25.5px] before:top-1/2 before:-translate-y-1/2 before:w-[7px] before:h-[7px] before:rounded-full {{ $route == 'kader.absensi.riwayat' ? 'font-bold text-indigo-700 bg-white shadow-sm border border-slate-100 before:bg-indigo-500 before:ring-4 before:ring-indigo-100' : 'font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 before:bg-slate-200' }}">Riwayat Arsip</a>
                             </div>
                         </div>
                     </div>
                     
-                    <a href="{{ route('kader.pemeriksaan.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.pemeriksaan') ? $menuAktif : $menuPasif }}">
-                        <i class="fas fa-stethoscope w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.pemeriksaan') ? $iconAktif : $iconPasif }}"></i> 
-                        <span>Pemeriksaan Medis</span>
+                    <a href="{{ route('kader.pemeriksaan.index') }}" class="spa-route group flex items-center gap-3.5 px-4 py-3.5 rounded-[14px] text-[13px] transition-all {{ Str::startsWith($route, 'kader.pemeriksaan') ? $menuAktif : $menuPasif }}">
+                        <div class="w-5 flex justify-center"><i class="fas fa-stethoscope text-[16px] {{ Str::startsWith($route, 'kader.pemeriksaan') ? $iconAktif : $iconPasif }}"></i></div>
+                        <span class="tracking-wide">Pemeriksaan Medis</span>
                     </a>
-                    <a href="{{ route('kader.imunisasi.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.imunisasi') ? $menuAktif : $menuPasif }}">
-                        <i class="fas fa-syringe w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.imunisasi') ? $iconAktif : $iconPasif }}"></i> 
-                        <span>Imunisasi Vaksin</span>
+                    <a href="{{ route('kader.imunisasi.index') }}" class="spa-route group flex items-center gap-3.5 px-4 py-3.5 rounded-[14px] text-[13px] transition-all {{ Str::startsWith($route, 'kader.imunisasi') ? $menuAktif : $menuPasif }}">
+                        <div class="w-5 flex justify-center"><i class="fas fa-syringe text-[16px] {{ Str::startsWith($route, 'kader.imunisasi') ? $iconAktif : $iconPasif }}"></i></div>
+                        <span class="tracking-wide">Imunisasi Vaksin</span>
                     </a>
-                    <a href="{{ route('kader.kunjungan.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.kunjungan') ? $menuAktif : $menuPasif }}">
-                        <i class="fas fa-notes-medical w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.kunjungan') ? $iconAktif : $iconPasif }}"></i> 
-                        <span>Log Antrian / Tamu</span>
+                    <a href="{{ route('kader.kunjungan.index') }}" class="spa-route group flex items-center gap-3.5 px-4 py-3.5 rounded-[14px] text-[13px] transition-all {{ Str::startsWith($route, 'kader.kunjungan') ? $menuAktif : $menuPasif }}">
+                        <div class="w-5 flex justify-center"><i class="fas fa-notes-medical text-[16px] {{ Str::startsWith($route, 'kader.kunjungan') ? $iconAktif : $iconPasif }}"></i></div>
+                        <span class="tracking-wide">Log Antrian Tamu</span>
                     </a>
                 </div>
             </div>
 
-            {{-- Grup: Manajemen --}}
             <div>
-                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 font-poppins">Manajemen Alat</p>
-                <div class="space-y-1">
-                    <a href="{{ route('kader.jadwal.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.jadwal') ? $menuAktif : $menuPasif }}">
-                        <i class="fas fa-calendar-alt w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.jadwal') ? $iconAktif : $iconPasif }}"></i> 
-                        <span>Jadwal Posyandu</span>
+                <p class="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 font-poppins">Manajemen Alat</p>
+                <div class="space-y-1.5">
+                    <a href="{{ route('kader.jadwal.index') }}" class="spa-route group flex items-center gap-3.5 px-4 py-3.5 rounded-[14px] text-[13px] transition-all {{ Str::startsWith($route, 'kader.jadwal') ? $menuAktif : $menuPasif }}">
+                        <div class="w-5 flex justify-center"><i class="fas fa-calendar-alt text-[16px] {{ Str::startsWith($route, 'kader.jadwal') ? $iconAktif : $iconPasif }}"></i></div>
+                        <span class="tracking-wide">Jadwal Posyandu</span>
                     </a>
-                    <a href="{{ route('kader.import.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.import') ? $menuAktif : $menuPasif }}">
-                        <i class="fas fa-file-import w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.import') ? $iconAktif : $iconPasif }}"></i> 
-                        <span>Import Data Masal</span>
+                    <a href="{{ route('kader.import.index') }}" class="spa-route group flex items-center gap-3.5 px-4 py-3.5 rounded-[14px] text-[13px] transition-all {{ Str::startsWith($route, 'kader.import') ? $menuAktif : $menuPasif }}">
+                        <div class="w-5 flex justify-center"><i class="fas fa-file-import text-[16px] {{ Str::startsWith($route, 'kader.import') ? $iconAktif : $iconPasif }}"></i></div>
+                        <span class="tracking-wide">Import Data Masal</span>
                     </a>
-                    <a href="{{ route('kader.laporan.index') }}" class="smooth-route group flex items-center gap-3 px-4 py-3 rounded-2xl text-[13.5px] menu-transition {{ Str::startsWith($route, 'kader.laporan') ? $menuAktif : $menuPasif }}">
-                        <i class="fas fa-file-pdf w-5 text-center text-[16px] {{ Str::startsWith($route, 'kader.laporan') ? $iconAktif : $iconPasif }}"></i> 
-                        <span>Cetak Dokumen PDF</span>
+                    <a href="{{ route('kader.laporan.index') }}" class="spa-route group flex items-center gap-3.5 px-4 py-3.5 rounded-[14px] text-[13px] transition-all {{ Str::startsWith($route, 'kader.laporan') ? $menuAktif : $menuPasif }}">
+                        <div class="w-5 flex justify-center"><i class="fas fa-file-pdf text-[16px] {{ Str::startsWith($route, 'kader.laporan') ? $iconAktif : $iconPasif }}"></i></div>
+                        <span class="tracking-wide">Cetak Dokumen PDF</span>
                     </a>
                 </div>
             </div>
@@ -213,37 +191,34 @@
         </nav>
 
         {{-- Profil Footer Sidebar --}}
-        <div class="p-4 border-t border-slate-100 bg-white shrink-0">
-            <a href="{{ route('kader.profile.index') }}" class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors group">
-                <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center font-black text-sm group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all">
+        <div class="p-4 border-t border-slate-100 bg-slate-50/50 shrink-0">
+            <a href="{{ route('kader.profile.index') }}" class="spa-route flex items-center gap-3 p-2 rounded-xl hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-200 transition-all group">
+                <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-black text-sm group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-inner group-hover:shadow-indigo-500/30">
                     {{ strtoupper(substr(Auth::user()->profile->full_name ?? Auth::user()->name ?? 'K', 0, 1)) }}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-[13px] font-bold text-slate-800 truncate leading-tight">{{ Auth::user()->profile->full_name ?? Auth::user()->name ?? 'Kader' }}</p>
-                    <p class="text-[10px] font-medium text-slate-400 truncate mt-0.5">Pengaturan Akun</p>
+                    <p class="text-[13px] font-bold text-slate-800 truncate">{{ Auth::user()->profile->full_name ?? Auth::user()->name ?? 'Kader' }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 truncate mt-0.5">Pengaturan Akun</p>
                 </div>
                 <i class="fas fa-cog text-slate-300 text-sm group-hover:text-indigo-500 transition-colors"></i>
             </a>
         </div>
     </aside>
 
-    {{-- ================================================================= --}}
-    {{-- MAIN WRAPPER (Fluid & Shiftable) --}}
-    {{-- ================================================================= --}}
-    <div id="mainWrapper" class="flex-1 flex flex-col min-w-0 h-screen bg-slate-50 relative layout-shift xl:ml-[280px]">
+    {{-- MAIN CONTENT --}}
+    <div class="flex-1 flex flex-col min-w-0 h-screen bg-slate-50 relative xl:ml-[280px]">
         
         {{-- HEADER NAVBAR --}}
         <header class="h-[76px] glass-panel sticky top-0 z-40 flex items-center justify-between px-4 lg:px-8 border-b border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
             
             <div class="flex items-center gap-3 lg:gap-5">
-                {{-- Toggle Button (Mobile & Desktop) --}}
-                <button id="toggleSidebarBtn" class="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-[12px] transition-colors bg-white border border-slate-200 shadow-sm">
+                <button @click="sidebarOpen = !sidebarOpen" class="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-[12px] transition-colors bg-white border border-slate-200 shadow-sm xl:hidden">
                     <i class="fas fa-bars-staggered"></i>
                 </button>
 
                 <div class="hidden md:flex flex-col">
                     <h2 class="text-[18px] font-black text-slate-800 tracking-tight font-poppins leading-none">@yield('page-name', 'Beranda')</h2>
-                    <div class="flex items-center gap-1.5 mt-1 text-[11px] font-semibold text-slate-400 tracking-wide">
+                    <div class="flex items-center gap-1.5 mt-1 text-[11px] font-bold text-slate-400 tracking-wide uppercase">
                         <span>Workspace</span> <i class="fas fa-chevron-right text-[8px] opacity-50"></i> <span class="text-indigo-500">Sistem Berjalan</span>
                     </div>
                 </div>
@@ -252,10 +227,9 @@
             <div class="flex items-center gap-2 sm:gap-3">
                 
                 {{-- Pencarian Cepat --}}
-                <div class="hidden xl:flex items-center bg-slate-100 hover:bg-slate-200/50 rounded-full px-4 py-2 w-64 transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-100 focus-within:border-indigo-300 border border-transparent">
+                <div class="hidden xl:flex items-center bg-slate-100 hover:bg-slate-200/50 rounded-full px-4 py-2.5 w-64 transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-100 focus-within:border-indigo-300 border border-transparent">
                     <i class="fas fa-search text-slate-400 text-sm"></i>
-                    <input type="text" id="globalSearchInput" placeholder="Pencarian cepat..." class="bg-transparent border-none outline-none text-[13px] w-full ml-3 placeholder:text-slate-400 font-medium text-slate-700">
-                    <kbd class="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[9px] font-bold text-slate-400 shadow-sm">/ </kbd>
+                    <input type="text" placeholder="Pencarian cepat (Tekan '/')" class="bg-transparent border-none outline-none text-[12px] w-full ml-3 placeholder:text-slate-400 font-bold text-slate-700">
                 </div>
 
                 <div class="w-px h-6 bg-slate-200 mx-1 hidden lg:block"></div>
@@ -267,40 +241,40 @@
 
                 {{-- Notification Bell --}}
                 <div class="relative">
-                    <button id="notifDropdownBtn" class="relative w-10 h-10 flex items-center justify-center bg-white text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-[12px] transition-all border border-slate-200 shadow-sm hover:shadow group">
-                        <i class="fas fa-bell text-[16px]"></i>
+                    <button @click="notifOpen = !notifOpen" @click.away="notifOpen = false" class="relative w-10 h-10 flex items-center justify-center bg-white text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-[12px] transition-all border border-slate-200 shadow-sm hover:shadow group">
+                        <i class="fas fa-bell text-[16px] group-hover:animate-shake"></i>
                         @if($unreadNotifCount > 0)
-                            <span id="notifBadge" class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                            <span id="notifBadge" class="absolute -top-1 -right-1 flex h-3 w-3">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500 border-2 border-white"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500 border-2 border-white"></span>
                             </span>
                         @endif
                     </button>
                     
                     {{-- Dropdown Notif --}}
-                    <div id="notifDropdown" class="hidden absolute top-[120%] right-0 w-[calc(100vw-2rem)] mx-4 sm:mx-0 sm:w-[380px] bg-white/95 backdrop-blur-xl border border-slate-200 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] rounded-[24px] z-50 overflow-hidden flex flex-col transition-all origin-top-right scale-95 opacity-0">
+                    <div x-show="notifOpen" x-transition.opacity.scale.95 style="display: none;" class="absolute top-[120%] right-0 w-[calc(100vw-2rem)] mx-4 sm:mx-0 sm:w-[380px] bg-white/95 backdrop-blur-xl border border-slate-200 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] rounded-[24px] z-50 overflow-hidden flex flex-col origin-top-right">
                         <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/80 rounded-t-[24px]">
-                            <h3 class="text-[14px] font-black text-slate-800 font-poppins">Pusat Notifikasi</h3>
+                            <h3 class="text-[13px] font-black text-slate-800 font-poppins">Pusat Notifikasi</h3>
                             <span id="notifCount" class="text-[10px] font-bold px-2 py-0.5 rounded text-rose-600 bg-rose-50 border border-rose-100 {{ $unreadNotifCount > 0 ? '' : 'hidden' }}">{{ $unreadNotifCount }} Baru</span>
                         </div>
                         <div id="notifList" class="max-h-[320px] overflow-y-auto custom-scrollbar flex-1 bg-white">
                             @forelse($latestNotifs as $n)
-                                <a href="{{ route('kader.notifikasi.index') }}" class="flex gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors border-b border-slate-50 {{ $n->is_read ? '' : 'bg-indigo-50/20' }}">
+                                <a href="{{ route('kader.notifikasi.index') }}" class="spa-route flex gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors border-b border-slate-50 {{ $n->is_read ? '' : 'bg-indigo-50/30' }}">
                                     <div class="w-9 h-9 rounded-full flex items-center justify-center shrink-0 {{ $n->is_read ? 'bg-slate-100 text-slate-400' : 'bg-indigo-100 text-indigo-600' }}">
                                         <i class="fas fa-{{ str_contains(strtolower($n->judul), 'jadwal') ? 'calendar-alt' : 'bell' }} text-xs"></i>
                                     </div>
                                     <div class="flex-1 min-w-0 pt-0.5">
-                                        <p class="text-[13px] font-bold {{ $n->is_read ? 'text-slate-600' : 'text-slate-900' }} truncate font-poppins">{{ $n->judul }}</p>
-                                        <p class="text-[12px] {{ $n->is_read ? 'text-slate-400' : 'text-slate-600' }} line-clamp-1 mt-0.5">{{ $n->pesan }}</p>
-                                        <p class="text-[10px] font-medium text-slate-400 mt-1.5">{{ $n->created_at->diffForHumans() }}</p>
+                                        <p class="text-[13px] font-bold {{ $n->is_read ? 'text-slate-600' : 'text-slate-900' }} truncate">{{ $n->judul }}</p>
+                                        <p class="text-[11px] font-medium {{ $n->is_read ? 'text-slate-400' : 'text-slate-600' }} line-clamp-1 mt-0.5">{{ $n->pesan }}</p>
+                                        <p class="text-[9px] font-black text-slate-400 mt-1.5 uppercase tracking-widest">{{ $n->created_at->diffForHumans() }}</p>
                                     </div>
                                 </a>
                             @empty
-                                <div class="py-10 text-center text-slate-400"><i class="fas fa-check-circle text-3xl mb-3 opacity-30"></i><p class="text-xs font-medium">Semua bersih.</p></div>
+                                <div class="py-10 text-center text-slate-400"><i class="fas fa-check-circle text-3xl mb-3 opacity-30"></i><p class="text-xs font-bold uppercase tracking-widest">Semua bersih.</p></div>
                             @endforelse
                         </div>
                         <div class="p-3 border-t border-slate-100 rounded-b-[24px] bg-slate-50/80">
-                            <a href="{{ route('kader.notifikasi.index') }}" class="w-full py-2.5 text-[12px] font-bold text-indigo-600 hover:bg-white border border-transparent hover:border-slate-200 shadow-sm text-center rounded-xl transition-all block">Lihat Semua Riwayat</a>
+                            <a href="{{ route('kader.notifikasi.index') }}" class="spa-route w-full py-2.5 text-[11px] font-black tracking-widest uppercase text-indigo-600 hover:bg-white border border-transparent hover:border-slate-200 shadow-sm text-center rounded-xl transition-all block">Lihat Riwayat</a>
                         </div>
                     </div>
                 </div>
@@ -308,7 +282,7 @@
                 {{-- Fast Logout --}}
                 <form method="POST" action="{{ route('logout') }}" class="hidden sm:block">
                     @csrf
-                    <button type="submit" class="w-10 h-10 flex items-center justify-center bg-white text-rose-500 hover:text-white hover:bg-rose-500 rounded-[12px] transition-all border border-slate-200 shadow-sm" title="Keluar">
+                    <button type="submit" @click="isNavigating = true" class="w-10 h-10 flex items-center justify-center bg-white text-rose-500 hover:text-white hover:bg-rose-500 rounded-[12px] transition-all border border-slate-200 shadow-sm" title="Keluar">
                         <i class="fas fa-power-off text-[14px]"></i>
                     </button>
                 </form>
@@ -317,152 +291,55 @@
         </header>
 
         {{-- MAIN CONTENT INJECTION --}}
-        <main class="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 relative z-0 custom-scrollbar">
+        <main :class="{'opacity-50 blur-[2px] pointer-events-none': isNavigating, 'opacity-100 blur-0': !isNavigating}" class="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 relative z-0 custom-scrollbar transition-all duration-300 ease-out">
             @yield('content')
         </main>
 
         {{-- MOBILE BOTTOM NAV --}}
         <nav class="xl:hidden fixed bottom-0 left-0 right-0 h-16 glass-panel border-t border-slate-200 z-50 flex items-center justify-around px-2 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
-            <a href="{{ route('kader.dashboard') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ $route == 'kader.dashboard' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
+            <a href="{{ route('kader.dashboard') }}" class="spa-route flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ $route == 'kader.dashboard' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
                 <i class="fas fa-chart-pie text-lg mb-1 {{ $route == 'kader.dashboard' ? 'drop-shadow-sm' : '' }}"></i> Beranda
             </a>
-            <a href="{{ route('kader.data.balita.index') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ $isDataWarga ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
+            <a href="{{ route('kader.data.balita.index') }}" class="spa-route flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ $isDataWarga ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
                 <i class="fas fa-users text-lg mb-1 {{ $isDataWarga ? 'drop-shadow-sm' : '' }}"></i> Warga
             </a>
-            <a href="{{ route('kader.pemeriksaan.index') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ Str::startsWith($route,'kader.pemeriksaan') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
+            <a href="{{ route('kader.pemeriksaan.index') }}" class="spa-route flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ Str::startsWith($route,'kader.pemeriksaan') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
                 <i class="fas fa-stethoscope text-lg mb-1 {{ Str::startsWith($route,'kader.pemeriksaan') ? 'drop-shadow-sm' : '' }}"></i> Medis
             </a>
-            <a href="{{ route('kader.jadwal.index') }}" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ Str::startsWith($route,'kader.jadwal') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
+            <a href="{{ route('kader.jadwal.index') }}" class="spa-route flex flex-col items-center justify-center w-full h-full text-[10px] font-bold transition-colors {{ Str::startsWith($route,'kader.jadwal') ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600' }}">
                 <i class="fas fa-calendar-alt text-lg mb-1 {{ Str::startsWith($route,'kader.jadwal') ? 'drop-shadow-sm' : '' }}"></i> Jadwal
             </a>
         </nav>
     </div>
 
-    {{-- ================================================================= --}}
     {{-- CORE JAVASCRIPT ENGINE --}}
-    {{-- ================================================================= --}}
     <script>
-        // --- A. PREMIUM TOAST ENGINE ---
-        const showToast = (type, title, message) => {
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
-
-            const icon = type === 'success' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-circle"></i>';
-            const color = type === 'success' ? 'emerald' : 'rose';
-            
-            const toastHtml = `
-                <div class="toast-item pointer-events-auto bg-white p-4 rounded-[20px] shadow-[0_15px_40px_rgba(0,0,0,0.08)] border border-slate-100 flex items-start gap-3 toast-show relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-${color}-500"></div>
-                    <div class="w-8 h-8 rounded-full bg-${color}-50 text-${color}-500 flex items-center justify-center shrink-0 ml-1">${icon}</div>
-                    <div class="flex-1 pt-1.5"><h4 class="text-[13px] font-black text-slate-800 leading-none mb-1">${title}</h4><p class="text-[11px] font-medium text-slate-500">${message}</p></div>
-                    <button onclick="removeToast(this)" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', toastHtml);
-            const newToast = container.lastElementChild;
-            setTimeout(() => removeToast(newToast.querySelector('button')), 5000);
-        };
-        const removeToast = (btn) => {
-            const toast = btn.closest('.toast-item');
-            if(toast) { toast.classList.remove('toast-show'); toast.classList.add('toast-hide'); setTimeout(() => toast.remove(), 400); }
-        };
-
-        // Inject Laravel Session to Toast
-        @if(session('success')) document.addEventListener('DOMContentLoaded', () => showToast('success', 'Aksi Berhasil', "{{ session('success') }}")); @endif
-        @if(session('error')) document.addEventListener('DOMContentLoaded', () => showToast('error', 'Kesalahan Sistem', "{{ session('error') }}")); @endif
-
-        // --- B. UI CONTROLS & LAYOUT SHIFT ---
+        // SPA Routing Navigation
         document.addEventListener('DOMContentLoaded', () => {
-            
-            // Global Loader
-            const hideLoader = () => { const l = document.getElementById('globalLoader'); if(l) { l.classList.add('opacity-0', 'pointer-events-none'); setTimeout(() => l.style.display = 'none', 300); } };
-            hideLoader();
-            window.addEventListener('pageshow', hideLoader);
-            document.querySelectorAll('.smooth-route').forEach(el => el.addEventListener('click', e => { 
-                if(!el.classList.contains('target-blank') && el.target !== '_blank' && !e.ctrlKey) { const l = document.getElementById('globalLoader'); if(l) { l.style.display = 'flex'; l.classList.remove('opacity-0', 'pointer-events-none'); } }
-            }));
-
-            // LAYOUT SHIFT LOGIC (SIDEBAR HIDE/SHOW)
-            const sidebar = document.getElementById('sidebar');
-            const mainWrapper = document.getElementById('mainWrapper');
-            const overlay = document.getElementById('mobileOverlay');
-            const toggleBtn = document.getElementById('toggleSidebarBtn');
-            const closeBtn = document.getElementById('closeSidebarBtn');
-            
-            // Cek status layar (Mobile vs Desktop)
-            let isDesktop = window.innerWidth >= 1280; // xl breakpoint tailwind
-            let isSidebarOpenDesktop = true; // Default kebuka di layar besar
-
-            window.addEventListener('resize', () => { isDesktop = window.innerWidth >= 1280; });
-
-            const toggleSidebar = () => {
-                if(isDesktop) {
-                    // Mode Desktop: Geser ke kiri dan main-wrapper melebar (Margin jadi 0)
-                    isSidebarOpenDesktop = !isSidebarOpenDesktop;
-                    if(isSidebarOpenDesktop) {
-                        sidebar.classList.remove('xl:-translate-x-full');
-                        sidebar.classList.add('xl:translate-x-0');
-                        mainWrapper.classList.remove('xl:ml-0');
-                        mainWrapper.classList.add('xl:ml-[280px]');
-                    } else {
-                        sidebar.classList.remove('xl:translate-x-0');
-                        sidebar.classList.add('xl:-translate-x-full');
-                        mainWrapper.classList.remove('xl:ml-[280px]');
-                        mainWrapper.classList.add('xl:ml-0');
-                    }
-                } else {
-                    // Mode Mobile: Munculkan overlay dan geser dari kiri
-                    if (sidebar.classList.contains('-translate-x-full')) { 
-                        sidebar.classList.remove('-translate-x-full'); 
-                        overlay.classList.remove('hidden'); 
-                        setTimeout(() => overlay.classList.add('opacity-100'), 10); 
-                        document.body.classList.add('overflow-hidden'); 
-                    } else { 
-                        sidebar.classList.add('-translate-x-full'); 
-                        overlay.classList.remove('opacity-100'); 
-                        setTimeout(() => overlay.classList.add('hidden'), 300); 
-                        document.body.classList.remove('overflow-hidden'); 
-                    }
-                }
-            };
-
-            if(toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
-            if(closeBtn) closeBtn.addEventListener('click', toggleSidebar);
-            if(overlay) overlay.addEventListener('click', toggleSidebar);
-
-            // Popover Notifikasi dengan Efek Scale
-            const nBtn = document.getElementById('notifDropdownBtn'), nMenu = document.getElementById('notifDropdown');
-            if (nBtn && nMenu) {
-                nBtn.addEventListener('click', e => { 
-                    e.stopPropagation(); 
-                    if(nMenu.classList.contains('hidden')) {
-                        nMenu.classList.remove('hidden'); setTimeout(()=> { nMenu.classList.remove('scale-95','opacity-0'); nMenu.classList.add('scale-100','opacity-100'); }, 10);
-                    } else {
-                        nMenu.classList.remove('scale-100','opacity-100'); nMenu.classList.add('scale-95','opacity-0'); setTimeout(()=> nMenu.classList.add('hidden'), 200);
-                    }
+            const rootAlpine = document.querySelector('[x-data]').__x.$data;
+            document.querySelectorAll('.spa-route').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if(!e.ctrlKey && !e.metaKey) { rootAlpine.isNavigating = true; }
                 });
-                document.addEventListener('click', e => {
-                    if (!nMenu.contains(e.target) && !nBtn.contains(e.target) && !nMenu.classList.contains('hidden')) {
-                        nMenu.classList.remove('scale-100','opacity-100'); nMenu.classList.add('scale-95','opacity-0'); setTimeout(()=> nMenu.classList.add('hidden'), 200);
-                    }
-                });
-            }
+            });
+            window.addEventListener('pageshow', (e) => { if (e.persisted) rootAlpine.isNavigating = false; });
+        });
 
-            // Keyboard Shortcut Search
-            const searchInput = document.getElementById('globalSearchInput');
-            if(searchInput) { document.addEventListener('keydown', e => { if (e.key === '/') { e.preventDefault(); searchInput.focus(); } }); }
+        // SWEETALERT TOAST ENGINE
+        const showToast = (type, title, message) => {
+            Swal.fire({
+                toast: true, position: 'top-end', icon: type,
+                title: title, text: message,
+                showConfirmButton: false, timer: 4000, timerProgressBar: true,
+                customClass: { popup: 'rounded-2xl shadow-xl border border-slate-100 font-sans' }
+            });
+        };
+        @if(session('success')) document.addEventListener('DOMContentLoaded', () => showToast('success', 'Berhasil!', "{{ session('success') }}")); @endif
+        @if(session('error')) document.addEventListener('DOMContentLoaded', () => showToast('error', 'Error!', "{{ session('error') }}")); @endif
 
-            // Network State Banner
-            const offlineBanner = document.getElementById('offlineBanner');
-            window.addEventListener('offline', () => { offlineBanner.classList.remove('-translate-y-full'); showToast('error', 'Koneksi Terputus', 'Periksa jaringan internet Anda.'); });
-            window.addEventListener('online', () => { offlineBanner.classList.add('-translate-y-full'); showToast('success', 'Kembali Online', 'Sistem terhubung kembali.'); });
-            if(!navigator.onLine) offlineBanner.classList.remove('-translate-y-full');
-
-            // Notifikasi Polling & Native Push
-            if (Notification.permission !== "granted" && Notification.permission !== "denied") Notification.requestPermission();
-            let currentUnreadNotif = {{ \App\Models\Notifikasi::where('user_id', Auth::id())->where('is_read', false)->count() ?? 0 }};
-            const notifSound = new Audio('data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq'); // Bip ringan
-            
+        // AJAX Polling Notifikasi
+        document.addEventListener('DOMContentLoaded', () => {
+            let currentUnreadNotif = {{ $unreadNotifCount ?? 0 }};
             function checkNewNotifications() {
                 if(!navigator.onLine) return;
                 fetch("{{ route('kader.notifikasi.fetch') }}", { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
@@ -473,30 +350,13 @@
                     if (list) list.innerHTML = data.html;
 
                     if (data.unreadCount > currentUnreadNotif) {
-                        notifSound.play().catch(e=>{}); // Silent reject
-                        showToast('success', 'Pesan Baru', data.latest_title ?? 'Anda memiliki notifikasi baru.');
-                        if (Notification.permission === "granted" && data.latest_title) {
-                            const pushNotif = new Notification("KaderCare: " + data.latest_title, { body: data.latest_body, icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234f46e5'/%3E%3Cpath d='M5 12h3.5l2-4.5 3 9 2-4.5h3.5' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" });
-                            pushNotif.onclick = function() { window.focus(); window.location.href = "{{ route('kader.notifikasi.index') }}"; };
-                        }
+                        showToast('info', 'Pesan Baru', data.latest_title ?? 'Anda memiliki notifikasi baru.');
                     }
                     currentUnreadNotif = data.unreadCount;
                 }).catch(e => {});
             }
-            setInterval(checkNewNotifications, 12000); // Tiap 12 detik agar tidak terlalu berat
+            setInterval(checkNewNotifications, 15000); 
         });
-
-        // ACCORDION MENU LOGIC
-        function toggleSubmenu(menuId, iconId) {
-            const menu = document.getElementById(menuId), icon = document.getElementById(iconId);
-            if (menu.classList.contains('grid-rows-[0fr]')) {
-                menu.classList.remove('grid-rows-[0fr]'); menu.classList.add('grid-rows-[1fr]');
-                icon.classList.add('rotate-180', 'text-indigo-600'); icon.classList.remove('text-slate-400');
-            } else {
-                menu.classList.remove('grid-rows-[1fr]'); menu.classList.add('grid-rows-[0fr]');
-                icon.classList.remove('rotate-180', 'text-indigo-600'); icon.classList.add('text-slate-400');
-            }
-        }
     </script>
     @stack('scripts')
 </body>

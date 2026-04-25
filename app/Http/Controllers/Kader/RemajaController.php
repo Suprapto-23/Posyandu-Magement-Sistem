@@ -5,224 +5,221 @@ namespace App\Http\Controllers\Kader;
 use App\Http\Controllers\Controller;
 use App\Models\Remaja;
 use App\Models\User;
+use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
+/**
+ * =========================================================================
+ * REMAJA CONTROLLER (KADER WORKSPACE)
+ * =========================================================================
+ * Menangani direktori kesehatan Remaja. 
+ * Dilengkapi SQL Builder Query cerdas untuk sinkronisasi NIK tanpa membebani RAM.
+ */
 class RemajaController extends Controller
 {
+    /**
+     * 1. INDEX: Menampilkan Direktori Remaja
+     */
     public function index(Request $request)
     {
         $search = $request->get('search');
         
-        $remajas = Remaja::query()
-            ->when($search, function($query) use ($search) {
-                return $query->where('nama_lengkap', 'like', "%{$search}%")
-                    ->orWhere('nik', 'like', "%{$search}%")
-                    ->orWhere('sekolah', 'like', "%{$search}%");
-            })
-            ->latest()
-            ->paginate(15);
-            
-        // Deteksi jika request dari Live Search (AJAX)
-        if ($request->ajax()) {
-            return view('kader.data.remaja.index', compact('remajas', 'search'))->render();
+        $query = Remaja::query()->latest('created_at');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama_lengkap', 'LIKE', "%{$search}%")
+                  ->orWhere('nik', 'LIKE', "%{$search}%")
+                  ->orWhere('sekolah', 'LIKE', "%{$search}%")
+                  ->orWhere('kode_remaja', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $remajas = $query->paginate(15)->withQueryString();
+
+        // Statistik Instan untuk UI
+        $stats = [
+            'total'     => Remaja::count(),
+            'laki_laki' => Remaja::where('jenis_kelamin', 'L')->count(),
+            'perempuan' => Remaja::where('jenis_kelamin', 'P')->count(),
+        ];
+
+        // SPA Render (Tanpa Reload Putih)
+        if ($request->ajax() || $request->wantsJson()) {
+            return view('kader.data.remaja.index', compact('remajas', 'search', 'stats'))->render();
         }
             
-        return view('kader.data.remaja.index', compact('remajas', 'search'));
+        return view('kader.data.remaja.index', compact('remajas', 'search', 'stats'));
     }
 
+    /**
+     * 2. CREATE
+     */
     public function create()
     {
         return view('kader.data.remaja.create');
     }
 
+    /**
+     * 3. STORE (Dengan DB Transaction)
+     */
     public function store(Request $request)
     {
         $request->validate([
-            'nama_lengkap'  => 'required|string|max:255',
-            'nik'           => 'required|numeric|digits:16|unique:remajas,nik',
-            'jenis_kelamin' => 'required|in:L,P',
+            'nik'           => 'nullable|digits:16|unique:remajas,nik',
+            'nama_lengkap'  => 'required|string|max:191',
             'tempat_lahir'  => 'required|string|max:100',
-            // VALIDASI KETAT: Usia Remaja harus antara 10 - 19 tahun
-            'tanggal_lahir' => 'required|date|before:-10 years|after:-20 years',
-            'sekolah'       => 'nullable|string|max:255',
-            'kelas'         => 'nullable|string|max:50',
-            'nama_ortu'     => 'nullable|string|max:255',
-            'telepon_ortu'  => 'nullable|string|max:20',
+            'tanggal_lahir' => 'required|date|before:today',
+            'jenis_kelamin' => 'required|in:L,P',
+            'nama_wali'     => 'required|string|max:191',
+            'telepon'       => 'nullable|string|max:20',
             'alamat'        => 'required|string',
+            'sekolah'       => 'nullable|string|max:191',
+            'golongan_darah'=> 'nullable|in:A,B,AB,O',
+        ], [
+            'nik.unique' => 'NIK Remaja ini sudah terdaftar di database.',
+            'nik.digits' => 'NIK harus 16 digit angka.',
         ]);
 
         DB::beginTransaction();
         try {
-            // 1. Radar Sapu Jagat (Cari Akun Warga)
+            $kode_remaja = 'RMJ-' . date('Ymd') . '-' . strtoupper(Str::random(4));
             $linkedUser = $this->findLinkedUser($request->nik, $request->nama_lengkap);
 
-            // 2. Generate Kode Unik Remaja
-            $kode = 'RMJ-' . date('ym') . rand(1000, 9999);
-
-            // 3. Simpan Data
             Remaja::create([
+                'kode_remaja'   => $kode_remaja,
                 'user_id'       => $linkedUser ? $linkedUser->id : null,
-                'kode_remaja'   => $kode,
                 'nik'           => $request->nik,
                 'nama_lengkap'  => $request->nama_lengkap,
                 'tempat_lahir'  => $request->tempat_lahir,
                 'tanggal_lahir' => $request->tanggal_lahir,
                 'jenis_kelamin' => $request->jenis_kelamin,
-                'sekolah'       => $request->sekolah,
-                'kelas'         => $request->kelas,
-                'nama_ortu'     => $request->nama_ortu,
-                'telepon_ortu'  => $request->telepon_ortu,
+                'nama_wali'     => $request->nama_wali,
+                'telepon'       => $request->telepon,
                 'alamat'        => $request->alamat,
+                'sekolah'       => $request->sekolah,
+                'golongan_darah'=> $request->golongan_darah,
                 'created_by'    => Auth::id(),
             ]);
 
             DB::commit();
-
-            if ($linkedUser) {
-                return redirect()->route('kader.data.remaja.index')
-                    ->with('success', 'Data Remaja berhasil disimpan dan tersinkronisasi otomatis dengan akun Warga.');
-            } else {
-                return redirect()->route('kader.data.remaja.index')
-                    ->with('warning', "Data berhasil disimpan. Sistem tidak dapat menemukan profil Warga dengan NIK {$request->nik}. Silakan hubungi Administrator untuk mendaftarkan akun warga tersebut.");
-            }
-
-        } catch (\Exception $e) {
+            return redirect()->route('kader.data.remaja.index')->with('success', 'Data Remaja berhasil ditambahkan!');
+        } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Gagal menyimpan remaja: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Gagal memproses data: ' . $e->getMessage());
+            Log::error('KADER_REMAJA_STORE_ERROR: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal menyimpan data ke server.');
         }
     }
 
+    /**
+     * 4. SHOW
+     */
     public function show($id)
     {
-        // Menarik data Remaja SEKALIGUS riwayat pemeriksaannya secara berurutan dari yang terbaru
-        // Kita gunakan ->latest() sebagai fungsi bawaan yang 100% kebal error nama kolom
-        $remaja = Remaja::with(['pemeriksaans' => function($query) {
-            $query->latest(); 
-        }])->findOrFail($id);
+        $remaja = Remaja::with([
+            'user', 
+            'kunjungans' => function($q) { $q->latest('tanggal_kunjungan'); },
+            'kunjungans.pemeriksaan'
+        ])->findOrFail($id);
 
         return view('kader.data.remaja.show', compact('remaja'));
     }
 
+    /**
+     * 5. EDIT
+     */
     public function edit($id)
     {
         $remaja = Remaja::findOrFail($id);
         return view('kader.data.remaja.edit', compact('remaja'));
     }
 
+    /**
+     * 6. UPDATE
+     */
     public function update(Request $request, $id)
     {
         $remaja = Remaja::findOrFail($id);
-            
+
         $request->validate([
-            'nama_lengkap'  => 'required|string|max:255',
-            'nik'           => 'required|numeric|digits:16|unique:remajas,nik,' . $id,
-            'jenis_kelamin' => 'required|in:L,P',
+            'nik'           => 'nullable|digits:16|unique:remajas,nik,' . $remaja->id,
+            'nama_lengkap'  => 'required|string|max:191',
             'tempat_lahir'  => 'required|string|max:100',
-            // VALIDASI KETAT: Usia Remaja harus antara 10 - 19 tahun
-            'tanggal_lahir' => 'required|date|before:-10 years|after:-20 years',
+            'tanggal_lahir' => 'required|date|before:today',
+            'jenis_kelamin' => 'required|in:L,P',
+            'nama_wali'     => 'required|string|max:191',
+            'telepon'       => 'nullable|string|max:20',
             'alamat'        => 'required|string',
+            'sekolah'       => 'nullable|string|max:191',
+            'golongan_darah'=> 'nullable|in:A,B,AB,O',
         ]);
 
+        DB::beginTransaction();
         try {
-            // Radar Sapu Jagat (Cari Ulang jika NIK/Nama Berubah)
             $linkedUser = $this->findLinkedUser($request->nik, $request->nama_lengkap);
 
             $remaja->update([
-                'user_id'       => $linkedUser ? $linkedUser->id : null,
+                'user_id'       => $linkedUser ? $linkedUser->id : $remaja->user_id,
                 'nik'           => $request->nik,
                 'nama_lengkap'  => $request->nama_lengkap,
                 'tempat_lahir'  => $request->tempat_lahir,
                 'tanggal_lahir' => $request->tanggal_lahir,
                 'jenis_kelamin' => $request->jenis_kelamin,
-                'sekolah'       => $request->sekolah,
-                'kelas'         => $request->kelas,
-                'nama_ortu'     => $request->nama_ortu,
-                'telepon_ortu'  => $request->telepon_ortu,
+                'nama_wali'     => $request->nama_wali,
+                'telepon'       => $request->telepon,
                 'alamat'        => $request->alamat,
+                'sekolah'       => $request->sekolah,
+                'golongan_darah'=> $request->golongan_darah,
             ]);
 
-            if ($linkedUser) {
-                return redirect()->route('kader.data.remaja.index')
-                    ->with('success', 'Data Remaja berhasil diperbarui dan tersinkronisasi.');
-            } else {
-                return redirect()->route('kader.data.remaja.index')
-                    ->with('warning', "Data diperbarui. Sistem tidak dapat menemukan profil Warga dengan NIK {$request->nik}. Silakan hubungi Administrator untuk membuatkan akun.");
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Gagal update remaja: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
+            DB::commit();
+            return redirect()->route('kader.data.remaja.show', $remaja->id)->with('success', 'Data Remaja berhasil diperbarui!');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('KADER_REMAJA_UPDATE_ERROR: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal memperbarui data.');
         }
-    }
-
-    public function destroy($id)
-    {
-        $remaja = Remaja::findOrFail($id);
-        
-        if ($remaja->kunjungans()->count() > 0) {
-            return back()->with('error', 'Gagal menghapus: Pasien remaja ini memiliki rekam medis/kunjungan yang tersimpan di sistem.');
-        }
-            
-        $remaja->delete();
-        return redirect()->route('kader.data.remaja.index')->with('success', 'Data remaja berhasil dihapus secara permanen dari direktori.');
     }
 
     /**
-     * 🚀 RADAR SAPU JAGAT (Otomatis Mencari Afiliasi Akun)
+     * 7. DESTROY
      */
-    private function findLinkedUser($nik, $nama_lengkap)
+    public function destroy($id)
     {
-        $cleanNik = preg_replace('/[^0-9]/', '', (string)$nik);
-        $cleanName = trim((string)$nama_lengkap);
-
-        // 1. Geledah Tabel Users
-        $users = User::all();
-        foreach($users as $user) {
-            if (!empty($cleanNik)) {
-                if (($user->nik ?? '') === $cleanNik) return $user;
-                if (($user->username ?? '') === $cleanNik) return $user;
-                if (($user->email ?? '') === $cleanNik) return $user;
-            }
-            if (!empty($cleanName)) {
-                if (stripos($user->name, $cleanName) !== false) return $user;
-                if (stripos($user->username ?? '', $cleanName) !== false) return $user;
-            }
+        try {
+            $remaja = Remaja::findOrFail($id);
+            $nama = $remaja->nama_lengkap;
+            $remaja->delete();
+            return redirect()->route('kader.data.remaja.index')->with('success', "Data remaja {$nama} berhasil dihapus.");
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal menghapus. Data terkunci oleh rekam medis.');
         }
-
-        // 2. Geledah Tabel Profiles
-        if (Schema::hasTable('profiles')) {
-            $profiles = DB::table('profiles')->get();
-            foreach($profiles as $p) {
-                if (!empty($cleanNik)) {
-                    if (($p->nik ?? '') === $cleanNik) return User::find($p->user_id);
-                    if (($p->no_ktp ?? '') === $cleanNik) return User::find($p->user_id);
-                }
-                if (!empty($cleanName)) {
-                    if (stripos($p->full_name ?? '', $cleanName) !== false) return User::find($p->user_id);
-                }
-            }
-        }
-
-        return null;
     }
-    // Fitur Hapus Banyak Data Sekaligus (Bulk Delete)
+
+    /**
+     * 8. BULK DELETE
+     */
     public function bulkDelete(Request $request)
     {
         $ids = $request->ids;
-        if (!$ids || count($ids) == 0) {
-            return redirect()->back()->with('error', 'Tidak ada data yang dipilih untuk dihapus!');
+        if (!$ids || count($ids) == 0) return redirect()->back()->with('error', 'Tidak ada data yang dipilih!');
+        
+        try {
+            Remaja::whereIn('id', $ids)->delete();
+            return redirect()->route('kader.data.remaja.index')->with('success', count($ids) . ' Data berhasil dibersihkan masal.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Sebagian data gagal dihapus karena relasi database.');
         }
-
-        Remaja::whereIn('id', $ids)->delete();
-        return redirect()->back()->with('success', count($ids) . ' Data remaja berhasil dihapus secara permanen!');
     }
 
-    // Fitur Tarik / Sinkronisasi Akun Otomatis
+    /**
+     * 9. SYNC USER MANUAL
+     */
     public function syncUser($id)
     {
         $remaja = Remaja::findOrFail($id);
@@ -231,9 +228,36 @@ class RemajaController extends Controller
         if ($user) {
             $remaja->user_id = $user->id;
             $remaja->save();
-            return redirect()->back()->with('success', 'Berhasil ditarik! Akun anak remaja ini sudah terhubung dengan Sistem.');
+            return redirect()->back()->with('success', 'Akun terhubung dengan pengguna: ' . $user->name);
+        }
+        return redirect()->back()->with('error', 'Gagal! Warga dengan NIK/Nama tersebut belum menginstal aplikasi.');
+    }
+
+    /**
+     * 10. HELPER: Pencarian Lintas Tabel via SQL (Pengganti User::all)
+     */
+    private function findLinkedUser($nik, $nama_lengkap)
+    {
+        $cleanNik  = preg_replace('/[^0-9]/', '', (string)$nik);
+        $cleanName = trim((string)$nama_lengkap);
+
+        if (empty($cleanNik) && empty($cleanName)) return null;
+
+        if (!empty($cleanNik)) {
+            $user = User::where('nik', $cleanNik)->orWhere('username', $cleanNik)->first();
+            if ($user) return $user;
+
+            if (Schema::hasTable('profiles')) {
+                $profile = Profile::where('nik', $cleanNik)->orWhere('no_ktp', $cleanNik)->first();
+                if ($profile && $profile->user) return $profile->user;
+            }
         }
 
-        return redirect()->back()->with('error', 'Gagal! Tidak ditemukan Akun Warga dengan NIK atau Nama tersebut. Pastikan remaja sudah mendaftar.');
+        if (!empty($cleanName)) {
+            $userByName = User::where('name', 'LIKE', "%{$cleanName}%")->first();
+            if ($userByName) return $userByName;
+        }
+
+        return null;
     }
 }

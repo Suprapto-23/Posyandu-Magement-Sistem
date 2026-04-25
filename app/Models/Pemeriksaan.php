@@ -5,81 +5,81 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * =========================================================================
+ * PEMERIKSAAN MODEL (CORE MEDICAL RECORD)
+ * =========================================================================
+ * Model ini menyimpan data klinis hasil pemeriksaan fisik pasien posyandu.
+ * Terhubung secara struktural ke tabel Kunjungan sebagai referensi induk.
+ */
 class Pemeriksaan extends Model
 {
     use HasFactory;
 
     protected $table = 'pemeriksaans';
 
-    // Menggunakan guarded ['id'] agar otomatis menerima kolom baru 
-    // (seperti indikasi_stunting, tfu, djj, posisi_janin) tanpa perlu update fillable manual.
+    /**
+     * Menggunakan guarded ['id'] agar model fleksibel menerima kolom baru 
+     * tanpa perlu mendaftarkan fillable satu per satu.
+     */
     protected $guarded = ['id'];
 
-    // Memastikan tipe data (casting) aman saat ditarik ke View atau JSON
+    /**
+     * Casting data agar tipe data di database (string/decimal) otomatis 
+     * dikonversi menjadi tipe data PHP yang tepat (float/date) saat diakses.
+     */
     protected $casts = [
         'tanggal_periksa' => 'date',
         'verified_at'     => 'datetime',
         'berat_badan'     => 'float',
         'tinggi_badan'    => 'float',
-        'imt'             => 'float',
         'suhu_tubuh'      => 'float',
         'lingkar_kepala'  => 'float',
         'lingkar_lengan'  => 'float',
-        'lingkar_perut'   => 'float',
-        'hemoglobin'      => 'float',
-        'asam_urat'       => 'float',
+        'gula_darah'      => 'float',
         'kolesterol'      => 'integer',
-        // Kolom teks seperti tfu, djj, kemandirian, indikasi_stunting otomatis dibaca sebagai string
+        'asam_urat'       => 'float',
+        'usia_kehamilan'  => 'integer',
     ];
 
-    // =========================================================
-    // RELASI DATABASE (UNIFIED / POLYMORPHIC APPROACH)
-    // =========================================================
-
-    /** Relasi ke Pasien: Balita */
-    public function balita()
-    {
-        return $this->belongsTo(Balita::class, 'pasien_id');
-    }
-
-    /** Relasi ke Pasien: Remaja */
-    public function remaja()
-    {
-        return $this->belongsTo(Remaja::class, 'pasien_id');
-    }
-
-    /** Relasi ke Pasien: Lansia */
-    public function lansia()
-    {
-        return $this->belongsTo(Lansia::class, 'pasien_id');
-    }
-
-    /** * [BARU] Relasi ke Pasien: Ibu Hamil 
-     * Menggantikan fungsi tabel/model terpisah
+    /**
+     * =================================================================
+     * RELASI DATABASE (RELATIONSHIPS)
+     * =================================================================
      */
-    public function ibuHamil()
+
+    /** * 1. Relasi ke Tabel Kunjungan (PENTING)
+     * Menghubungkan pemeriksaan dengan tiket kedatangan pasien.
+     */
+    public function kunjungan()
     {
-        return $this->belongsTo(IbuHamil::class, 'pasien_id');
+        return $this->belongsTo(Kunjungan::class, 'kunjungan_id');
     }
 
-    /** Relasi ke Petugas: Kader (Meja 1-4) */
-    public function pemeriksa()
+    /** * 2. Relasi ke Petugas (User)
+     * Siapa Kader yang menginput data pemeriksaan ini pertama kali.
+     */
+    public function petugas()
     {
-        return $this->belongsTo(User::class, 'pemeriksa_id');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
-    /** Relasi ke Petugas: Bidan (Meja 5 / Validasi) */
+    /** * 3. Relasi ke Verifikator (User)
+     * Siapa Bidan yang memverifikasi data medis ini.
+     */
     public function verifikator()
     {
         return $this->belongsTo(User::class, 'verified_by');
     }
 
-    // =========================================================
-    // ACCESSORS (Membantu Format Tampilan di Blade)
-    // =========================================================
+    /**
+     * =================================================================
+     * ACCESSORS (FORMATTING UNTUK UI)
+     * =================================================================
+     */
 
-    /** Label bahasa manusia untuk status verifikasi */
-    public function getStatusVerifikasiLabelAttribute(): string
+    /** Mendapatkan label teks status verifikasi yang manusiawi */
+    public function getStatusVerifikasiTextAttribute(): string
     {
         return match($this->status_verifikasi ?? 'pending') {
             'verified' => 'Terverifikasi (Selesai)',
@@ -88,7 +88,7 @@ class Pemeriksaan extends Model
         };
     }
 
-    /** Warna badge Tailwind/Bootstrap untuk status verifikasi */
+    /** Mendapatkan warna badge Tailwind berdasarkan status */
     public function getStatusVerifikasiBadgeAttribute(): string
     {
         return match($this->status_verifikasi ?? 'pending') {
@@ -98,15 +98,11 @@ class Pemeriksaan extends Model
         };
     }
 
-    /** Mengecek apakah ini data mentah dari Kader */
-    public function getFromKaderAttribute(): bool
-    {
-        return ($this->status_verifikasi ?? 'pending') === 'pending';
-    }
-
-    // =========================================================
-    // SCOPES (Mempercepat Penulisan Query di Controller)
-    // =========================================================
+    /**
+     * =================================================================
+     * SCOPES (UNTUK FILTERING CEPAT DI CONTROLLER)
+     * =================================================================
+     */
 
     public function scopePending($query)
     {
@@ -116,11 +112,6 @@ class Pemeriksaan extends Model
     public function scopeVerified($query)
     {
         return $query->where('status_verifikasi', 'verified');
-    }
-
-    public function scopeDitolak($query)
-    {
-        return $query->where('status_verifikasi', 'ditolak');
     }
 
     public function scopeBulanIni($query)

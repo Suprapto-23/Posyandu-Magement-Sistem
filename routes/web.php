@@ -212,96 +212,86 @@ Route::prefix('bidan')->name('bidan.')->middleware(['auth','checkstatus','role:b
     // (Tidak perlu route tambahan — sidebar sudah pakai profile.edit global)
 });
 
-// ==================== KADER ====================
-Route::prefix('kader')->name('kader.')->middleware(['auth','checkstatus','role:kader'])->group(function () {
-    Route::get('/', fn() => redirect()->route('kader.dashboard'));
+// ==// =========================================================================
+// 🟢 AKSES KADER (PETUGAS POSYANDU)
+// =========================================================================
+Route::middleware(['auth', 'role:kader'])->prefix('kader')->name('kader.')->group(function () {
+    
+    // 1. Dashboard Utama
     Route::get('/dashboard', [KaderDashboard::class, 'index'])->name('dashboard');
 
-    // RUTE ABSENSI DI WEB.PHP (UBAH MENJADI SEPERTI INI)
-    Route::prefix('absensi')->name('absensi.')->group(function () {
-        Route::get('/', [AbsensiController::class, 'index'])->name('index'); 
-        Route::get('/riwayat', [AbsensiController::class, 'riwayat'])->name('riwayat'); 
-        Route::post('/store', [AbsensiController::class, 'store'])->name('store'); // 👈 INI YANG BARU
-        Route::get('/{id}', [AbsensiController::class, 'show'])->name('show'); 
-        Route::delete('/{id}', [AbsensiController::class, 'destroy'])->name('destroy');
-    });
-
-   Route::prefix('data')->name('data.')->group(function () {
-        Route::resource('balita', BalitaController::class);
-        Route::get('balita/{id}/sync', [\App\Http\Controllers\Kader\BalitaController::class, 'syncUser'])->name('balita.sync');
-        Route::post('balita/bulk-delete', [\App\Http\Controllers\Kader\BalitaController::class, 'bulkDelete'])->name('balita.bulk-delete');
+    // 2. WORKSPACE: DATABASE ENTITAS PASIEN
+    Route::prefix('data')->name('data.')->group(function () {
         
-        Route::resource('remaja', RemajaController::class);
-        Route::post('remaja/bulk-delete', [\App\Http\Controllers\Kader\RemajaController::class, 'bulkDelete'])->name('remaja.bulk-delete');
-        Route::get('remaja/{id}/sync', [\App\Http\Controllers\Kader\RemajaController::class, 'syncUser'])->name('remaja.sync');
-        Route::post('lansia/bulk-delete', [\App\Http\Controllers\Kader\LansiaController::class, 'bulkDelete'])->name('lansia.bulk-delete');
-        Route::get('lansia/{id}/sync', [\App\Http\Controllers\Kader\LansiaController::class, 'syncUser'])->name('lansia.sync');
-        Route::resource('lansia', LansiaController::class);
-        Route::post('ibu-hamil/bulk-delete', [IbuHamilController::class, 'bulkDelete'])->name('ibu-hamil.bulk-delete');
-        Route::get('ibu-hamil/{id}/sync', [IbuHamilController::class, 'syncUser'])->name('ibu-hamil.sync');
+        // Data Balita
+        Route::delete('balita/bulk-delete', [BalitaController::class, 'bulkDelete'])->name('balita.bulk-delete');
+        Route::post('balita/{id}/sync', [BalitaController::class, 'syncUser'])->name('balita.sync');
+        Route::resource('balita', BalitaController::class);
+
+        // Data Ibu Hamil
+        Route::delete('ibu-hamil/bulk-delete', [IbuHamilController::class, 'bulkDelete'])->name('ibu-hamil.bulk-delete');
+        Route::post('ibu-hamil/{id}/sync', [IbuHamilController::class, 'syncUser'])->name('ibu-hamil.sync');
         Route::resource('ibu-hamil', IbuHamilController::class);
-});
 
-    Route::prefix('pemeriksaan')->name('pemeriksaan.')->group(function () {
-        Route::get('/',          [PemeriksaanController::class, 'index'])->name('index');
-        Route::get('/create',    [PemeriksaanController::class, 'create'])->name('create');
-        Route::post('/',         [PemeriksaanController::class, 'store'])->name('store');
-        Route::get('/{id}',      [PemeriksaanController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [PemeriksaanController::class, 'edit'])->name('edit');
-        Route::put('/{id}',      [PemeriksaanController::class, 'update'])->name('update');
-        Route::delete('/{id}',   [PemeriksaanController::class, 'destroy'])->name('destroy');
-        Route::get('api/pasien', [\App\Http\Controllers\Kader\PemeriksaanController::class, 'getPasienApi'])->name('api.pasien');
+        // Data Remaja
+        Route::delete('remaja/bulk-delete', [RemajaController::class, 'bulkDelete'])->name('remaja.bulk-delete');
+        Route::post('remaja/{id}/sync', [RemajaController::class, 'syncUser'])->name('remaja.sync');
+        Route::resource('remaja', RemajaController::class);
+
+        // Data Lansia
+        Route::delete('lansia/bulk-delete', [LansiaController::class, 'bulkDelete'])->name('lansia.bulk-delete');
+        Route::post('lansia/{id}/sync', [LansiaController::class, 'syncUser'])->name('lansia.sync');
+        Route::resource('lansia', LansiaController::class);
     });
 
-    Route::get('/imunisasi',                                 [ImunisasiController::class, 'index'])->name('imunisasi.index');
-    Route::get('/imunisasi/{id}',                            [ImunisasiController::class, 'show'])->name('imunisasi.show');
-    Route::delete('/imunisasi/{id}',                         [ImunisasiController::class, 'destroy'])->name('imunisasi.destroy');
-    Route::get('/kunjungan/{kunjungan_id}/imunisasi/create', [ImunisasiController::class, 'create'])->name('imunisasi.create');
-    Route::post('/kunjungan/{kunjungan_id}/imunisasi',       [ImunisasiController::class, 'store'])->name('imunisasi.store');
+    // 3. WORKSPACE: OPERASIONAL LAPANGAN
+    // API Pencarian Cerdas Pasien untuk Dropdown
+    Route::get('pemeriksaan/api/pasien', [PemeriksaanController::class, 'getPasienApi'])->name('pemeriksaan.api');
+    Route::resource('pemeriksaan', PemeriksaanController::class);
 
-    Route::resource('kunjungan', KunjunganController::class);
-
-    Route::prefix('laporan')
-        ->name('laporan.')
-        ->controller(\App\Http\Controllers\Kader\LaporanController::class)
-        ->group(function () {
-            
-            // 1. Dashboard UI Utama (Pusat Unduhan Semua Laporan)
-            Route::get('/', 'index')->name('index');
-            
-            // 2. Mesin Generator Laporan (Direct Download PDF & Excel)
-            // Parameter type, bulan, tahun, format dikirim via Query String (GET)
-            Route::get('/generate', 'generate')->name('generate');
-            
-    });
-
-    Route::resource('jadwal', JadwalController::class);
-    Route::post('/jadwal/broadcast/{id}', [JadwalController::class, 'broadcast'])->name('jadwal.broadcast');
-
-    Route::prefix('import')->name('import.')->group(function () {
-        Route::get('/',                [ImportController::class, 'index'])->name('index');
-        Route::get('/create',          [ImportController::class, 'create'])->name('create');
-        Route::post('/',               [ImportController::class, 'store'])->name('store');
-        Route::get('/history',         [ImportController::class, 'history'])->name('history');
-        Route::get('/download-template/{type}',[ImportController::class, 'downloadTemplate'])->name('download-template');
-        Route::get('/{id}',            [ImportController::class, 'show'])->name('show');
-        Route::delete('/{id}',         [ImportController::class, 'destroy'])->name('destroy');
-    });
-
-    Route::prefix('notifikasi')->name('notifikasi.')->group(function () {
-        Route::get('/', [KaderNotifikasi::class, 'index'])->name('index');
-        Route::get('/fetch', [KaderNotifikasi::class, 'fetchRecent'])->name('fetch');
-        Route::post('/mark-all-read', [KaderNotifikasi::class, 'markAllRead'])->name('markAllRead');
-        Route::post('/{id}/read', [KaderNotifikasi::class, 'markAsRead'])->name('read');
-        Route::delete('/{id}', [KaderNotifikasi::class, 'destroy'])->name('destroy');
-    });
+    // Kunjungan (Buku Tamu Kehadiran)
+    Route::resource('kunjungan', \App\Http\Controllers\Kader\KunjunganController::class)->except(['create', 'store', 'update']);
     
-    Route::get('/profile',          [KaderProfile::class, 'index'])->name('profile.index');
-    Route::put('/profile',          [KaderProfile::class, 'update'])->name('profile.update');
-    Route::get('/profile/password', [KaderProfile::class, 'password'])->name('profile.password');
-    Route::put('/profile/password', [KaderProfile::class, 'updatePassword'])->name('profile.update-password');
-});
+    // Imunisasi (Hanya Read-Only untuk Kader)
+    Route::resource('imunisasi', \App\Http\Controllers\Kader\ImunisasiController::class)->except(['create', 'store', 'edit', 'update', 'destroy']);
+    
+    // Absensi Manual
+    Route::get('absensi', [\App\Http\Controllers\Kader\AbsensiController::class, 'index'])->name('absensi.index');
+    Route::post('absensi', [\App\Http\Controllers\Kader\AbsensiController::class, 'store'])->name('absensi.store');
+    Route::get('absensi/riwayat', [\App\Http\Controllers\Kader\AbsensiController::class, 'riwayat'])->name('absensi.riwayat');
+    Route::delete('absensi/{id}', [\App\Http\Controllers\Kader\AbsensiController::class, 'destroy'])->name('absensi.destroy');
 
+    // 4. WORKSPACE: MANAJEMEN ALAT
+    // Jadwal Posyandu
+    Route::resource('jadwal', \App\Http\Controllers\Kader\JadwalController::class);
+    Route::post('jadwal/{id}/broadcast', [\App\Http\Controllers\Kader\JadwalController::class, 'broadcast'])->name('jadwal.broadcast');
+
+    // Import Data Masal (Excel)
+    Route::get('import', [\App\Http\Controllers\Kader\ImportController::class, 'index'])->name('import.history');
+    Route::get('import/create', [\App\Http\Controllers\Kader\ImportController::class, 'create'])->name('import.index'); // Alias untuk form
+    Route::post('import/store', [\App\Http\Controllers\Kader\ImportController::class, 'store'])->name('import.store');
+    Route::get('import/template/{type}', [\App\Http\Controllers\Kader\ImportController::class, 'downloadTemplate'])->name('import.template');
+    Route::get('import/{id}', [\App\Http\Controllers\Kader\ImportController::class, 'show'])->name('import.show');
+    Route::delete('import/{id}', [\App\Http\Controllers\Kader\ImportController::class, 'destroy'])->name('import.destroy');
+
+    // Laporan PDF
+   Route::get('laporan', [\App\Http\Controllers\Kader\LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('laporan/generate', [\App\Http\Controllers\Kader\LaporanController::class, 'generate'])->name('laporan.generate');
+    // 5. PENGATURAN AKUN & NOTIFIKASI
+    // Profile Kader
+    Route::get('/profile', [\App\Http\Controllers\Kader\ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/profile/update', [\App\Http\Controllers\Kader\ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/password', [\App\Http\Controllers\Kader\ProfileController::class, 'password'])->name('profile.password');
+    Route::put('/profile/password', [\App\Http\Controllers\Kader\ProfileController::class, 'updatePassword'])->name('profile.update-password');
+
+    // Notifikasi
+    Route::prefix('notifikasi')->name('notifikasi.')->group(function() {
+        Route::get('/', [\App\Http\Controllers\Kader\NotifikasiController::class, 'index'])->name('index');
+        Route::get('/fetch', [\App\Http\Controllers\Kader\NotifikasiController::class, 'fetchRecent'])->name('fetch');
+        Route::post('/mark-all-read', [\App\Http\Controllers\Kader\NotifikasiController::class, 'markAllRead'])->name('markall');
+        Route::post('/{id}/read', [\App\Http\Controllers\Kader\NotifikasiController::class, 'markAsRead'])->name('read');
+    });
+});
 // ==================== USER (WARGA) ====================
 Route::prefix('user')->name('user.')->middleware(['auth','checkstatus','role:user'])->group(function () {
     Route::get('/', fn() => redirect()->route('user.dashboard'));
