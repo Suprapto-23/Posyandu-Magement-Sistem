@@ -63,7 +63,6 @@
         @foreach($reports as $r)
         <div class="report-card bg-white rounded-[28px] p-7 flex flex-col group">
             
-            {{-- HEADER KARTU --}}
             <div class="flex items-center gap-4 mb-6">
                 <div class="w-14 h-14 rounded-2xl bg-{{ $r['color'] }}-50 text-{{ $r['color'] }}-500 flex items-center justify-center text-2xl border border-{{ $r['color'] }}-100 shrink-0 group-hover:scale-110 transition-transform duration-300">
                     <i class="fas {{ $r['icon'] }}"></i>
@@ -74,17 +73,16 @@
                 </div>
             </div>
 
-           
-           {{-- FORM FILTER & DOWNLOAD --}}
+            {{-- FORM FILTER & DOWNLOAD (MENGGUNAKAN GET TANPA CSRF) --}}
             <form action="{{ route('kader.laporan.generate') }}" method="GET" class="mt-auto flex flex-col gap-4">
-                {{-- JANGAN masukkan @csrf di sini --}}
                 <input type="hidden" name="type" value="{{ $r['type'] }}">
+                <input type="hidden" name="format" value="pdf">
                 
                 <div class="bg-slate-50 p-1.5 rounded-[16px] border border-slate-200 flex items-center gap-1">
                     <div class="relative w-full">
                         <select name="bulan" class="custom-select w-full bg-white border-none shadow-sm text-slate-700 text-[13px] font-bold rounded-xl pl-4 pr-10 py-3 focus:ring-2 focus:ring-{{ $r['color'] }}-400 transition-all cursor-pointer">
                             @foreach(range(1, 12) as $m)
-                                <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}" {{ date('m') == $m ? 'selected' : '' }}>
+                                <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}" {{ $currentMonth == $m ? 'selected' : '' }}>
                                     {{ \Carbon\Carbon::create()->month((int)$m)->translatedFormat('F') }}
                                 </option>
                             @endforeach
@@ -93,52 +91,45 @@
                     <div class="w-px h-8 bg-slate-200 mx-1"></div>
                     <div class="relative w-28 shrink-0">
                         <select name="tahun" class="custom-select w-full bg-white border-none shadow-sm text-slate-700 text-[13px] font-bold rounded-xl pl-4 pr-8 py-3 focus:ring-2 focus:ring-{{ $r['color'] }}-400 transition-all cursor-pointer">
-                            @foreach(range(date('Y')-2, date('Y')) as $y)
-                                <option value="{{ $y }}" {{ date('Y') == $y ? 'selected' : '' }}>{{ $y }}</option>
+                            @foreach(range($currentYear-2, $currentYear) as $y)
+                                <option value="{{ $y }}" {{ $currentYear == $y ? 'selected' : '' }}>{{ $y }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
 
                 <button type="submit" onclick="tampilkanLoading()" class="btn-pdf-hover w-full py-4 bg-white border-2 border-slate-200 text-slate-600 font-black text-[13px] uppercase tracking-widest rounded-[16px] flex items-center justify-center gap-2 relative overflow-hidden">
-                    <i class="fas fa-file-pdf text-rose-500"></i> Unduh PDF Dokumen
+                    <i class="fas fa-file-pdf text-rose-500 group-hover:text-white transition-colors duration-300"></i> Unduh PDF Dokumen
                 </button>
             </form>
         </div>
         @endforeach
     </div>
-
 </div>
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Logic Loading yang otomatis tertutup jika download berhasil
-    const forms = document.querySelectorAll('.form-download');
-    forms.forEach(form => {
-        form.addEventListener('submit', function() {
-            Swal.fire({
-                title: 'Menyusun Laporan...',
-                html: '<p class="text-sm text-slate-500">Mengekstrak data dari database dan menyusun dokumen PDF.</p>',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                timer: 3000, 
-                willOpen: () => { Swal.showLoading(); },
-                customClass: { popup: 'rounded-[24px]' }
-            });
-        });
-    });
-
-    // Menangkap Error Session dari Controller
+    // Notifikasi jika Laporan Kosong dari Controller
     @if(session('error'))
         Swal.fire({
-            icon: 'error',
-            title: 'Laporan Kosong',
+            icon: 'info',
+            title: 'Data Tidak Tersedia',
             text: "{{ session('error') }}",
             confirmButtonColor: '#4f46e5',
             customClass: { popup: 'rounded-[24px]' }
         });
     @endif
+
+    function tampilkanLoading() {
+        Swal.fire({
+            title: 'Menyusun Laporan...',
+            html: '<p class="text-sm text-slate-500">Mengekstrak data dari database dan mencetak PDF.</p>',
+            allowOutsideClick: false, showConfirmButton: false, timer: 3000, 
+            willOpen: () => { Swal.showLoading(); },
+            customClass: { popup: 'rounded-[24px]' }
+        });
+    }
 </script>
 @endpush
 @endsection

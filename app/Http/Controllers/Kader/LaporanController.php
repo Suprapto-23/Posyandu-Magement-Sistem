@@ -24,17 +24,19 @@ class LaporanController extends Controller
     }
 
     /**
-     * Mesin Utama Generator PDF (Direct Download)
+     * Mesin Utama Generator PDF (Menggunakan GET Request)
      */
-  public function generate(Request $request)
+    public function generate(Request $request)
     {
+        // 1. PENCEGAHAN MEMORY CRASH DOMPDF
         ini_set('memory_limit', '1024M'); 
         set_time_limit(300);
 
-        // Mengambil data dari request GET
-        $type   = $request->get('type');
-        $bulan  = (int) $request->get('bulan');
-        $tahun  = (int) $request->get('tahun');
+        // 2. TANGKAP PARAMETER GET
+        $type   = $request->query('type') ?? $request->type;
+        $bulan  = (int) ($request->query('bulan') ?? $request->bulan ?? date('m'));
+        $tahun  = (int) ($request->query('tahun') ?? $request->tahun ?? date('Y'));
+
         $validTypes = ['balita', 'ibu_hamil', 'remaja', 'lansia', 'imunisasi', 'kunjungan'];
         if (!in_array($type, $validTypes)) {
             return back()->with('error', 'Kategori laporan tidak valid di sistem.');
@@ -43,10 +45,8 @@ class LaporanController extends Controller
         $namaBulan = \Carbon\Carbon::create()->month($bulan)->translatedFormat('F');
         $fileName  = "Laporan_{$type}_Bantarkulon_{$namaBulan}_{$tahun}";
 
-        // =======================================================
-        // PDF EXPORT DATA GATHERING
-        // =======================================================
-        $data = collect(); // Inisialisasi koleksi kosong
+        // 3. EXPORT DATA GATHERING
+        $data = collect(); 
         
         if ($type === 'imunisasi') {
             $data = Imunisasi::with('kunjungan.pasien')
@@ -61,7 +61,6 @@ class LaporanController extends Controller
                 ->orderBy('tanggal_kunjungan', 'asc')
                 ->get();
         } else {
-            // Tarik data Pemeriksaan sesuai tipe
             $kategori_query = $type === 'balita' ? ['bayi', 'balita'] : [$type];
             $data = Pemeriksaan::whereIn('kategori_pasien', $kategori_query)
                 ->whereMonth('tanggal_periksa', $bulan)
@@ -69,23 +68,20 @@ class LaporanController extends Controller
                 ->orderBy('tanggal_periksa', 'asc')
                 ->get();
 
-            // Inject relasi profil pasien (Nama & Jenis Kelamin) untuk PDF
+            // Inject Data Tambahan untuk Tampilan PDF
             foreach ($data as $row) {
                 $row->nama_pasien   = $this->getNamaPasien($row->pasien_id, $row->kategori_pasien);
                 $row->jenis_kelamin = $this->getJkPasien($row->pasien_id, $row->kategori_pasien);
+                $row->profil_pasien = $this->getDataPasien($row->pasien_id, $row->kategori_pasien);
             }
         }
 
-        // =======================================================
-        // FAILSAFE: CEK JIKA DATA KOSONG
-        // =======================================================
+        // 4. FAILSAFE: CEK DATA KOSONG
         if ($data->isEmpty()) {
             return back()->with('error', "Tidak ada catatan " . str_replace('_', ' ', $type) . " pada periode {$namaBulan} {$tahun}.");
         }
 
-        // =======================================================
-        // RENDER & PAKSA DOWNLOAD
-        // =======================================================
+        // 5. RENDER & PAKSA DOWNLOAD
         $pdf = Pdf::loadView("kader.laporan.templates.table-{$type}", compact('data', 'bulan', 'tahun', 'namaBulan'))
             ->setPaper('A4', 'landscape')
             ->setOption('isHtml5ParserEnabled', true);
@@ -93,7 +89,7 @@ class LaporanController extends Controller
         return $pdf->download($fileName . '.pdf');
     }
 
-    // ================= HELPERS (Pencari Nama Lintas Tabel) =================
+    // ================= HELPERS (Pencari Data Lintas Tabel) =================
     private function getNamaPasien($id, $kategori) {
         try {
             return match($kategori){
@@ -110,9 +106,20 @@ class LaporanController extends Controller
             return match($kategori){
                 'remaja'    => Remaja::find($id)?->jenis_kelamin ?? '-',
                 'lansia'    => Lansia::find($id)?->jenis_kelamin ?? '-',
-                'ibu_hamil' => 'P', // Ibu hamil pasti perempuan
+                'ibu_hamil' => 'P', 
                 default     => Balita::find($id)?->jenis_kelamin ?? '-',
             };
         } catch(\Throwable $e) { return '-'; }
+    }
+
+    private function getDataPasien($id, $kategori) {
+        try {
+            return match($kategori){
+                'remaja'    => Remaja::find($id),
+                'lansia'    => Lansia::find($id),
+                'ibu_hamil' => IbuHamil::find($id),
+                default     => Balita::find($id),
+            };
+        } catch(\Throwable $e) { return null; }
     }
 }

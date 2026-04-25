@@ -47,12 +47,12 @@
                 <th width="10%">Tanggal</th>
                 <th width="18%">Nama Remaja</th>
                 <th width="5%">L/P</th>
-                <th width="8%">BB(kg)/TB(cm)</th>
+                <th width="10%">BB(kg)/TB(cm)</th>
                 <th width="8%">LiLA (cm)</th>
                 <th width="8%">L. Perut (cm)</th>
                 <th width="9%">Tensi</th>
                 <th width="8%">Hb (g/dL)</th>
-                <th width="22%">Tindakan / Edukasi</th>
+                <th width="20%">Tindakan / Edukasi</th>
             </tr>
         </thead>
         <tbody>
@@ -65,13 +65,17 @@
                 <td class="txt-center">{{ $row->berat_badan ?? '-' }} / {{ $row->tinggi_badan ?? '-' }}</td>
                 <td class="txt-center">{{ $row->lingkar_lengan ?? '-' }}</td>
                 <td class="txt-center">{{ $row->lingkar_perut ?? '-' }}</td>
-                <td class="txt-center">{{ $row->tekanan_darah ?? '-' }}</td>
+                <td class="txt-center font-bold">{{ $row->tekanan_darah ?? '-' }}</td>
                 <td class="txt-center">{{ $row->hemoglobin ?? '-' }}</td>
-                <td style="font-style: italic; font-size: 9pt;">{{ $row->tindakan ?? '-' }}</td>
+                
+                {{-- FIX: Mengambil catatan bidan, atau jika kosong ambil catatan kader --}}
+                <td style="font-style: italic; font-size: 9pt;">
+                    {{ $row->catatan_bidan ?? $row->catatan_kader ?? $row->keluhan ?? '-' }}
+                </td>
             </tr>
             @empty
             <tr>
-                <td colspan="10" class="txt-center">Tidak ada data pemeriksaan remaja di bulan ini.</td>
+                <td colspan="10" class="txt-center" style="padding: 20px;">Tidak ada data pemeriksaan remaja di bulan ini.</td>
             </tr>
             @endforelse
         </tbody>

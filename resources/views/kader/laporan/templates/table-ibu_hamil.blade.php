@@ -64,7 +64,7 @@
                 <td class="txt-center {{ $row->is_kek ? 'txt-bold' : '' }}">{{ $row->lingkar_lengan ?? '-' }}</td>
                 <td class="txt-center">{{ $row->tekanan_darah ?? '-' }}</td>
                 <td class="txt-center txt-bold">{{ $row->is_kek ? 'RISIKO KEK' : 'Normal' }}</td>
-                <td style="font-style: italic; font-size: 9pt;">{{ $row->tindakan ?? '-' }}</td>
+                <td style="font-style: italic; font-size: 9pt;">{{ $row->catatan_bidan ?? $row->catatan_kader ?? '-' }}</td>
             </tr>
             @empty
             <tr><td colspan="8" class="txt-center">Tidak ada data pemeriksaan Ibu Hamil di bulan ini.</td></tr>

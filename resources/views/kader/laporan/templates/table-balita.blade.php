@@ -73,7 +73,7 @@
                 <td class="txt-center">{{ $row->tinggi_badan ?? '-' }}</td>
                 <td class="txt-center">{{ $row->lingkar_kepala ?? '-' }}</td>
                 <td class="txt-center txt-bold">{{ strtoupper($row->status_gizi ?? '-') }}</td>
-                <td style="font-style: italic; font-size: 9pt;">{{ $row->diagnosa ?? '-' }}</td>
+                <td style="font-style: italic; font-size: 9pt;">{{ $row->catatan_bidan ?? $row->catatan_kader ?? '-' }}</td>
             </tr>
             @empty
             <tr>

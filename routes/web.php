@@ -276,7 +276,7 @@ Route::middleware(['auth', 'role:kader'])->prefix('kader')->name('kader.')->grou
 
     // Laporan PDF
    Route::get('laporan', [\App\Http\Controllers\Kader\LaporanController::class, 'index'])->name('laporan.index');
-    Route::get('laporan/generate', [\App\Http\Controllers\Kader\LaporanController::class, 'generate'])->name('laporan.generate');
+    Route::match(['get', 'post'], 'laporan/generate', [\App\Http\Controllers\Kader\LaporanController::class, 'generate'])->name('laporan.generate');
     // 5. PENGATURAN AKUN & NOTIFIKASI
     // Profile Kader
     Route::get('/profile', [\App\Http\Controllers\Kader\ProfileController::class, 'index'])->name('profile.index');
@@ -291,6 +291,12 @@ Route::middleware(['auth', 'role:kader'])->prefix('kader')->name('kader.')->grou
         Route::post('/mark-all-read', [\App\Http\Controllers\Kader\NotifikasiController::class, 'markAllRead'])->name('markall');
         Route::post('/{id}/read', [\App\Http\Controllers\Kader\NotifikasiController::class, 'markAsRead'])->name('read');
     });
+    //absensi:
+Route::get('absensi', [\App\Http\Controllers\Kader\AbsensiController::class, 'index'])->name('absensi.index');
+Route::post('absensi', [\App\Http\Controllers\Kader\AbsensiController::class, 'store'])->name('absensi.store');
+Route::get('absensi/riwayat', [\App\Http\Controllers\Kader\AbsensiController::class, 'riwayat'])->name('absensi.riwayat');
+Route::get('absensi/{id}', [\App\Http\Controllers\Kader\AbsensiController::class, 'show'])->name('absensi.show'); // TAMBAHKAN INI
+Route::delete('absensi/{id}', [\App\Http\Controllers\Kader\AbsensiController::class, 'destroy'])->name('absensi.destroy');
 });
 // ==================== USER (WARGA) ====================
 Route::prefix('user')->name('user.')->middleware(['auth','checkstatus','role:user'])->group(function () {

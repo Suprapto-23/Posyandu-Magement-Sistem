@@ -207,7 +207,8 @@
                 </div>
                 <div class="space-y-1">
                     <label class="form-label">Tensi Darah <span class="text-slate-400">(mmHg)</span></label>
-                    <input type="text" name="tensi_darah" value="{{ old('tensi_darah') }}" class="form-input text-center" placeholder="Contoh: 120/80">
+                    {{-- FIXED: name diubah dari tensi_darah menjadi tekanan_darah --}}
+                    <input type="text" name="tekanan_darah" value="{{ old('tekanan_darah') }}" class="form-input text-center font-mono" placeholder="Contoh: 120/80">
                 </div>
                 <div class="space-y-1">
                     <label class="form-label">Lingkar Lengan (LiLA) <span class="text-slate-400">(Cm)</span></label>
@@ -222,17 +223,27 @@
                 <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg"><i class="fas fa-user-graduate"></i></div>
                 <h5 class="font-black text-blue-800 text-[14px] uppercase tracking-widest font-poppins">Pemeriksaan Remaja</h5>
             </div>
-            <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="space-y-1">
-                    <label class="form-label">Tensi Darah <span class="text-slate-400">(mmHg)</span></label>
-                    <input type="text" name="tensi_darah" value="{{ old('tensi_darah') }}" class="form-input text-center" placeholder="Contoh: 110/80">
+            <div class="p-8 grid grid-cols-2 md:grid-cols-5 gap-6">
+                <div class="space-y-1 md:col-span-1">
+                    <label class="form-label">Tensi <span class="text-slate-400">(mmHg)</span></label>
+                    <input type="text" name="tekanan_darah" value="{{ old('tekanan_darah') }}" class="form-input text-center font-mono" placeholder="110/80">
                 </div>
-                <div class="space-y-1">
-                    <label class="form-label">Gula Darah <span class="text-slate-400">(mg/dL)</span></label>
+                <div class="space-y-1 md:col-span-1">
+                    <label class="form-label">Hb <span class="text-slate-400">(g/dL)</span></label>
+                    {{-- ADDED: Input Hemoglobin --}}
+                    <input type="number" step="0.1" name="hemoglobin" value="{{ old('hemoglobin') }}" class="form-input text-center" placeholder="0.0">
+                </div>
+                <div class="space-y-1 md:col-span-1">
+                    <label class="form-label">Gula Darah</label>
                     <input type="number" step="0.1" name="gula_darah" value="{{ old('gula_darah') }}" class="form-input text-center" placeholder="0.0">
                 </div>
-                <div class="space-y-1">
-                    <label class="form-label">LILA <span class="text-slate-400">(Khusus Putri - Cm)</span></label>
+                <div class="space-y-1 md:col-span-1">
+                    <label class="form-label">L. Perut <span class="text-slate-400">(Cm)</span></label>
+                    {{-- ADDED: Input Lingkar Perut --}}
+                    <input type="number" step="0.1" name="lingkar_perut" value="{{ old('lingkar_perut') }}" class="form-input text-center" placeholder="0.0">
+                </div>
+                <div class="space-y-1 md:col-span-1">
+                    <label class="form-label">LILA <span class="text-slate-400">(Putri)</span></label>
                     <input type="number" step="0.1" id="lila_remaja" name="lingkar_lengan" value="{{ old('lingkar_lengan') }}" class="form-input text-center" placeholder="0.0">
                 </div>
             </div>
@@ -244,11 +255,28 @@
                 <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg"><i class="fas fa-wheelchair"></i></div>
                 <h5 class="font-black text-emerald-800 text-[14px] uppercase tracking-widest font-poppins">Cek Medis Lansia</h5>
             </div>
-            <div class="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="space-y-1"><label class="form-label">Tensi <span class="text-slate-400">(mmHg)</span></label><input type="text" name="tensi_darah" value="{{ old('tensi_darah') }}" class="form-input text-center" placeholder="130/90"></div>
-                <div class="space-y-1"><label class="form-label">Gula Darah <span class="text-slate-400">(mg/dL)</span></label><input type="number" step="0.1" name="gula_darah" value="{{ old('gula_darah') }}" class="form-input text-center" placeholder="0.0"></div>
-                <div class="space-y-1"><label class="form-label">Kolesterol <span class="text-slate-400">(mg/dL)</span></label><input type="number" name="kolesterol" value="{{ old('kolesterol') }}" class="form-input text-center" placeholder="0"></div>
-                <div class="space-y-1"><label class="form-label">Asam Urat <span class="text-slate-400">(mg/dL)</span></label><input type="number" step="0.1" name="asam_urat" value="{{ old('asam_urat') }}" class="form-input text-center" placeholder="0.0"></div>
+            <div class="p-8 grid grid-cols-2 md:grid-cols-5 gap-6">
+                <div class="space-y-1 md:col-span-1">
+                    <label class="form-label">Tensi <span class="text-slate-400">(mmHg)</span></label>
+                    <input type="text" name="tekanan_darah" value="{{ old('tekanan_darah') }}" class="form-input text-center font-mono" placeholder="130/90">
+                </div>
+                <div class="space-y-1 md:col-span-1">
+                    <label class="form-label">Gula Darah</label>
+                    <input type="number" step="0.1" name="gula_darah" value="{{ old('gula_darah') }}" class="form-input text-center" placeholder="0.0">
+                </div>
+                <div class="space-y-1 md:col-span-1">
+                    <label class="form-label">Kolesterol</label>
+                    <input type="number" name="kolesterol" value="{{ old('kolesterol') }}" class="form-input text-center" placeholder="0">
+                </div>
+                <div class="space-y-1 md:col-span-1">
+                    <label class="form-label">Asam Urat</label>
+                    <input type="number" step="0.1" name="asam_urat" value="{{ old('asam_urat') }}" class="form-input text-center" placeholder="0.0">
+                </div>
+                <div class="space-y-1 md:col-span-1">
+                    <label class="form-label">L. Perut <span class="text-slate-400">(Cm)</span></label>
+                    {{-- ADDED: Input Lingkar Perut --}}
+                    <input type="number" step="0.1" name="lingkar_perut" value="{{ old('lingkar_perut') }}" class="form-input text-center" placeholder="0.0">
+                </div>
             </div>
         </div>
 

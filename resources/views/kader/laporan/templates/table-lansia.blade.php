@@ -67,7 +67,7 @@
                 <td class="txt-center">{{ $row->gula_darah ?? '-' }}</td>
                 <td class="txt-center">{{ $row->asam_urat ?? '-' }}</td>
                 <td class="txt-center">{{ $row->kolesterol ?? '-' }}</td>
-                <td style="font-style: italic; font-size: 9pt;">{{ $row->diagnosa ?? '-' }}</td>
+                <td style="font-style: italic; font-size: 9pt;">{{ $row->catatan_bidan ?? $row->catatan_kader ?? '-' }}</td>
             </tr>
             @empty
             <tr>
