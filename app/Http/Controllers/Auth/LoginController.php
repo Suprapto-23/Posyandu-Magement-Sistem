@@ -17,19 +17,19 @@ class LoginController extends Controller
             $user = Auth::user();
             return $this->redirectBasedOnRole($user->role);
         }
-        
+
         return view('auth.login');
     }
 
     public function login(Request $request)
     {
         $request->validate([
-            'login' => 'required|string',
+            'login'    => 'required|string',
             'password' => 'required|string',
         ]);
 
         $loginType = $this->getLoginType($request->login);
-        
+
         if (!$loginType) {
             return back()->withErrors([
                 'login' => 'Format login tidak valid. Gunakan email atau NIK (16 digit).',
@@ -37,7 +37,7 @@ class LoginController extends Controller
         }
 
         $user = $this->findUserByLogin($request->login, $loginType);
-        
+
         if (!$user) {
             return back()->withErrors([
                 'login' => 'Akun tidak ditemukan.',
@@ -59,7 +59,9 @@ class LoginController extends Controller
                     'login_at'   => now(),
                     'status'     => 'failed',
                 ]);
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+                Log::error('LoginLog failed: ' . $e->getMessage());
+            }
 
             return back()->withErrors([
                 'password' => 'Password salah.',
@@ -72,7 +74,7 @@ class LoginController extends Controller
         // Regenerate session
         $request->session()->regenerate();
 
-        // Simpan data ke session secara eksplisit
+        // Simpan data ke session
         $request->session()->put('login_role', $user->role);
         $request->session()->put('login_user_id', $user->id);
         $request->session()->save();
@@ -86,27 +88,29 @@ class LoginController extends Controller
                 'login_at'   => now(),
                 'status'     => 'success',
             ]);
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+            Log::error('LoginLog failed: ' . $e->getMessage());
+        }
 
         // Update last login
         try {
             $user->update(['last_login_at' => now()]);
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+            Log::error('Update last_login_at failed: ' . $e->getMessage());
+        }
 
         // Redirect berdasarkan role
-        $redirectUrl = $this->getRedirectUrl($user->role);
-
-        return redirect()->to($redirectUrl);
+        return $this->redirectBasedOnRole($user->role);
     }
 
-    private function getRedirectUrl($role)
+    private function redirectBasedOnRole($role)
     {
         return match(strtolower($role)) {
-            'admin'  => '/admin/dashboard',
-            'bidan'  => '/bidan/dashboard',
-            'kader'  => '/kader/dashboard',
-            'user'   => '/user/dashboard',
-            default  => '/home',
+            'admin'  => redirect()->intended(route('admin.dashboard')),
+            'bidan'  => redirect()->intended(route('bidan.dashboard')),
+            'kader'  => redirect()->intended(route('kader.dashboard')),
+            'user'   => redirect()->intended(route('user.dashboard')),
+            default  => redirect('/home'),
         };
     }
 
@@ -115,15 +119,15 @@ class LoginController extends Controller
         if (filter_var($login, FILTER_VALIDATE_EMAIL)) {
             return 'email';
         }
-        
+
         if (preg_match('/^\d{16}$/', $login)) {
             return 'nik';
         }
-        
+
         if (preg_match('/^[a-zA-Z0-9_]+$/', $login)) {
             return 'username';
         }
-        
+
         return null;
     }
 
@@ -132,7 +136,7 @@ class LoginController extends Controller
         switch ($loginType) {
             case 'email':
                 return \App\Models\User::where('email', $login)->first();
-            
+
             case 'nik':
                 $user = \App\Models\User::where('nik', $login)->first();
                 if (!$user) {
@@ -142,24 +146,13 @@ class LoginController extends Controller
                     }
                 }
                 return $user;
-            
+
             case 'username':
                 return \App\Models\User::where('username', $login)->first();
-            
+
             default:
                 return null;
         }
-    }
-
-    private function redirectBasedOnRole($role)
-    {
-        return match(strtolower($role)) {
-            'admin'  => redirect()->route('admin.dashboard'),
-            'bidan'  => redirect()->route('bidan.dashboard'),
-            'kader'  => redirect()->route('kader.dashboard'),
-            'user'   => redirect()->route('user.dashboard'),
-            default  => redirect('/home'),
-        };
     }
 
     public function logout(Request $request)
