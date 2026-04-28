@@ -137,16 +137,17 @@ class IbuHamilController extends Controller
         }
     }
 
-    /**
+   /**
      * 4. SHOW: Detail Buku KIA Bumil
      */
     public function show($id)
     {
-        // Tarik relasi pemeriksaan kehamilan untuk grafik/history
+        // ARSITEKTUR TERPADU: Load IbuHamil -> Kunjungans -> Pemeriksaan
         $ibuHamil = IbuHamil::with([
             'user', 
-            'kunjungans' => function($q) { $q->latest('tanggal_kunjungan'); },
-            'kunjungans.pemeriksaan'
+            'kunjungans' => function($q) { 
+                $q->with(['pemeriksaan'])->latest('tanggal_kunjungan')->take(10); 
+            }
         ])->findOrFail($id);
 
         return view('kader.data.ibu-hamil.show', compact('ibuHamil'));
@@ -212,16 +213,21 @@ class IbuHamilController extends Controller
     /**
      * 7. DESTROY: Hapus Permanen 1 Data
      */
-    public function destroy($id)
+   public function destroy($id)
     {
         try {
             $ibuHamil = IbuHamil::findOrFail($id);
             $nama = $ibuHamil->nama_lengkap;
-            $ibuHamil->delete(); 
+            
+            // CEGAH HAPUS JIKA SUDAH ADA KUNJUNGAN
+            if ($ibuHamil->kunjungans()->count() > 0) {
+                return back()->with('error', 'Ditolak: Data ini sudah memiliki riwayat kunjungan/pemeriksaan.');
+            }
 
+            $ibuHamil->delete(); 
             return redirect()->route('kader.data.ibu-hamil.index')->with('success', "Arsip dihapus. Data atas nama Ibu {$nama} telah dihilangkan dari sistem.");
         } catch (\Throwable $e) {
-            return back()->with('error', 'Gagal menghapus data. Pastikan tidak terkunci oleh tabel pemeriksaan medis.');
+            return back()->with('error', 'Gagal menghapus data.');
         }
     }
 
@@ -232,7 +238,13 @@ class IbuHamilController extends Controller
     {
         $ids = $request->ids;
         if (!$ids || count($ids) == 0) {
-            return redirect()->back()->with('error', 'Misi Dibatalkan: Tidak ada data Ibu Hamil yang dicentang untuk dihapus.');
+            return redirect()->back()->with('error', 'Misi Dibatalkan: Tidak ada data Ibu Hamil yang dicentang.');
+        }
+
+        // Proteksi: Jangan hapus jika ada yang sudah punya Kunjungan
+        $bumilAktif = IbuHamil::whereIn('id', $ids)->has('kunjungans')->count();
+        if ($bumilAktif > 0) {
+            return redirect()->back()->with('error', "Tindakan Ditolak! {$bumilAktif} dari data yang dicentang sudah memiliki jejak rekam medis.");
         }
 
         try {
@@ -240,7 +252,7 @@ class IbuHamilController extends Controller
             return redirect()->route('kader.data.ibu-hamil.index')->with('success', 'Operasi Berhasil: ' . count($ids) . ' data telah dibersihkan secara masal.');
         } catch (\Throwable $e) {
             Log::error('KADER_BUMIL_BULK_ERROR: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Sistem Gagal: Sebagian data mungkin dilindungi oleh relasi database.');
+            return redirect()->back()->with('error', 'Sistem Gagal menghapus data.');
         }
     }
 

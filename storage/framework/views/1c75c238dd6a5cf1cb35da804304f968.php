@@ -1,9 +1,9 @@
-@extends('layouts.kader')
 
-@section('title', 'Data Remaja')
-@section('page-name', 'Database Remaja')
 
-@push('styles')
+<?php $__env->startSection('title', 'Data Remaja'); ?>
+<?php $__env->startSection('page-name', 'Database Remaja'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
     /* ANIMASI MASUK HALUS */
@@ -72,10 +72,10 @@
     .btn-nexus-danger { background: #f43f5e !important; color: #ffffff !important; border-radius: 100px !important; padding: 12px 28px !important; font-size: 12px !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; box-shadow: 0 8px 20px rgba(244,63,94,0.3) !important; transition: all 0.3s ease !important; }
     .btn-nexus-danger:hover { background: #e11d48 !important; transform: translateY(-2px) !important; box-shadow: 0 12px 25px rgba(244,63,94,0.4) !important; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
-{{-- PRELOADER SISTEM --}}
+<?php $__env->startSection('content'); ?>
+
 <div id="smoothLoader" class="fixed inset-0 bg-slate-50/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-500 opacity-100 pointer-events-auto">
     <div class="relative w-16 h-16 flex items-center justify-center mb-4">
         <div class="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
@@ -87,10 +87,10 @@
 
 <div class="max-w-[1400px] mx-auto fade-in-up pb-12 relative z-10">
 
-    {{-- AURA BACKGROUND (INDIGO/BLUE) --}}
+    
     <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-400/20 to-blue-400/20 rounded-full blur-[80px] pointer-events-none z-0"></div>
 
-    {{-- 1. HEADER CRM --}}
+    
     <div class="bg-white/90 backdrop-blur-2xl rounded-[32px] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 mb-8 relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-6 z-10">
         
         <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-2xl"></div>
@@ -110,28 +110,28 @@
         </div>
         
         <div class="relative z-10 shrink-0 w-full md:w-auto flex flex-col sm:flex-row gap-4">
-            <a href="{{ route('kader.import.index') }}?type=remaja" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-4 bg-white border border-slate-200 text-emerald-600 font-black text-[12px] uppercase tracking-widest rounded-[16px] hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm">
+            <a href="<?php echo e(route('kader.import.index')); ?>?type=remaja" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-4 bg-white border border-slate-200 text-emerald-600 font-black text-[12px] uppercase tracking-widest rounded-[16px] hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm">
                 <i class="fas fa-file-import text-sm"></i> Import Massal
             </a>
-            <a href="{{ route('kader.data.remaja.create') }}" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 text-white font-black text-[12px] uppercase tracking-widest rounded-[16px] hover:bg-indigo-700 transition-all shadow-[0_8px_20px_rgba(79,70,229,0.3)] hover:-translate-y-1 hover:shadow-[0_12px_25px_rgba(79,70,229,0.4)]">
+            <a href="<?php echo e(route('kader.data.remaja.create')); ?>" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 text-white font-black text-[12px] uppercase tracking-widest rounded-[16px] hover:bg-indigo-700 transition-all shadow-[0_8px_20px_rgba(79,70,229,0.3)] hover:-translate-y-1 hover:shadow-[0_12px_25px_rgba(79,70,229,0.4)]">
                 <i class="fas fa-plus text-sm text-indigo-200"></i> Registrasi Baru
             </a>
         </div>
     </div>
 
-    {{-- 2. CRM CONTROL PANEL (NAVIGASI & FILTER) --}}
+    
     <div class="flex flex-col xl:flex-row items-center justify-between gap-5 mb-6 relative z-20">
         
-        {{-- Kiri: Penyeimbang Visual (Total Data & Bulk Delete) --}}
+        
         <div class="flex items-center gap-4 w-full xl:w-auto">
             <div class="inline-flex items-center gap-2 bg-white border border-slate-200 px-6 py-3.5 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.02)]">
                 <i class="fas fa-users text-indigo-500 text-sm"></i>
-                <span class="text-[11px] font-black text-slate-700 uppercase tracking-widest">Total: {{ $stats['total'] ?? 0 }} Remaja</span>
+                <span class="text-[11px] font-black text-slate-700 uppercase tracking-widest">Total: <?php echo e($stats['total'] ?? 0); ?> Remaja</span>
             </div>
 
-            {{-- Tombol Bulk Delete (Muncul Dinamis) --}}
-            <form action="{{ route('kader.data.remaja.bulk-delete') }}" method="POST" id="bulkDeleteForm" class="hidden w-full sm:w-auto">
-                @csrf
+            
+            <form action="<?php echo e(route('kader.data.remaja.bulk-delete')); ?>" method="POST" id="bulkDeleteForm" class="hidden w-full sm:w-auto">
+                <?php echo csrf_field(); ?>
                 <div id="bulkDeleteInputs"></div>
                 <button type="button" onclick="confirmBulkDelete()" class="w-full sm:w-auto px-6 py-3.5 bg-rose-50 border border-rose-200 text-rose-600 font-black text-[11px] uppercase tracking-widest rounded-full hover:bg-rose-500 hover:text-white transition-all shadow-sm hover:shadow-[0_8px_20px_rgba(244,63,94,0.3)] flex items-center justify-center gap-2">
                     <i class="fas fa-trash-alt"></i> Eksekusi Hapus (<span id="bulkCount">0</span>)
@@ -139,7 +139,7 @@
             </form>
         </div>
 
-        {{-- Kanan: Live Search Presisi Nexus --}}
+        
         <div class="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
             <div class="relative w-full sm:w-[400px] group">
                 <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-sm group-focus-within:text-indigo-500 transition-colors"></i>
@@ -149,9 +149,9 @@
         </div>
     </div>
 
-    {{-- ======================================================== --}}
-    {{-- TABEL DATABASE REMAJA --}}
-    {{-- ======================================================== --}}
+    
+    
+    
     <div class="crm-card relative z-10">
         <div class="overflow-x-auto custom-scrollbar" style="min-h: 300px;">
             <table class="crm-table min-w-[1200px]">
@@ -166,77 +166,78 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($remajas as $item)
-                    @php 
+                    <?php $__empty_1 = true; $__currentLoopData = $remajas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <?php 
                         $diff = \Carbon\Carbon::parse($item->tanggal_lahir)->diff(now());
                         $strUmur = $diff->y . ' Thn ' . $diff->m . ' Bln';
                         $avatarColor = $item->jenis_kelamin == 'L' ? 'bg-indigo-50 text-indigo-500 border-indigo-200' : 'bg-rose-50 text-rose-500 border-rose-200';
                         $jkBadge = $item->jenis_kelamin == 'L' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'bg-rose-50 text-rose-600 border-rose-200';
-                    @endphp
-                    <tr class="pasien-row hover:bg-slate-50/50 transition-colors" data-search="{{ strtolower($item->nama_lengkap . ' ' . $item->nik . ' ' . $item->sekolah) }}">
+                    ?>
+                    <tr class="pasien-row hover:bg-slate-50/50 transition-colors" data-search="<?php echo e(strtolower($item->nama_lengkap . ' ' . $item->nik . ' ' . $item->sekolah)); ?>">
                         
-                        <td class="text-center pl-6"><input type="checkbox" name="ids[]" value="{{ $item->id }}" class="crm-checkbox row-checkbox" onchange="checkBulkStatus()"></td>
+                        <td class="text-center pl-6"><input type="checkbox" name="ids[]" value="<?php echo e($item->id); ?>" class="crm-checkbox row-checkbox" onchange="checkBulkStatus()"></td>
                         
-                        {{-- 1. IDENTITAS --}}
+                        
                         <td>
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-[12px] flex items-center justify-center font-black text-sm shrink-0 border shadow-sm {{ $avatarColor }}">
-                                    {{ strtoupper(substr($item->nama_lengkap, 0, 1)) }}
+                                <div class="w-10 h-10 rounded-[12px] flex items-center justify-center font-black text-sm shrink-0 border shadow-sm <?php echo e($avatarColor); ?>">
+                                    <?php echo e(strtoupper(substr($item->nama_lengkap, 0, 1))); ?>
+
                                 </div>
                                 <div class="flex flex-col">
-                                    <span class="text-[13px] font-black text-slate-800 font-poppins truncate max-w-[150px]" title="{{ $item->nama_lengkap }}">{{ $item->nama_lengkap }}</span>
+                                    <span class="text-[13px] font-black text-slate-800 font-poppins truncate max-w-[150px]" title="<?php echo e($item->nama_lengkap); ?>"><?php echo e($item->nama_lengkap); ?></span>
                                     <div class="flex items-center gap-1 mt-1">
-                                        <span class="text-[10px] font-bold text-slate-400 font-mono">{{ $item->nik ?? '-' }}</span>
+                                        <span class="text-[10px] font-bold text-slate-400 font-mono"><?php echo e($item->nik ?? '-'); ?></span>
                                         <span class="text-[10px] font-bold text-slate-300">•</span>
-                                        <span class="badge-mini border {{ $jkBadge }}" style="padding: 2px 6px; font-size:8px;">{{ $item->jenis_kelamin == 'L' ? 'LAKI-LAKI' : 'PEREMPUAN' }}</span>
+                                        <span class="badge-mini border <?php echo e($jkBadge); ?>" style="padding: 2px 6px; font-size:8px;"><?php echo e($item->jenis_kelamin == 'L' ? 'LAKI-LAKI' : 'PEREMPUAN'); ?></span>
                                     </div>
                                 </div>
                             </div>
                         </td>
 
-                        {{-- 2. AKADEMIK & UMUR --}}
+                        
                         <td>
                             <div class="flex flex-col gap-1">
-                                <span class="text-[11px] font-bold text-slate-700 truncate max-w-[150px]" title="{{ $item->sekolah }}"><i class="fas fa-school text-slate-400 w-3 text-center"></i> {{ $item->sekolah ?? 'Tidak diisi' }} (Kls: {{ $item->kelas ?? '-' }})</span>
-                                <span class="text-[10px] font-bold text-slate-500"><i class="fas fa-birthday-cake text-indigo-400"></i> Usia: <span class="text-indigo-600 font-black">{{ $strUmur }}</span></span>
+                                <span class="text-[11px] font-bold text-slate-700 truncate max-w-[150px]" title="<?php echo e($item->sekolah); ?>"><i class="fas fa-school text-slate-400 w-3 text-center"></i> <?php echo e($item->sekolah ?? 'Tidak diisi'); ?> (Kls: <?php echo e($item->kelas ?? '-'); ?>)</span>
+                                <span class="text-[10px] font-bold text-slate-500"><i class="fas fa-birthday-cake text-indigo-400"></i> Usia: <span class="text-indigo-600 font-black"><?php echo e($strUmur); ?></span></span>
                             </div>
                         </td>
 
-                        {{-- 3. ORANG TUA / WALI --}}
+                        
                         <td>
                             <div class="flex flex-col gap-1">
-                                <span class="text-[11px] font-bold text-slate-700 truncate max-w-[150px]" title="{{ $item->nama_ortu }}"><i class="fas fa-user-friends text-slate-400 w-3 text-center"></i> {{ $item->nama_ortu ?? '—' }}</span>
-                                <span class="text-[10px] font-semibold text-slate-500 font-mono"><i class="fas fa-phone-alt text-slate-400 w-3 text-center"></i> {{ $item->telepon_ortu ?? 'Tidak ada kontak' }}</span>
+                                <span class="text-[11px] font-bold text-slate-700 truncate max-w-[150px]" title="<?php echo e($item->nama_ortu); ?>"><i class="fas fa-user-friends text-slate-400 w-3 text-center"></i> <?php echo e($item->nama_ortu ?? '—'); ?></span>
+                                <span class="text-[10px] font-semibold text-slate-500 font-mono"><i class="fas fa-phone-alt text-slate-400 w-3 text-center"></i> <?php echo e($item->telepon_ortu ?? 'Tidak ada kontak'); ?></span>
                             </div>
                         </td>
 
-                        {{-- 4. STATUS & AKUN --}}
+                        
                         <td class="text-center">
-                            @if($item->user_id)
+                            <?php if($item->user_id): ?>
                                 <span class="text-[9px] font-black uppercase tracking-widest text-emerald-500"><i class="fas fa-check-circle"></i> Terhubung Akun</span>
-                            @else
-                                <form action="{{ route('kader.data.remaja.sync', $item->id) }}" method="POST" class="m-0 p-0 inline-block">
-                                    @csrf
+                            <?php else: ?>
+                                <form action="<?php echo e(route('kader.data.remaja.sync', $item->id)); ?>" method="POST" class="m-0 p-0 inline-block">
+                                    <?php echo csrf_field(); ?>
                                     <button type="submit" class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-amber-600 bg-white border border-amber-300 px-2 py-1 rounded hover:bg-amber-50 transition-all shadow-sm">
                                         <i class="fas fa-satellite-dish animate-pulse"></i> Deteksi Akun
                                     </button>
                                 </form>
-                            @endif
+                            <?php endif; ?>
                         </td>
 
-                        {{-- 5. TINDAKAN (TOMBOL KOTAK KECIL SEJAJAR) --}}
+                        
                         <td class="text-center pr-6">
                             <div class="flex items-center justify-center gap-2">
-                                <a href="{{ route('kader.data.remaja.show', $item->id) }}" class="action-btn view text-indigo-500 border-slate-200" title="Buka Rekam Medis"><i class="fas fa-book-medical text-[12px]"></i></a>
-                                <a href="{{ route('kader.data.remaja.edit', $item->id) }}" class="action-btn edit text-amber-500 border-slate-200" title="Edit Profil"><i class="fas fa-pen text-[12px]"></i></a>
-                                <form action="{{ route('kader.data.remaja.destroy', $item->id) }}" method="POST" id="delete-form-{{ $item->id }}" class="m-0 p-0">
-                                    @csrf @method('DELETE')
-                                    <button type="button" onclick="confirmSingleDelete('{{ $item->id }}', '{{ addslashes($item->nama_lengkap) }}')" class="action-btn delete text-rose-500 border-slate-200" title="Hapus Data"><i class="fas fa-trash-alt text-[12px]"></i></button>
+                                <a href="<?php echo e(route('kader.data.remaja.show', $item->id)); ?>" class="action-btn view text-indigo-500 border-slate-200" title="Buka Rekam Medis"><i class="fas fa-book-medical text-[12px]"></i></a>
+                                <a href="<?php echo e(route('kader.data.remaja.edit', $item->id)); ?>" class="action-btn edit text-amber-500 border-slate-200" title="Edit Profil"><i class="fas fa-pen text-[12px]"></i></a>
+                                <form action="<?php echo e(route('kader.data.remaja.destroy', $item->id)); ?>" method="POST" id="delete-form-<?php echo e($item->id); ?>" class="m-0 p-0">
+                                    <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
+                                    <button type="button" onclick="confirmSingleDelete('<?php echo e($item->id); ?>', '<?php echo e(addslashes($item->nama_lengkap)); ?>')" class="action-btn delete text-rose-500 border-slate-200" title="Hapus Data"><i class="fas fa-trash-alt text-[12px]"></i></button>
                                 </form>
                             </div>
                         </td>
                     </tr>
-                    @empty
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                     <tr class="empty-state-row">
                         <td colspan="6" class="py-24 text-center border-none">
                             <div class="flex flex-col items-center justify-center max-w-md mx-auto bg-slate-50/50 border border-dashed border-slate-300 rounded-[32px] p-10">
@@ -246,22 +247,23 @@
                             </div>
                         </td>
                     </tr>
-                    @endforelse
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
         
-        {{-- Custom Pagination --}}
-        @if($remajas->hasPages())
+        
+        <?php if($remajas->hasPages()): ?>
         <div class="p-4 border-t border-slate-100 bg-white">
-            {{ $remajas->appends(request()->query())->links() }}
+            <?php echo e($remajas->appends(request()->query())->links()); ?>
+
         </div>
-        @endif
+        <?php endif; ?>
     </div>
 
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // 1. Loader Logic
@@ -299,8 +301,8 @@
         toast: true, position: 'top-end', showConfirmButton: false, timer: 4000, timerProgressBar: true
     });
 
-    @if(session('success')) Toast.fire({ icon: 'success', title: 'Berhasil!', text: "{!! addslashes(session('success')) !!}" }); @endif
-    @if(session('error')) Toast.fire({ icon: 'error', title: 'Gagal', text: "{!! addslashes(session('error')) !!}" }); @endif
+    <?php if(session('success')): ?> Toast.fire({ icon: 'success', title: 'Berhasil!', text: "<?php echo addslashes(session('success')); ?>" }); <?php endif; ?>
+    <?php if(session('error')): ?> Toast.fire({ icon: 'error', title: 'Gagal', text: "<?php echo addslashes(session('error')); ?>" }); <?php endif; ?>
 
     function confirmSingleDelete(id, name) {
         Swal.fire({
@@ -366,5 +368,6 @@
         });
     }
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.kader', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\POSYANDU\posyandu-management-system\resources\views/kader/data/remaja/index.blade.php ENDPATH**/ ?>

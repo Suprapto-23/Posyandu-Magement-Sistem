@@ -17,6 +17,7 @@ class Remaja extends Model
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
+        'golongan_darah', // FIX BUG 1: Tambahkan ini agar bisa disimpan!
         'sekolah',
         'kelas',
         'nama_ortu',
@@ -35,11 +36,12 @@ class Remaja extends Model
     }
 
     /**
-     * Relasi ke Tabel Kunjungan (Polimorfik)
+     * FIX BUG 2: Relasi ke Tabel Kunjungan (Sistem Terpadu, BUKAN morphMany)
      */
     public function kunjungans()
     {
-        return $this->morphMany(Kunjungan::class, 'pasien');
+        return $this->morphMany(\App\Models\Kunjungan::class, 'pasien')
+                    ->orderBy('tanggal_kunjungan', 'desc');
     }
 
     /**
@@ -51,19 +53,6 @@ class Remaja extends Model
             ->where('kategori_pasien', 'remaja');
     }
 
-    /**
-     * Relasi ke Pemeriksaan Terakhir
-     */
-    public function pemeriksaan_terakhir()
-    {
-        return $this->hasOne(Pemeriksaan::class, 'pasien_id')
-            ->where('kategori_pasien', 'remaja')
-            ->latest('tanggal_periksa');
-    }
-
-    /**
-     * Helper Umur Bulat
-     */
     public function getUsiaAttribute()
     {
         return $this->tanggal_lahir ? $this->tanggal_lahir->age : 0;

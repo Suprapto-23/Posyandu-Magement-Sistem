@@ -3,57 +3,60 @@
 namespace App\Http\Controllers\Kader;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
 use App\Models\Kunjungan;
 use App\Models\Balita;
 use App\Models\Remaja;
 use App\Models\Lansia;
 use App\Models\IbuHamil;
-use Illuminate\Http\Request;
 
+/**
+ * =========================================================================
+ * KUNJUNGAN CONTROLLER (POSYANDU NEXUS EDITION)
+ * =========================================================================
+ * Mengelola Buku Induk Pendaftaran Warga (Sistem 5 Meja Posyandu).
+ * Modul ini bersifat Read-Only karena data terpusat dari pelayanan medis.
+ */
 class KunjunganController extends Controller
 {
     /**
-     * Menampilkan Buku Kehadiran (Read-Only)
+     * 1. INDEX: TAMPILAN BUKU INDUK PENDAFTARAN
      */
     public function index(Request $request)
     {
         $search   = $request->get('search', '');
         $kategori = $request->get('kategori', 'semua');
 
-        // Tarik semua relasi untuk menghindari N+1 Problem
+        // Eager Load untuk menghindari N+1 Problem (Performa Maksimal)
         $query = Kunjungan::with(['pasien', 'petugas', 'pemeriksaan', 'imunisasis'])
                     ->latest('tanggal_kunjungan')
                     ->latest('created_at');
 
-        // 1. Filter Kategori Tab
+        // Filter Berdasarkan Kategori Warga
         if ($kategori !== 'semua') {
             $pasienType = match($kategori) {
-                'remaja'    => 'App\\Models\\Remaja',
-                'lansia'    => 'App\\Models\\Lansia',
-                'ibu_hamil' => 'App\\Models\\IbuHamil',
-                default     => 'App\\Models\\Balita',
+                'remaja'    => 'App\Models\Remaja',
+                'lansia'    => 'App\Models\Lansia',
+                'ibu_hamil' => 'App\Models\IbuHamil',
+                default     => 'App\Models\Balita',
             };
             $query->where('pasien_type', $pasienType);
         }
 
-        // 2. Filter Pencarian Cerdas (Polymorphic)
-        if ($search) {
-            $balitaIds = Balita::where('nama_lengkap', 'like', "%$search%")->pluck('id');
-            $remajaIds = Remaja::where('nama_lengkap', 'like', "%$search%")->pluck('id');
-            $lansiaIds = Lansia::where('nama_lengkap', 'like', "%$search%")->pluck('id');
-            $bumilIds  = IbuHamil::where('nama_lengkap', 'like', "%$search%")->pluck('id');
-
-            $query->where(function($q) use($balitaIds, $remajaIds, $lansiaIds, $bumilIds) {
-                $q->where(fn($q2)=>$q2->where('pasien_type', 'App\\Models\\Balita')->whereIn('pasien_id', $balitaIds))
-                  ->orWhere(fn($q2)=>$q2->where('pasien_type', 'App\\Models\\Remaja')->whereIn('pasien_id', $remajaIds))
-                  ->orWhere(fn($q2)=>$q2->where('pasien_type', 'App\\Models\\Lansia')->whereIn('pasien_id', $lansiaIds))
-                  ->orWhere(fn($q2)=>$q2->where('pasien_type', 'App\\Models\\IbuHamil')->whereIn('pasien_id', $bumilIds));
+        // Pencarian Real-Time Cerdas (Menyisir 4 Tabel Sekaligus)
+        if (!empty($search)) {
+            $query->whereHasMorph('pasien', [Balita::class, Remaja::class, Lansia::class, IbuHamil::class], function ($morphQ) use ($search) {
+                $morphQ->where('nama_lengkap', 'like', "%{$search}%")
+                       ->orWhere('nik', 'like', "%{$search}%");
             });
         }
 
         $kunjungans = $query->paginate(15)->withQueryString();
 
-        if ($request->ajax()) {
+        // Respon Instan untuk AJAX Live Search
+        if ($request->ajax() || $request->wantsJson()) {
             return view('kader.kunjungan.index', compact('kunjungans', 'search', 'kategori'))->render();
         }
 
@@ -61,7 +64,7 @@ class KunjunganController extends Controller
     }
 
     /**
-     * Menampilkan Detail Nota Kedatangan
+     * 2. SHOW: DETAIL BUKTI PENDAFTARAN (ARSIP)
      */
     public function show($id)
     {
@@ -69,19 +72,28 @@ class KunjunganController extends Controller
         return view('kader.kunjungan.show', compact('kunjungan'));
     }
 
-    // ====================================================================
-    // BLOKIR AKSES CRUD - OTORITAS SISTEM
-    // ====================================================================
-
+    /**
+     * ====================================================================
+     * KUNCI OTORITAS: PENCEGAHAN EDIT MANUAL (INTEGRITAS DATA)
+     * ====================================================================
+     */
     public function create() {
-        return back()->with('error', 'Kunjungan baru akan otomatis tercatat saat Anda menginput Pengukuran Fisik atau Absensi.');
+        return back()->with('error', 'Informasi: Kunjungan warga akan tercatat secara otomatis ketika Anda memproses pendaftaran atau pelayanan.');
     }
-    public function store(Request $request) { abort(403, 'Akses ditolak.'); }
+
+    public function store(Request $request) { 
+        abort(403, 'Akses Ditolak.'); 
+    }
+
     public function edit($id) {
-        return back()->with('error', 'Data kunjungan adalah log arsip. Edit data melalui menu Pemeriksaan jika ada kesalahan.');
+        return back()->with('error', 'Buku Induk bersifat permanen. Jika ada kesalahan data fisik, silakan ubah melalui menu Pemeriksaan Medis.');
     }
-    public function update(Request $request, $id) { abort(403, 'Akses ditolak.'); }
+
+    public function update(Request $request, $id) { 
+        abort(403, 'Akses Ditolak.'); 
+    }
+
     public function destroy($id) {
-        return back()->with('error', 'Buku Tamu adalah arsip permanen dan tidak boleh dihapus manual.');
+        return back()->with('error', 'Tindakan Ilegal! Arsip kunjungan warga tidak boleh dihapus secara manual demi integritas laporan Posyandu.');
     }
 }

@@ -1,249 +1,342 @@
 @extends('layouts.kader')
-
-@section('title', 'Absensi Posyandu')
-@section('page-name', 'Presensi Warga')
+@section('title', 'Presensi Kehadiran Warga')
+@section('page-name', 'Buku Kehadiran (Meja 1)')
 
 @push('styles')
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
-    /* Animasi Halus */
-    .animate-fade-in { opacity: 0; animation: fadeIn 0.6s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* Navigasi Tab Horizontal */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .animate-slide-up { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes slideUpFade { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     
-    .kat-tab { 
-        padding: 0.75rem 1.5rem; border-radius: 100px; font-size: 0.75rem; font-weight: 800; 
-        letter-spacing: 0.05em; text-transform: uppercase; border: 2px solid transparent; 
-        color: #64748b; transition: all 0.3s ease; white-space: nowrap; 
+    /* Latar Belakang Gradasi Atas (Hero Mesh) */
+    .hero-gradient {
+        position: absolute; top: 0; left: 0; right: 0; height: 350px; z-index: -1;
+        background: radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 50%),
+                    radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05), transparent 50%);
+        pointer-events: none;
     }
-    .kat-tab:hover { background: #f1f5f9; color: #334155; }
-    .kat-tab.active { background: #4f46e5; color: white; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
 
-    /* Floating Dock Styling */
-    .floating-dock-wrapper {
-        position: fixed; bottom: 2rem; left: 0; right: 0; z-index: 50;
-        display: flex; justify-content: center; pointer-events: none; padding: 0 1rem;
+    /* RADIO BUTTON CUSTOM (Gaya Toggle Modern) */
+    .radio-hidden { display: none; }
+    .label-btn { 
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        cursor: pointer; position: relative; overflow: hidden;
     }
-    @media (min-width: 1024px) { .floating-dock-wrapper { left: 280px; } } /* Menyesuaikan lebar sidebar */
     
-    .floating-dock {
-        pointer-events: auto; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px);
-        border: 1px solid #e2e8f0; border-radius: 2rem; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
-        padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;
-        width: 100%; max-width: 800px; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    /* State: Unchecked */
+    .label-hadir { background-color: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; }
+    .label-absen { background-color: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; }
+
+    /* State: Checked (Hadir) */
+    .radio-hadir:checked + .label-hadir { 
+        background-color: #10b981; color: white; border-color: #059669; 
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); transform: scale(1.03); z-index: 10; 
+    }
+    
+    /* State: Checked (Absen) */
+    .radio-absen:checked + .label-absen { 
+        background-color: #f43f5e; color: white; border-color: #e11d48; 
+        box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25); transform: scale(1.03); z-index: 10; 
     }
 
-    [x-cloak] { display: none !important; }
+    /* Row Hover Effect */
+    .warga-row { border: 1px solid transparent; transition: all 0.2s; border-bottom: 1px solid #f1f5f9; }
+    .warga-row:hover { background-color: #ffffff; border-color: #e0e7ff; box-shadow: 0 10px 25px -10px rgba(79, 70, 229, 0.1); border-radius: 16px; z-index: 5; position: relative; }
+    
+    /* Kotak Keterangan Animasi Pop-out */
+    .ket-box { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(-10px); }
+    .ket-box.open { max-height: 80px; opacity: 1; margin-top: 0.75rem; transform: translateY(0); }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-5xl mx-auto pb-40 animate-fade-in" x-data="{ searchQuery: '' }">
-    
-    {{-- 1. HEADER --}}
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+<div class="hero-gradient"></div>
+
+<div class="max-w-[1200px] mx-auto animate-slide-up pb-12 relative z-10">
+
+    {{-- HEADER EKSKLUSIF --}}
+    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8 mt-4">
         <div>
-            <h1 class="text-3xl font-black text-slate-800 font-poppins tracking-tight mb-1">Presensi Warga</h1>
-            <p class="text-sm font-medium text-slate-500 flex items-center gap-2">
-                <i class="far fa-calendar-check text-indigo-500"></i> Pertemuan: <b class="text-indigo-600">{{ \Carbon\Carbon::parse($tanggal ?? now())->translatedFormat('d F Y') }}</b>
-            </p>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-xl mb-3 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span> Meja 1: Pendaftaran Sesi
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight font-poppins mb-2">Presensi Kehadiran</h1>
+            <p class="text-slate-500 font-medium text-[14px]">Sistem cerdas rekam kehadiran warga untuk optimalisasi data Posyandu.</p>
         </div>
-        <div class="bg-white px-5 py-2.5 rounded-full border border-slate-200 shadow-sm text-center">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">Sesi Posyandu Ke</span>
-            <span class="text-lg font-black text-indigo-600">#{{ $pertemuanBerikutnya ?? 1 }}</span>
+
+        <div class="flex items-center gap-4 bg-white/80 backdrop-blur-md px-6 py-4 rounded-[24px] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div class="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500 text-xl shrink-0"><i class="far fa-calendar-check"></i></div>
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Tanggal Operasional</p>
+                <p class="font-black text-slate-800 text-[15px]">{{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</p>
+            </div>
         </div>
     </div>
 
-    {{-- 2. NAVIGASI TAB KATEGORI --}}
-    <div class="flex gap-2 overflow-x-auto no-scrollbar mb-8 pb-2">
-        @php $tabs = ['bayi'=>'Bayi (0-11 Bln)', 'balita'=>'Balita (1-5 Thn)', 'remaja'=>'Remaja', 'ibu_hamil'=>'Ibu Hamil', 'lansia'=>'Lansia']; @endphp
-        @foreach($tabs as $k => $label)
-            <a href="{{ route('kader.absensi.index', ['kategori' => $k]) }}" 
-               class="kat-tab {{ $kategori == $k ? 'active' : 'bg-white border-slate-200 shadow-sm' }}">
-               {{ $label }}
+    {{-- NAVIGASI KATEGORI (MODERN PILLS) --}}
+    <div class="flex flex-wrap gap-2 mb-8">
+        @php
+            $tabs = [
+                'bayi'      => ['label' => 'Bayi (0-11 Bln)', 'icon' => 'fa-baby-carriage', 'color' => 'sky'],
+                'balita'    => ['label' => 'Balita (1-5 Thn)', 'icon' => 'fa-child', 'color' => 'indigo'],
+                'ibu_hamil' => ['label' => 'Ibu Hamil', 'icon' => 'fa-female', 'color' => 'pink'],
+                'remaja'    => ['label' => 'Remaja', 'icon' => 'fa-user-graduate', 'color' => 'blue'],
+                'lansia'    => ['label' => 'Lansia', 'icon' => 'fa-wheelchair', 'color' => 'emerald'],
+            ];
+        @endphp
+
+        @foreach($tabs as $key => $tab)
+            @php $isActive = $kategori === $key; @endphp
+            <a href="{{ route('kader.absensi.index', ['kategori' => $key]) }}" 
+               class="spa-route relative flex items-center gap-2 px-5 py-3 rounded-[16px] text-[13px] font-black tracking-wide transition-all border-2
+               {{ $isActive ? "bg-white border-{$tab['color']}-500 text-{$tab['color']}-600 shadow-md transform -translate-y-1" : "bg-white/50 border-transparent text-slate-500 hover:bg-white hover:text-slate-800" }}">
+                <i class="fas {{ $tab['icon'] }} {{ $isActive ? "text-{$tab['color']}-500" : "opacity-40" }} text-lg"></i> 
+                {{ $tab['label'] }}
             </a>
         @endforeach
     </div>
 
-    @if(isset($pasiens) && count($pasiens) > 0)
-        
-        {{-- 3. PENCARIAN REALTIME --}}
-        <div class="mb-6 relative max-w-md ml-auto">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <i class="fas fa-search text-slate-400"></i>
+    {{-- ALERT MODE EDIT (Jika data hari ini sudah ada) --}}
+    @if($sesiHariIni)
+        <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-5 rounded-[24px] mb-8 flex items-start gap-4 shadow-sm">
+            <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xl shrink-0"><i class="fas fa-magic"></i></div>
+            <div>
+                <h4 class="text-[14px] font-black text-amber-900 mb-1">Mode Koreksi Data Aktif</h4>
+                <p class="text-[13px] text-amber-700 font-medium">Sistem memuat daftar hadir <b>{{ strtoupper(str_replace('_', ' ', $kategori)) }}</b> yang sebelumnya telah Anda simpan hari ini. Anda dapat mengedit status kehadiran mereka.</p>
             </div>
-            <input type="text" 
-                   x-model="searchQuery" 
-                   placeholder="Cari nama warga di daftar ini..." 
-                   class="w-full bg-white border border-slate-200 rounded-[100px] pl-11 pr-4 py-3 text-[13px] font-bold text-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all shadow-sm">
-            <button type="button" x-show="searchQuery !== ''" @click="searchQuery = ''" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-rose-500" x-cloak>
-                <i class="fas fa-times-circle text-lg"></i>
-            </button>
-        </div>
-
-        {{-- 4. DAFTAR WARGA (SATU KOTAK BESAR YANG RAPI) --}}
-        <form action="{{ route('kader.absensi.store') }}" method="POST" id="formAbsensi">
-            @csrf
-            <input type="hidden" name="kategori" value="{{ $kategori }}">
-            <input type="hidden" name="tanggal_posyandu" value="{{ $tanggal ?? date('Y-m-d') }}">
-            <input type="hidden" name="pertemuan_ke" value="{{ $pertemuanBerikutnya ?? 1 }}">
-            
-            <div class="bg-white rounded-[24px] border border-slate-200 shadow-sm overflow-hidden mb-10">
-                <div class="divide-y divide-slate-100">
-                    @foreach($pasiens as $p)
-                    @php
-                        $pasienId = $p->id;
-                        $pasienType = get_class($p);
-                        $hadirCheck = isset($absensiData[$pasienId]) && $absensiData[$pasienId]['status_kehadiran'] == 'hadir' ? 'checked' : '';
-                        $absenCheck = isset($absensiData[$pasienId]) && $absensiData[$pasienId]['status_kehadiran'] == 'absen' ? 'checked' : '';
-                        $keterangan = isset($absensiData[$pasienId]) ? $absensiData[$pasienId]['keterangan'] : '';
-                    @endphp
-                    
-                    {{-- Row Warga --}}
-                    <div class="p-5 md:p-6 hover:bg-slate-50/50 transition-colors" x-show="'{{ strtolower($p->nama_lengkap) }}'.includes(searchQuery.toLowerCase())">
-                        
-                        <input type="hidden" name="absensi[{{ $loop->index }}][pasien_id]" value="{{ $pasienId }}">
-                        <input type="hidden" name="absensi[{{ $loop->index }}][pasien_type]" value="{{ $pasienType }}">
-                        
-                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
-                            
-                            {{-- Identitas (Kiri) --}}
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200 font-black text-sm">
-                                    {{ $loop->iteration }}
-                                </div>
-                                <div>
-                                    <p class="text-[15px] font-black text-slate-800 leading-tight mb-0.5">{{ $p->nama_lengkap }}</p>
-                                    <p class="text-[11px] font-bold text-slate-400 tracking-widest uppercase">NIK: {{ $p->nik ?? '-' }}</p>
-                                </div>
-                            </div>
-                            
-                            {{-- Kontrol Hadir/Absen (Kanan) --}}
-                            <div class="flex flex-col md:items-end gap-3 shrink-0">
-                                <div class="flex items-center gap-2 w-full md:w-auto">
-                                    
-                                    {{-- Tombol Hadir --}}
-                                    <label class="cursor-pointer flex-1 md:flex-none">
-                                        <input type="radio" name="absensi[{{ $loop->index }}][status_kehadiran]" value="hadir" class="peer sr-only radio-hadir" id="hadir_{{ $loop->index }}" {{ $hadirCheck }} onchange="toggleKet({{ $loop->index }})">
-                                        <div class="text-center px-6 py-3 rounded-full border-2 border-slate-100 text-slate-400 font-black text-[11px] uppercase tracking-widest hover:border-indigo-200 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-all">
-                                            Hadir
-                                        </div>
-                                    </label>
-                                    
-                                    {{-- Tombol Absen --}}
-                                    <label class="cursor-pointer flex-1 md:flex-none">
-                                        <input type="radio" name="absensi[{{ $loop->index }}][status_kehadiran]" value="absen" class="peer sr-only radio-absen" id="absen_{{ $loop->index }}" {{ $absenCheck }} onchange="toggleKet({{ $loop->index }})">
-                                        <div class="text-center px-6 py-3 rounded-full border-2 border-slate-100 text-slate-400 font-black text-[11px] uppercase tracking-widest hover:border-rose-200 peer-checked:bg-rose-500 peer-checked:text-white peer-checked:border-rose-500 transition-all">
-                                            Absen
-                                        </div>
-                                    </label>
-
-                                </div>
-
-                                {{-- Input Keterangan Absen --}}
-                                <div class="w-full md:w-64 {{ $absenCheck ? '' : 'hidden' }}" id="ketBox_{{ $loop->index }}">
-                                    <input type="text" name="absensi[{{ $loop->index }}][keterangan]" id="keterangan_{{ $loop->index }}" value="{{ $keterangan }}" placeholder="Tulis alasan absen..." class="w-full bg-rose-50 border border-rose-200 rounded-xl px-4 py-2.5 text-[11px] font-bold text-rose-700 placeholder-rose-300 outline-none focus:ring-2 focus:ring-rose-200 transition-all">
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-
-            {{-- 5. FLOATING DOCK (RATA TENGAH SEMPURNA) --}}
-            <div class="floating-dock-wrapper">
-                <div class="floating-dock flex-col sm:flex-row gap-4 sm:gap-0">
-                    
-                    {{-- Statistik Ringkas --}}
-                    <div class="flex items-center justify-center gap-6 sm:gap-10 w-full sm:w-auto px-4">
-                        <div class="text-center">
-                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Sudah Diisi</p>
-                            <p class="text-2xl font-black text-indigo-600 leading-none" id="countFilled">0</p>
-                        </div>
-                        <div class="w-px h-8 bg-slate-200"></div>
-                        <div class="text-center">
-                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Sisa Belum</p>
-                            <p class="text-2xl font-black text-rose-500 leading-none" id="countEmpty">0</p>
-                        </div>
-                    </div>
-                    
-                    {{-- Tombol Simpan --}}
-                    <button type="submit" id="btnSimpan" class="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 text-white rounded-full text-[12px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-[0_8px_20px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                        <i class="fas fa-save text-base"></i> Simpan Presensi Hari Ini
-                    </button>
-                    
-                </div>
-            </div>
-
-        </form>
-    @else
-        {{-- Empty State --}}
-        <div class="bg-white rounded-[32px] border border-slate-200 py-24 text-center shadow-sm">
-            <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-5 text-slate-300 text-4xl border border-slate-100">
-                <i class="fas fa-folder-open"></i>
-            </div>
-            <h3 class="text-xl font-black text-slate-800 font-poppins mb-2">Belum Ada Warga</h3>
-            <p class="text-[13px] text-slate-500 max-w-sm mx-auto leading-relaxed">Sistem tidak menemukan daftar warga untuk kategori layanan ini. Silakan daftarkan warga terlebih dahulu.</p>
         </div>
     @endif
+
+    {{-- FORM UTAMA ABSENSI --}}
+    <form action="{{ route('kader.absensi.store') }}" method="POST" id="formAbsensi">
+        @csrf
+        <input type="hidden" name="kategori" value="{{ $kategori }}">
+
+        <div class="bg-white rounded-[32px] border border-slate-200 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden mb-8">
+            
+            {{-- HEADER TABEL & BULK ACTION --}}
+            <div class="px-6 py-5 sm:px-8 sm:py-6 bg-slate-50/80 border-b border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-lg"><i class="fas fa-list-check"></i></div>
+                    <div>
+                        <h3 class="font-black text-slate-800 text-[14px] uppercase tracking-widest">Daftar Panggilan Sesi</h3>
+                        <p class="text-[11px] font-bold text-slate-400 mt-0.5">Total: {{ count($pasiens) }} Sasaran Terdaftar</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    {{-- FITUR BARU: TOMBOL HADIR SEMUA --}}
+                    @if(count($pasiens) > 0)
+                    <button type="button" id="btnHadirSemua" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-500 hover:text-white font-black text-[11px] uppercase tracking-widest rounded-[12px] transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-check-double"></i> Tandai Hadir Semua
+                    </button>
+                    @endif
+
+                    {{-- PENCARIAN --}}
+                    <div class="relative w-full sm:w-64 group">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
+                        <input type="text" id="searchInput" placeholder="Cari warga / NIK..." class="w-full bg-white border border-slate-200 text-sm font-bold text-slate-700 rounded-[14px] pl-10 pr-4 py-2.5 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all shadow-sm">
+                    </div>
+                </div>
+            </div>
+
+            {{-- LIST WARGA --}}
+            <div class="px-2 py-2" id="wargaList">
+                @forelse($pasiens as $index => $p)
+                    @php
+                        $statusHadir = $absensiData[$p->id]['hadir'] ?? null;
+                        $keterangan  = $absensiData[$p->id]['keterangan'] ?? '';
+                    @endphp
+                    <div class="warga-row p-4 sm:p-5 mx-2 my-1 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                        
+                        {{-- Identitas Warga --}}
+                        <div class="flex items-center gap-4 sm:gap-5 w-full lg:w-1/2">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center font-black text-lg shrink-0">
+                                {{ $index + 1 }}
+                            </div>
+                            <div class="truncate">
+                                <h4 class="warga-nama text-[15px] sm:text-[16px] font-black text-slate-800 font-poppins mb-0.5 truncate">{{ $p->nama_lengkap }}</h4>
+                                <p class="text-[10px] sm:text-[11px] font-bold text-slate-400 tracking-widest uppercase"><i class="far fa-id-card mr-1"></i> NIK: <span class="warga-nik text-slate-500">{{ $p->nik ?? '-' }}</span></p>
+                            </div>
+                        </div>
+
+                        {{-- Panel Tombol Toggle & Keterangan --}}
+                        <div class="flex flex-col lg:items-end w-full lg:w-auto">
+                            <div class="flex gap-2 w-full lg:w-auto bg-slate-50 p-1 rounded-[16px] border border-slate-100">
+                                {{-- Tombol Hadir --}}
+                                <input type="radio" name="kehadiran[{{ $p->id }}]" id="hadir_{{ $p->id }}" value="1" class="radio-hidden radio-hadir logic-radio" data-id="{{ $p->id }}" {{ $statusHadir === true ? 'checked' : '' }} required>
+                                <label for="hadir_{{ $p->id }}" class="label-btn label-hadir flex-1 lg:w-28 flex justify-center items-center gap-1.5 py-2 px-4 rounded-[12px] text-[11px] sm:text-[12px] font-black tracking-widest uppercase">
+                                    <i class="fas fa-check"></i> Hadir
+                                </label>
+                                
+                                {{-- Tombol Absen --}}
+                                <input type="radio" name="kehadiran[{{ $p->id }}]" id="absen_{{ $p->id }}" value="0" class="radio-hidden radio-absen logic-radio" data-id="{{ $p->id }}" {{ $statusHadir === false ? 'checked' : '' }} required>
+                                <label for="absen_{{ $p->id }}" class="label-btn label-absen flex-1 lg:w-28 flex justify-center items-center gap-1.5 py-2 px-4 rounded-[12px] text-[11px] sm:text-[12px] font-black tracking-widest uppercase">
+                                    <i class="fas fa-times"></i> Absen
+                                </label>
+                            </div>
+
+                            {{-- Kotak Keterangan (Muncul Indah di bawah tombol) --}}
+                            <div id="ketBox_{{ $p->id }}" class="ket-box {{ $statusHadir === false ? 'open' : '' }} w-full lg:w-[232px]">
+                                <div class="relative">
+                                    <div class="absolute -top-2 right-12 w-4 h-4 bg-rose-50 transform rotate-45 border-t border-l border-rose-200 hidden lg:block"></div>
+                                    <input type="text" name="keterangan[{{ $p->id }}]" value="{{ $keterangan }}" placeholder="Keterangan (Sakit/Izin).." class="w-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold px-4 py-2.5 rounded-[12px] outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 placeholder:text-rose-300 shadow-inner relative z-10">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                @empty
+                    <div class="text-center py-24 px-4">
+                        <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 text-5xl mx-auto mb-5 border-2 border-dashed border-slate-200"><i class="fas fa-folder-open"></i></div>
+                        <h4 class="text-[16px] font-black text-slate-800 uppercase tracking-widest mb-2">Data Warga Kosong</h4>
+                        <p class="text-[14px] text-slate-500 font-medium max-w-sm mx-auto">Belum ada warga yang terdaftar pada kategori ini. Silakan tambahkan data warga terlebih dahulu.</p>
+                    </div>
+                @endforelse
+            </div>
+
+            {{-- ACTION BAR BAWAH (Menyatu Indah dengan Kartu) --}}
+            @if(count($pasiens) > 0)
+            <div class="bg-white border-t border-slate-100 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 rounded-b-[32px]">
+                
+                <div class="flex items-center justify-center md:justify-start gap-8 w-full md:w-auto">
+                    <div class="text-center md:text-left">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Sudah Diisi</p>
+                        <p class="text-4xl font-black text-indigo-600 leading-none font-poppins" id="countSudah">0</p>
+                    </div>
+                    <div class="w-px h-12 bg-slate-200 hidden md:block"></div>
+                    <div class="text-center md:text-left">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Sisa Belum</p>
+                        <p class="text-4xl font-black text-rose-500 leading-none font-poppins transition-colors duration-300" id="countSisa">{{ count($pasiens) }}</p>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnSubmit" class="w-full md:w-auto px-10 py-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white font-black text-[13px] uppercase tracking-widest rounded-[20px] hover:from-indigo-600 hover:to-violet-600 shadow-[0_10px_25px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_30px_rgba(79,70,229,0.3)] hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-cloud-upload-alt text-xl text-indigo-300"></i> Simpan Data Presensi
+                </button>
+            </div>
+            @endif
+
+        </div>
+    </form>
 </div>
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const totalWarga = {{ isset($pasiens) ? count($pasiens) : 0 }};
-    
-    // Fungsi untuk memunculkan kotak alasan jika "Absen" diklik
-    function toggleKet(index) {
-        const isAbsen = document.getElementById('absen_'+index).checked;
-        const ketBox = document.getElementById('ketBox_'+index);
-        const ketInput = document.getElementById('keterangan_'+index);
-        
-        if (isAbsen) {
-            ketBox.classList.remove('hidden');
-            ketInput.focus();
-        } else {
-            ketBox.classList.add('hidden');
-            ketInput.value = ''; 
-        }
-        updateCounters();
-    }
+    const totalPasiens = {{ count($pasiens) }};
+    const countSudahEl = document.getElementById('countSudah');
+    const countSisaEl  = document.getElementById('countSisa');
+    const radios       = document.querySelectorAll('.logic-radio');
 
-    // Fungsi menghitung angka di Floating Dock rata tengah
+    // 1. ENGINE PENGHITUNG REAL-TIME
     function updateCounters() {
-        const filled = document.querySelectorAll('.radio-hadir:checked, .radio-absen:checked').length;
-        document.getElementById('countFilled').innerText = filled;
-        document.getElementById('countEmpty').innerText = totalWarga - filled;
+        const answered = document.querySelectorAll('.logic-radio:checked').length;
+        const sisa = totalPasiens - answered;
+        
+        if(countSudahEl) countSudahEl.textContent = answered;
+        if(countSisaEl) {
+            countSisaEl.textContent = sisa;
+            // Ubah warna Sisa Belum menjadi Hijau jika sudah tuntas (0)
+            if (sisa === 0) {
+                countSisaEl.classList.remove('text-rose-500');
+                countSisaEl.classList.add('text-emerald-500');
+            } else {
+                countSisaEl.classList.add('text-rose-500');
+                countSisaEl.classList.remove('text-emerald-500');
+            }
+        }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        if(totalWarga > 0) updateCounters();
+    // 2. ENGINE TOGGLE KETERANGAN
+    radios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const id = this.dataset.id;
+            const ketBox = document.getElementById('ketBox_' + id);
+            
+            if (this.value == '0') {
+                ketBox.classList.add('open');
+                setTimeout(() => ketBox.querySelector('input').focus(), 100);
+            } else {
+                ketBox.classList.remove('open');
+                ketBox.querySelector('input').value = '';
+            }
+            
+            updateCounters();
+        });
     });
 
-    // Validasi sebelum form dikirim
+    // Inisialisasi saat memuat halaman
+    updateCounters();
+
+    // 3. FITUR "TANDAI HADIR SEMUA" (BULK ACTION)
+    document.getElementById('btnHadirSemua')?.addEventListener('click', function() {
+        Swal.fire({
+            title: 'Tandai Hadir Semua?',
+            html: '<p class="text-sm text-slate-500">Seluruh warga dalam daftar ini akan otomatis ditandai sebagai <b>Hadir</b>. Anda tetap bisa mengubahnya secara manual setelah ini.</p>',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Ya, Hadirkan Semua',
+            cancelButtonText: 'Batal',
+            customClass: { popup: 'rounded-[24px]' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.querySelectorAll('.radio-hadir').forEach(radio => {
+                    radio.checked = true;
+                    // Trigger event change agar kotak keterangan absen menutup otomatis
+                    radio.dispatchEvent(new Event('change'));
+                });
+                
+                // Beri notifikasi mini
+                const Toast = Swal.mixin({
+                    toast: true, position: 'top-end', showConfirmButton: false, timer: 2000,
+                    timerProgressBar: true, customClass: { popup: 'rounded-[16px]' }
+                });
+                Toast.fire({ icon: 'success', title: 'Berhasil ditandai hadir semua' });
+            }
+        });
+    });
+
+    // 4. FITUR PENCARIAN WARGA INSTAN
+    const searchInput = document.getElementById('searchInput');
+    if(searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.warga-row');
+            
+            rows.forEach(row => {
+                const nama = row.querySelector('.warga-nama').textContent.toLowerCase();
+                const nik = row.querySelector('.warga-nik').textContent.toLowerCase();
+                if (nama.includes(filter) || nik.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // 5. SMART VALIDATION SEBELUM SUBMIT
     document.getElementById('formAbsensi')?.addEventListener('submit', function(e) {
-        const filled = document.querySelectorAll('.radio-hadir:checked, .radio-absen:checked').length;
+        const answered = document.querySelectorAll('.logic-radio:checked').length;
         
-        if(filled < totalWarga) {
+        if (answered < totalPasiens) {
             e.preventDefault();
-            Swal.fire({ 
-                icon: 'warning', 
-                title: 'Data Belum Lengkap', 
-                text: `Masih ada ${totalWarga - filled} warga yang belum Anda tandai Hadir/Absen.`,
-                confirmButtonColor: '#4f46e5',
-                customClass: { popup: 'rounded-[24px]' }
+            Swal.fire({
+                icon: 'warning', title: 'Belum Tuntas',
+                html: `<p class="text-sm text-slate-500">Anda belum mengisi status untuk <b>${totalPasiens - answered} warga</b>. Mohon lengkapi seluruh daftar panggilan sebelum menyimpan.</p>`,
+                confirmButtonColor: '#4f46e5', confirmButtonText: 'Lanjutkan Mengisi',
+                customClass: { popup: 'rounded-[28px]' }
             });
             return;
         }
 
-        const btn = document.getElementById('btnSimpan');
-        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-lg"></i> Menyimpan...';
-        btn.classList.add('opacity-75', 'cursor-wait');
+        const btn = document.getElementById('btnSubmit');
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-xl text-indigo-300"></i> Menyimpan ke Server...';
+        btn.classList.add('opacity-75', 'cursor-wait', 'scale-95');
     });
 </script>
 @endpush

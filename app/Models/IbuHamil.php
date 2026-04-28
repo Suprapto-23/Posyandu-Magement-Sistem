@@ -42,7 +42,7 @@ class IbuHamil extends Model
         'imt'           => 'float',
     ];
 
-    // ── Relasi ──────────────────────────────────────────────────
+   // ── Relasi ──────────────────────────────────────────────────
 
     public function user()
     {
@@ -54,11 +54,14 @@ class IbuHamil extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /** Semua riwayat pemeriksaan oleh bidan */
-    public function pemeriksaans()
+    /** * MENGGUNAKAN SISTEM TERPADU: Relasi ke tabel Kunjungan
+     * (Nantinya Kunjungan yang akan membawa data Pemeriksaan) 
+     */
+    public function kunjungans()
     {
-        return $this->hasMany(PemeriksaanIbuHamil::class, 'ibu_hamil_id')
-                    ->orderBy('tanggal_periksa', 'desc');
+        // Tambahkan 'pasien_id' sebagai foreign key yang benar
+        return $this->hasMany(Kunjungan::class, 'pasien_id')
+                    ->orderBy('tanggal_kunjungan', 'desc');
     }
 
     /** Pemeriksaan terakhir */

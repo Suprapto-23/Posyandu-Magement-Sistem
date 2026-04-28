@@ -1,168 +1,115 @@
-@php
-    $userAuth = auth()->user();
-    $nikAuth = $userAuth->nik ?? ($userAuth->profile->nik ?? null);
+@php 
+    $route = request()->route()->getName();
+    $isDataWarga = Str::startsWith($route, 'kader.data.');
+    $isAbsensi = in_array($route, ['kader.absensi.index', 'kader.absensi.riwayat']);
     
-    // Deteksi Peran Dinamis Warga
-    $isOrangTua = false; $isRemaja = false; $isLansia = false;
-
-    if ($nikAuth) {
-        $isOrangTua = \App\Models\Balita::where('nik_ibu', $nikAuth)->orWhere('nik_ayah', $nikAuth)->exists();
-        $isRemaja = \App\Models\Remaja::where('nik', $nikAuth)->exists();
-        $isLansia = \App\Models\Lansia::where('nik', $nikAuth)->exists();
-    }
-
-    // Fungsi Render CSS Menu Aktif yang Elegan
-    if (!function_exists('user_nav_active')) {
-        function user_nav_active($route) {
-            return request()->routeIs($route) 
-                ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold shadow-lg shadow-teal-200/50 scale-[1.02] rounded-[14px]' 
-                : 'text-slate-500 font-medium hover:bg-teal-50 hover:text-teal-600 rounded-[14px] transition-all duration-300';
-        }
-    }
-    
-    if (!function_exists('user_nav_icon')) {
-        function user_nav_icon($route) {
-            return request()->routeIs($route) 
-                ? 'text-white drop-shadow-sm' 
-                : 'text-slate-400 group-hover:text-teal-500 transition-colors duration-300';
-        }
-    }
+    // 🔥 Gaya Aktif Ultra Modern (Gradient + Soft Shadow)
+    $menuAktif = 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold shadow-[0_8px_16px_rgba(79,70,229,0.25)]';
+    $menuPasif = 'text-slate-500 font-medium hover:bg-slate-50 hover:text-indigo-600 hover:shadow-sm';
+    $iconAktif = 'text-white drop-shadow-md';
+    $iconPasif = 'text-slate-400 group-hover:text-indigo-500 transition-colors';
 @endphp
 
-<div class="flex flex-col h-full bg-white/95 backdrop-blur-xl border-r border-slate-100 shadow-[10px_0_40px_rgba(0,0,0,0.02)]" style="font-family: 'Poppins', sans-serif;">
+<aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-50 w-[280px] bg-white border-r border-slate-100 transform xl:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col shadow-2xl xl:shadow-none">
     
-    {{-- 1. LOGO & BRANDING --}}
-    <div class="h-[80px] flex items-center px-6 shrink-0 border-b border-slate-50">
-        <a href="{{ route('user.dashboard') }}" class="flex items-center gap-3 w-full group">
-            <div class="w-10 h-10 rounded-[12px] bg-gradient-to-br from-teal-500 to-emerald-600 text-white flex items-center justify-center shadow-md shadow-teal-200/50 group-hover:rotate-6 group-hover:scale-105 transition-all duration-300">
-                <i class="fas fa-leaf text-[18px]"></i>
+    {{-- Brand Logo Premium --}}
+    <div class="h-[80px] flex items-center px-8 border-b border-slate-50 shrink-0 bg-white">
+        <div class="flex items-center gap-4 w-full cursor-pointer group" onclick="window.location.href='{{ route('kader.dashboard') }}'">
+            <div class="w-[42px] h-[42px] rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 shrink-0 group-hover:scale-105 group-hover:rotate-3 transition-all duration-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
             </div>
-            <div>
-                <h2 class="text-[19px] font-black text-slate-800 tracking-tight leading-none mb-1">Posyandu<span class="text-teal-600">Care</span></h2>
-                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Portal Warga</p>
+            <div class="flex-1 min-w-0 pt-0.5">
+                <h1 class="text-[22px] font-black text-slate-800 tracking-tight truncate font-poppins leading-none">Kader<span class="text-indigo-600">Care</span></h1>
             </div>
-        </a>
-    </div>
-
-    {{-- 2. MINI PROFILE CARD (Identitas Pengguna) --}}
-    <div class="px-5 pt-6 pb-3 shrink-0">
-        <div class="p-3 bg-white border border-slate-100 rounded-[16px] flex items-center gap-3 shadow-sm hover:border-teal-200 transition-colors duration-300 group">
-            <div class="w-11 h-11 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center text-lg font-black shrink-0 border border-teal-100 group-hover:bg-teal-500 group-hover:text-white transition-colors duration-300">
-                {{ strtoupper(substr($userAuth->name ?? 'U', 0, 1)) }}
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-[13px] font-bold text-slate-800 truncate">{{ $userAuth->name ?? 'Pengguna Warga' }}</p>
-                <div class="flex items-center gap-1.5 mt-1">
-                    <span class="relative flex h-2 w-2">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Akses Publik</p>
-                </div>
-            </div>
+            <button @click.stop="sidebarOpen = false" class="xl:hidden w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     </div>
-
-    {{-- 3. NAVIGASI UTAMA (Menu Berdasarkan Controller) --}}
-    <nav class="flex-1 overflow-y-auto px-4 py-4 space-y-6 custom-scrollbar">
+    
+    {{-- Navigasi Utama (Dengan Micro-interactions) --}}
+    <nav class="flex-1 overflow-y-auto px-5 py-8 custom-scrollbar space-y-9 bg-white">
         
-        {{-- BLOK 1: Layanan Utama --}}
         <div>
-            <p class="px-3 text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-3">Layanan Utama</p>
-            <div class="space-y-1.5">
-                <a href="{{ route('user.dashboard') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.dashboard') }}">
-                    <div class="w-5 flex justify-center"><i class="fas fa-home text-[16px] {{ user_nav_icon('user.dashboard') }}"></i></div>
-                    <span class="text-[13.5px]">Beranda Saya</span>
-                </a>
-                <a href="{{ route('user.jadwal.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.jadwal.*') }}">
-                    <div class="w-5 flex justify-center"><i class="fas fa-calendar-check text-[16px] {{ user_nav_icon('user.jadwal.*') }}"></i></div>
-                    <span class="text-[13.5px]">Agenda Posyandu</span>
-                </a>
-                <a href="{{ route('user.notifikasi.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.notifikasi.*') }}">
-                    <div class="w-5 flex justify-center"><i class="fas fa-bell text-[16px] {{ user_nav_icon('user.notifikasi.*') }}"></i></div>
-                    <span class="text-[13.5px] flex-1">Pesan & Notifikasi</span>
-                    {{-- Opsional: Badge Notifikasi Unread bisa ditaruh di sini --}}
+            <p class="px-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 font-poppins">Workspace Utama</p>
+            <a href="{{ route('kader.dashboard') }}" class="spa-route group flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[13.5px] transition-all duration-300 {{ $route == 'kader.dashboard' ? $menuAktif : $menuPasif }}">
+                <div class="w-5 flex justify-center"><i class="fas fa-layer-group text-[18px] {{ $route == 'kader.dashboard' ? $iconAktif : $iconPasif }} transition-transform duration-300 group-hover:scale-110"></i></div>
+                <span class="transition-transform duration-300 {{ $route != 'kader.dashboard' ? 'group-hover:translate-x-1' : '' }}">Dashboard Operasional</span>
+            </a>
+        </div>
+
+        <div>
+            <p class="px-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 font-poppins">Manajemen Data</p>
+            <div class="space-y-1.5" x-data="{ openWarga: {{ $isDataWarga ? 'true' : 'false' }} }">
+                
+                {{-- Dropdown Toggle --}}
+                <button @click="openWarga = !openWarga" class="w-full group flex items-center justify-between px-4 py-3.5 rounded-2xl text-[13.5px] transition-all duration-300 {{ $isDataWarga ? 'bg-indigo-50 text-indigo-700 font-bold' : $menuPasif }}">
+                    <div class="flex items-center gap-4">
+                        <div class="w-5 flex justify-center"><i class="fas fa-users-viewfinder text-[18px] {{ $isDataWarga ? 'text-indigo-600' : $iconPasif }} transition-transform duration-300 group-hover:scale-110"></i></div>
+                        <span class="transition-transform duration-300 {{ !$isDataWarga ? 'group-hover:translate-x-1' : '' }}">Database Warga</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-[11px] transition-transform duration-300" :class="openWarga ? 'rotate-180 text-indigo-600' : 'text-slate-400'"></i>
+                </button>
+                
+                {{-- Submenu Warga --}}
+                <div x-show="openWarga" x-collapse class="overflow-hidden">
+                    <div class="pl-[52px] pr-2 py-2 space-y-1 relative before:absolute before:left-[31px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100 before:rounded-full">
+                        @foreach([
+                            ['route' => 'kader.data.balita.index', 'label' => 'Bayi & Balita', 'active' => Str::startsWith($route, 'kader.data.balita')],
+                            ['route' => 'kader.data.ibu-hamil.index', 'label' => 'Ibu Hamil', 'active' => Str::startsWith($route, 'kader.data.ibu-hamil')],
+                            ['route' => 'kader.data.remaja.index', 'label' => 'Remaja', 'active' => Str::startsWith($route, 'kader.data.remaja')],
+                            ['route' => 'kader.data.lansia.index', 'label' => 'Lansia', 'active' => Str::startsWith($route, 'kader.data.lansia')],
+                        ] as $item)
+                            <a href="{{ route($item['route']) }}" class="spa-route group/sub block px-4 py-2.5 text-[12.5px] rounded-xl transition-all relative before:absolute before:left-[calc(-25px)] before:top-1/2 before:-translate-y-1/2 before:w-[6px] before:h-[6px] before:rounded-full before:transition-all {{ $item['active'] ? 'font-bold text-indigo-700 bg-white shadow-sm border border-slate-100 before:bg-indigo-600 before:ring-4 before:ring-indigo-100/50' : 'font-semibold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 before:bg-slate-200 hover:before:bg-indigo-300' }}">
+                                <span class="inline-block transition-transform duration-300 {{ !$item['active'] ? 'group-hover/sub:translate-x-1' : '' }}">{{ $item['label'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <a href="{{ route('kader.absensi.index') }}" class="spa-route group flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[13.5px] transition-all duration-300 {{ $isAbsensi ? $menuAktif : $menuPasif }}">
+                    <div class="w-5 flex justify-center"><i class="fas fa-clipboard-check text-[18px] {{ $isAbsensi ? $iconAktif : $iconPasif }} transition-transform duration-300 group-hover:scale-110"></i></div>
+                    <span class="transition-transform duration-300 {{ !$isAbsensi ? 'group-hover:translate-x-1' : '' }}">Registrasi Kehadiran</span>
                 </a>
             </div>
         </div>
 
-        {{-- BLOK 2: Kesehatan Keluarga (Muncul Dinamis Berdasarkan NIK) --}}
-        @if($isOrangTua || $isRemaja || $isLansia)
-            <div>
-                <p class="px-3 text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-3">Kesehatan Keluarga</p>
-                <div class="space-y-1.5">
-                    
-                    @if($isOrangTua)
-                        <a href="{{ route('user.balita.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.balita.*') }}">
-                            <div class="w-5 flex justify-center"><i class="fas fa-baby text-[16px] {{ user_nav_icon('user.balita.*') }}"></i></div>
-                            <span class="text-[13.5px]">KMS Anak & Balita</span>
-                        </a>
-                        <a href="{{ route('user.imunisasi.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.imunisasi.*') }}">
-                            <div class="w-5 flex justify-center"><i class="fas fa-shield-virus text-[16px] {{ user_nav_icon('user.imunisasi.*') }}"></i></div>
-                            <span class="text-[13.5px]">Riwayat Imunisasi</span>
-                        </a>
-                    @endif
-                    
-                    @if($isRemaja)
-                        <a href="{{ route('user.remaja.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.remaja.*') }}">
-                            <div class="w-5 flex justify-center"><i class="fas fa-user-graduate text-[16px] {{ user_nav_icon('user.remaja.*') }}"></i></div>
-                            <span class="text-[13.5px]">Kesehatan Remaja</span>
-                        </a>
-                        <a href="{{ route('user.konseling.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.konseling.*') }}">
-                            <div class="w-5 flex justify-center"><i class="fas fa-comments-medical text-[16px] {{ user_nav_icon('user.konseling.*') }}"></i></div>
-                            <span class="text-[13.5px]">Ruang Konsultasi</span>
-                        </a>
-                    @endif
-                    
-                    @if($isLansia)
-                        <a href="{{ route('user.lansia.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.lansia.*') }}">
-                            <div class="w-5 flex justify-center"><i class="fas fa-wheelchair text-[16px] {{ user_nav_icon('user.lansia.*') }}"></i></div>
-                            <span class="text-[13.5px]">Pemantauan Lansia</span>
-                        </a>
-                    @endif
-
-                </div>
-            </div>
-        @else
-            {{-- BLOK PERINGATAN: Jika warga belum sync NIK dengan Database Posyandu --}}
-            <div class="mx-4 mt-2 mb-4 p-5 bg-gradient-to-br from-rose-50 to-orange-50 border border-rose-100 rounded-[20px] shadow-sm relative overflow-hidden">
-                <i class="fas fa-id-card-clip absolute -right-3 -bottom-3 text-5xl text-rose-500/10"></i>
-                <div class="flex items-center gap-2 mb-3 relative z-10">
-                    <div class="w-6 h-6 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-xs"><i class="fas fa-lock"></i></div>
-                    <h4 class="text-[11px] font-black text-rose-700 uppercase tracking-widest">Akses Terkunci</h4>
-                </div>
-                <p class="text-[11px] font-medium text-rose-600/90 leading-relaxed mb-4 relative z-10">Rekam medis (KMS/Imunisasi) akan otomatis terbuka setelah NIK Anda sinkron dengan database Posyandu.</p>
-                <a href="{{ route('user.profile.edit') }}" class="block w-full text-center py-2.5 bg-rose-500 text-white text-[11px] font-bold rounded-xl hover:bg-rose-600 transition-colors shadow-sm relative z-10">
-                    Lengkapi NIK Sekarang
-                </a>
-            </div>
-        @endif
-
-        {{-- BLOK 3: Pengaturan Akun --}}
         <div>
-            <p class="px-3 text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-3 mt-2">Personal</p>
+            <p class="px-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 font-poppins">Tugas Lapangan</p>
             <div class="space-y-1.5">
-                <a href="{{ route('user.riwayat.index') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.riwayat.*') }}">
-                    <div class="w-5 flex justify-center"><i class="fas fa-notes-medical text-[16px] {{ user_nav_icon('user.riwayat.*') }}"></i></div>
-                    <span class="text-[13.5px]">Buku Rekam Medis</span>
+                <a href="{{ route('kader.pemeriksaan.index') }}" class="spa-route group flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[13.5px] transition-all duration-300 {{ Str::startsWith($route, 'kader.pemeriksaan') ? $menuAktif : $menuPasif }}">
+                    <div class="w-5 flex justify-center"><i class="fas fa-stethoscope text-[18px] {{ Str::startsWith($route, 'kader.pemeriksaan') ? $iconAktif : $iconPasif }} transition-transform duration-300 group-hover:scale-110"></i></div>
+                    <span class="transition-transform duration-300 {{ !Str::startsWith($route, 'kader.pemeriksaan') ? 'group-hover:translate-x-1' : '' }}">Pemeriksaan Fisik</span>
                 </a>
-                <a href="{{ route('user.profile.edit') }}" class="group flex items-center gap-3.5 px-4 py-3 {{ user_nav_active('user.profile.*') }}">
-                    <div class="w-5 flex justify-center"><i class="fas fa-user-cog text-[16px] {{ user_nav_icon('user.profile.*') }}"></i></div>
-                    <span class="text-[13.5px]">Data Profil Warga</span>
+                <a href="{{ route('kader.imunisasi.index') }}" class="spa-route group flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[13.5px] transition-all duration-300 {{ Str::startsWith($route, 'kader.imunisasi') ? $menuAktif : $menuPasif }}">
+                    <div class="w-5 flex justify-center"><i class="fas fa-syringe text-[18px] {{ Str::startsWith($route, 'kader.imunisasi') ? $iconAktif : $iconPasif }} transition-transform duration-300 group-hover:scale-110"></i></div>
+                    <span class="transition-transform duration-300 {{ !Str::startsWith($route, 'kader.imunisasi') ? 'group-hover:translate-x-1' : '' }}">Catatan Imunisasi</span>
                 </a>
             </div>
         </div>
 
+        <div>
+            <p class="px-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 font-poppins">Manajemen & Pelaporan</p>
+            <div class="space-y-1.5">
+                <a href="{{ route('kader.jadwal.index') }}" class="spa-route group flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[13.5px] transition-all duration-300 {{ Str::startsWith($route, 'kader.jadwal') ? $menuAktif : $menuPasif }}">
+                    <div class="w-5 flex justify-center"><i class="fas fa-calendar-day text-[18px] {{ Str::startsWith($route, 'kader.jadwal') ? $iconAktif : $iconPasif }} transition-transform duration-300 group-hover:scale-110"></i></div>
+                    <span class="transition-transform duration-300 {{ !Str::startsWith($route, 'kader.jadwal') ? 'group-hover:translate-x-1' : '' }}">Jadwal Kegiatan</span>
+                </a>
+                <a href="{{ route('kader.laporan.index') }}" class="spa-route group flex items-center gap-4 px-4 py-3.5 rounded-2xl text-[13.5px] transition-all duration-300 {{ Str::startsWith($route, 'kader.laporan') ? $menuAktif : $menuPasif }}">
+                    <div class="w-5 flex justify-center"><i class="fas fa-file-invoice text-[18px] {{ Str::startsWith($route, 'kader.laporan') ? $iconAktif : $iconPasif }} transition-transform duration-300 group-hover:scale-110"></i></div>
+                    <span class="transition-transform duration-300 {{ !Str::startsWith($route, 'kader.laporan') ? 'group-hover:translate-x-1' : '' }}">Laporan SIP</span>
+                </a>
+            </div>
+        </div>
     </nav>
     
-    {{-- 4. TOMBOL LOGOUT --}}
-    <div class="p-5 border-t border-slate-50 shrink-0 bg-slate-50/50">
-        <form action="{{ route('logout') }}" method="POST" class="m-0 p-0">
-            @csrf
-            <button type="submit" onclick="showGlobalLoader()" class="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 bg-white border border-slate-200 rounded-[14px] text-rose-500 font-bold hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all shadow-sm">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="text-[13px]">Keluar Aplikasi</span>
-            </button>
-        </form>
+    {{-- Versioning Indicator --}}
+    <div class="p-5 bg-white border-t border-slate-50 flex justify-center items-center">
+        <div class="px-4 py-1.5 rounded-full bg-slate-50 border border-slate-100 flex items-center gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+            <p class="text-[10px] font-bold text-slate-400 tracking-wider">Sistem Online</p>
+        </div>
     </div>
-</div>
+</aside>
