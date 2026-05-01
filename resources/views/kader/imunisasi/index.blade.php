@@ -3,202 +3,221 @@
 @section('page-name', 'Log Vaksinasi Warga')
 
 @push('styles')
-<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
-    /* ANIMASI MASUK KILAT (Lebih Cepat & Snappy) */
-    .fade-in-up { animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-    .stagger-1 { animation-delay: 0.05s; } .stagger-2 { animation-delay: 0.1s; } .stagger-3 { animation-delay: 0.15s; }
-
-    /* INPUT PENCARIAN */
-    .glass-search {
-        width: 100%; background-color: #f8fafc; border: 2px solid transparent; color: #1e293b;
-        font-size: 0.85rem; font-weight: 600; border-radius: 9999px; padding: 0.8rem 1.5rem 0.8rem 3rem;
-        outline: none; transition: all 0.2s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .glass-search:focus { background-color: #ffffff; border-color: #818cf8; box-shadow: 0 4px 20px -3px rgba(99, 102, 241, 0.15); }
-
-    /* TABEL DALAM KONTENER */
-    .table-canvas {
-        background: #ffffff; border: 1px solid #f1f5f9; border-radius: 32px;
-        box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.05); padding: 1.5rem;
-    }
-    .modern-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-    .modern-table th {
-        color: #94a3b8; font-size: 0.65rem; font-weight: 900; text-transform: uppercase;
-        letter-spacing: 0.05em; padding: 0.5rem 1.5rem 1rem 1.5rem; text-align: left; border-bottom: 2px solid #f8fafc;
-    }
+    /* =================================================================
+       NEXUS SAAS DESIGN SYSTEM (DASHBOARD EDITION)
+       ================================================================= */
     
-    /* BARIS DATA */
-    .data-row {
-        background-color: #ffffff; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 20px; box-shadow: 0 2px 10px -2px rgba(0,0,0,0.02); border: 1px solid #f8fafc;
+    /* Animasi Masuk Beruntun */
+    .animate-fade-in { opacity: 0; animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .delay-100 { animation-delay: 0.1s; } .delay-200 { animation-delay: 0.15s; } .delay-300 { animation-delay: 0.2s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Kartu Widget Analitik (Depth & Precision) */
+    .stat-card {
+        background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 1.5rem;
+        box-shadow: 0 4px 20px -10px rgba(15, 23, 42, 0.03); transition: all 0.3s ease;
+        display: flex; align-items: center; gap: 1.25rem; position: relative; overflow: hidden;
     }
-    .data-row td { padding: 1rem 1.5rem; vertical-align: middle; }
-    .data-row td:first-child { border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-left: 4px solid transparent; transition: border-color 0.2s ease; }
-    .data-row td:last-child { border-top-right-radius: 20px; border-bottom-right-radius: 20px; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px -10px rgba(15, 23, 42, 0.06); border-color: #cbd5e1; }
     
-    .data-row:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15); border-color: transparent; }
-    .data-row:hover td:first-child { border-left-color: #6366f1; }
+    /* Filter Tabs (Segmented Control ala iOS) */
+    .segment-control { display: flex; background: #f1f5f9; padding: 0.35rem; border-radius: 16px; gap: 0.25rem; overflow-x: auto; scrollbar-width: none; }
+    .segment-btn {
+        flex: 1; min-width: 130px; text-align: center; padding: 0.65rem 1rem; border-radius: 12px; 
+        font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; 
+        cursor: pointer; transition: all 0.2s ease; border: 1px solid transparent; white-space: nowrap;
+    }
+    .segment-btn:hover { color: #334155; background: #e2e8f0; }
+    .segment-btn.active { background: #ffffff; color: #4f46e5; border-color: #e2e8f0; box-shadow: 0 2px 8px rgba(15,23,42,0.04); }
 
-    .pill-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 9999px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; }
+    /* Input Pencarian Kapsul */
+    .nexus-search {
+        width: 100%; background-color: #ffffff; border: 1px solid #cbd5e1; color: #1e293b;
+        font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 500;
+        border-radius: 9999px; padding: 0.75rem 1.5rem 0.75rem 2.75rem; outline: none; transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .nexus-search:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
 
-    /* LOADING AJAX SUPER CEPAT (Tanpa Blur Berat) */
-    #mainContentArea { transition: opacity 0.15s ease-out; }
-    .fast-loading { opacity: 0.5; pointer-events: none; }
+    /* Tabel Nexus Seamless */
+    .nexus-table-container { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 28px; box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.04); overflow: hidden; }
+    .nexus-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .nexus-table th { background: #fcfcfd; color: #64748b; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
+    .nexus-table td { padding: 1.25rem 1.5rem; vertical-align: middle; border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s; }
+    .nexus-table tr:last-child td { border-bottom: none; }
+    .nexus-table tr:hover td { background-color: #f8fafc; }
 
-    /* ANIMASI SVG EMPTY STATE (Murni CSS, Bebas Localhost Error) */
-    @keyframes hoverShield { 0%, 100% { transform: translateY(0); filter: drop-shadow(0 10px 15px rgba(99,102,241,0.2)); } 50% { transform: translateY(-10px); filter: drop-shadow(0 20px 25px rgba(99,102,241,0.4)); } }
-    @keyframes pulseRing { 0% { transform: scale(0.7); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
-    .svg-shield { animation: hoverShield 3s ease-in-out infinite; }
-    .svg-ring { animation: pulseRing 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; border: 2px solid #818cf8; border-radius: 50%; position: absolute; inset: 0; margin: auto; }
+    /* Kapsul Dinamis */
+    .pill-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid transparent; }
+
+    /* AJAX Loader Mulus */
+    #mainContentArea { transition: opacity 0.3s ease, transform 0.3s ease; }
+    .is-loading { opacity: 0.4; transform: scale(0.995); pointer-events: none; }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-[1350px] mx-auto fade-in-up pb-12 relative z-10">
+<div class="max-w-[1250px] mx-auto animate-fade-in pb-20 relative z-10 mt-2">
 
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-96 bg-gradient-to-b from-indigo-50/80 to-transparent rounded-full blur-3xl pointer-events-none z-0"></div>
+    {{-- AURA BACKGROUND (Eksklusif & Lembut) --}}
+    <div class="fixed top-0 right-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+    <div class="fixed bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
-    {{-- 1. HEADER (KARTU KACA MELENGKUNG) --}}
-    <div class="bg-white/80 backdrop-blur-xl rounded-[36px] border border-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] p-8 mb-8 relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-6 z-10">
+    {{-- ==========================================================
+         1. HEADER & DASHBOARD ANALYTICS (WIDGETS)
+         ========================================================== --}}
+    <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-8">
         
-        <div class="absolute -left-12 -top-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl"></div>
-        <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-rose-500/10 rounded-full blur-2xl"></div>
-
-        <div class="flex items-center gap-5 relative z-10 w-full md:w-auto">
-            <div class="w-16 h-16 rounded-[20px] bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-2xl shadow-[0_8px_20px_rgba(99,102,241,0.3)] shrink-0 transform -rotate-3">
-                <i class="fas fa-syringe"></i>
+        {{-- Judul Halaman --}}
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-rose-50 text-rose-600 border border-rose-100 rounded-md mb-3 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                <span class="text-[9px] font-bold uppercase tracking-widest">Wewenang Bidan (Read-Only)</span>
             </div>
-            <div>
-                <h1 class="text-3xl font-black text-slate-800 tracking-tight font-poppins mb-1">Log Imunisasi Warga</h1>
-                <p class="text-slate-500 font-medium text-[13px]">Fokus Program: Imunisasi Dasar Balita & Vaksin Tetanus (TT) Ibu Hamil.</p>
-            </div>
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight font-poppins mb-1.5">Cakupan Imunisasi</h1>
+            <p class="text-slate-500 font-medium text-[13px]">Monitoring pelaksanaan imunisasi dasar balita dan tetanus ibu hamil.</p>
         </div>
-        
-        <div class="relative z-10 shrink-0 w-full md:w-auto text-left md:text-right">
-            <div class="inline-flex items-center gap-2 bg-rose-50 border border-rose-100 text-rose-600 px-5 py-2.5 rounded-full shadow-sm mb-1.5">
-                <div class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
-                <span class="text-[10px] font-black uppercase tracking-widest">Wewenang Bidan (Meja 5)</span>
+
+        {{-- Widget Statistik (Didorong dari Scopes Controller) --}}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full xl:w-auto shrink-0 animate-fade-in delay-100">
+            <div class="stat-card">
+                <div class="w-12 h-12 rounded-[14px] bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl border border-indigo-100 shrink-0"><i class="fas fa-syringe"></i></div>
+                <div>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Total Bulan Ini</p>
+                    <p class="text-2xl font-bold text-slate-800 font-poppins leading-none">{{ $statBulanIni ?? 0 }} <span class="text-xs font-semibold text-slate-400 normal-case ml-1">Dosis</span></p>
+                </div>
             </div>
-            <p class="text-[10px] font-bold text-slate-400 block ml-2 md:ml-0">Akses Input Eksklusif</p>
+            <div class="stat-card">
+                <div class="w-12 h-12 rounded-[14px] bg-sky-50 text-sky-600 flex items-center justify-center text-xl border border-sky-100 shrink-0"><i class="fas fa-baby"></i></div>
+                <div>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Cakupan Balita</p>
+                    <p class="text-2xl font-bold text-slate-800 font-poppins leading-none">{{ $statBalita ?? 0 }} <span class="text-xs font-semibold text-slate-400 normal-case ml-1">Anak</span></p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="w-12 h-12 rounded-[14px] bg-pink-50 text-pink-600 flex items-center justify-center text-xl border border-pink-100 shrink-0"><i class="fas fa-female"></i></div>
+                <div>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Vaksin TT Bumil</p>
+                    <p class="text-2xl font-bold text-slate-800 font-poppins leading-none">{{ $statBumil ?? 0 }} <span class="text-xs font-semibold text-slate-400 normal-case ml-1">Ibu</span></p>
+                </div>
+            </div>
         </div>
     </div>
 
-    {{-- 2. KENDALI PENCARIAN & TAB --}}
-    <div class="mb-6 relative z-20">
-        <form id="filterForm" action="{{ route('kader.imunisasi.index') }}" method="GET" class="flex flex-col lg:flex-row items-center justify-between gap-5">
-            
+    {{-- ==========================================================
+         2. KENDALI PENCARIAN & FILTER (NEXUS SAAS)
+         ========================================================== --}}
+    <div class="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-[20px] p-4 shadow-sm mb-6 flex flex-col md:flex-row items-center justify-between gap-5 relative z-20 animate-fade-in delay-200">
+        
+        <form id="filterForm" action="{{ route('kader.imunisasi.index') }}" method="GET" class="w-full flex flex-col md:flex-row items-center justify-between gap-5">
             <input type="hidden" name="kategori" id="hiddenKategori" value="{{ request('kategori', 'semua') }}">
-            <input type="hidden" name="search" id="hiddenSearch" value="{{ request('search') }}">
-
-            <div class="flex gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0" style="scrollbar-width: none;">
-                @foreach([
-                    'semua'     => ['label' => 'Semua Program', 'icon' => 'fa-border-all'],
-                    'balita'    => ['label' => 'Imunisasi Balita', 'icon' => 'fa-baby'],
-                    'ibu_hamil' => ['label' => 'Vaksin TT (Bumil)', 'icon' => 'fa-female']
-                ] as $val => $data)
-                    @php $isActive = request('kategori', 'semua') === $val; @endphp
-                    <button type="button" data-kategori="{{ $val }}" class="tab-btn px-6 py-3.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-200 whitespace-nowrap {{ $isActive ? 'bg-indigo-600 text-white shadow-[0_8px_20px_rgba(99,102,241,0.3)] transform scale-105' : 'bg-white text-slate-500 hover:bg-slate-50 hover:text-indigo-600 shadow-sm border border-slate-100' }}">
-                        <i class="fas {{ $data['icon'] }} mr-2 {{ $isActive ? 'text-indigo-200' : 'text-slate-400' }}"></i> {{ $data['label'] }}
-                    </button>
-                @endforeach
-            </div>
-
-            <div class="relative w-full lg:w-[450px] group flex items-center">
-                <div class="absolute inset-0 bg-indigo-500/5 rounded-full blur-md opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-                <i class="fas fa-search absolute left-6 text-slate-400 text-sm group-focus-within:text-indigo-500 transition-colors z-10"></i>
-                <input type="text" id="liveSearchInput" value="{{ request('search') }}" placeholder="Ketik nama balita, ibu, atau vaksin..." class="glass-search relative z-0" autocomplete="off">
-                <div id="searchSpinner" class="absolute right-6 hidden z-10">
-                    <i class="fas fa-circle-notch fa-spin text-indigo-500"></i>
+            
+            {{-- Segmented Tabs --}}
+            <div class="segment-control w-full md:w-auto">
+                @php $reqKat = request('kategori', 'semua'); @endphp
+                <div class="segment-btn {{ $reqKat === 'semua' ? 'active' : '' }}" data-kategori="semua">
+                    <i class="fas fa-border-all mr-1.5 opacity-70"></i> Semua Program
+                </div>
+                <div class="segment-btn {{ $reqKat === 'balita' ? 'active' : '' }}" data-kategori="balita">
+                    <i class="fas fa-baby mr-1.5 opacity-70 text-sky-500"></i> Imunisasi Balita
+                </div>
+                <div class="segment-btn {{ $reqKat === 'ibu_hamil' ? 'active' : '' }}" data-kategori="ibu_hamil">
+                    <i class="fas fa-shield-virus mr-1.5 opacity-70 text-pink-500"></i> Vaksin TT Bumil
                 </div>
             </div>
-            
+
+            {{-- Live Search Kapsul --}}
+            <div class="relative w-full md:w-[350px]">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[0.8rem]"></i>
+                <input type="text" name="search" id="liveSearchInput" value="{{ request('search') }}" placeholder="Cari nama warga, NIK, atau jenis vaksin..." class="nexus-search" autocomplete="off">
+                <div id="searchSpinner" class="absolute right-4 top-1/2 -translate-y-1/2 hidden text-indigo-500">
+                    <i class="fas fa-circle-notch fa-spin"></i>
+                </div>
+            </div>
         </form>
     </div>
 
-    {{-- 3. AREA TABEL / EMPTY STATE (DYNAMIC) --}}
-    <div id="mainContentArea" class="relative z-10">
+    {{-- ==========================================================
+         3. KANVAS TABEL / EMPTY STATE (DYNAMIC AREA)
+         ========================================================== --}}
+    <div id="mainContentArea" class="animate-fade-in delay-300">
         
         @if(isset($imunisasis) && $imunisasis->count() > 0)
-            {{-- DATA TERSEDIA: TAMPILKAN TABEL FULL --}}
-            <div class="table-canvas">
-                <div class="overflow-x-auto" style="scrollbar-width: thin; min-h: 300px;">
-                    <table class="modern-table min-w-[1000px]">
+            <div class="nexus-table-container flex flex-col min-h-[400px]">
+                <div class="overflow-x-auto overflow-y-auto custom-scroll flex-1 max-h-[650px]">
+                    <table class="nexus-table min-w-[1050px]">
                         <thead>
                             <tr>
-                                <th class="w-56 pl-8">Tanggal Pelaksanaan</th>
-                                <th class="w-80">Identitas Penerima</th>
-                                <th>Detail Imunisasi</th>
-                                <th class="w-40 text-center">Tenaga Medis</th>
-                                <th class="w-32 text-center pr-8">Aksi</th>
+                                <th class="w-48 pl-6 text-center">Waktu Eksekusi</th>
+                                <th class="w-72">Identitas Penerima</th>
+                                <th>Detail Vaksinasi</th>
+                                <th class="w-56">Otoritas Medis</th>
+                                <th class="w-24 text-center pr-6">Arsip</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($imunisasis as $index => $imun)
+                            @foreach($imunisasis as $imun)
                             @php
-                                $staggerClass = 'stagger-' . (($index % 5) + 1);
-                                $tipePasienRaw = class_basename($imun->kunjungan?->pasien_type);
-                                $tipeLengkap = $tipePasienRaw === 'IbuHamil' ? 'Ibu Hamil (TT)' : 'Balita Dasar';
-                                $badgeColor = $tipePasienRaw === 'IbuHamil' ? 'pink' : 'sky';
+                                // Mengambil properti virtual cerdas dari Model Imunisasi
+                                $nama = $imun->nama_penerima;
+                                $nik = $imun->nik_penerima;
+                                $kategori = $imun->kategori_sasaran; // "Balita", "Ibu Hamil", dll
+                                $badgeColor = $imun->kategori_vaksin_badge; // "sky", "pink", "indigo"
+                                
+                                // Ikon dinamis berdasarkan warna badge
+                                $icon = match($badgeColor) { 'sky' => 'fa-baby', 'pink' => 'fa-female', default => 'fa-syringe' };
                             @endphp
                             
-                            <tr class="data-row fade-in-up {{ $staggerClass }}">
-                                
+                            <tr>
                                 {{-- 1. WAKTU --}}
-                                <td class="pl-8">
-                                    <div class="flex items-center gap-4">
-                                        <div class="flex flex-col items-center justify-center w-11 h-11 bg-slate-50 rounded-[14px] text-slate-700 shrink-0 border border-slate-100">
-                                            <span class="text-[8px] font-black uppercase leading-none mb-1 text-slate-400">{{ \Carbon\Carbon::parse($imun->tanggal_imunisasi)->translatedFormat('M') }}</span>
-                                            <span class="text-[16px] font-black leading-none font-poppins">{{ \Carbon\Carbon::parse($imun->tanggal_imunisasi)->format('d') }}</span>
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <span class="text-[13px] font-black text-slate-800">{{ \Carbon\Carbon::parse($imun->tanggal_imunisasi)->format('Y') }}</span>
-                                            <span class="text-[10px] font-bold text-slate-400 mt-0.5"><i class="far fa-clock"></i> {{ $imun->created_at->format('H:i') }} WIB</span>
-                                        </div>
-                                    </div>
+                                <td class="pl-6 text-center border-r border-slate-50">
+                                    <span class="block text-[13px] font-bold text-slate-800">{{ $imun->tanggal_imunisasi->format('d M Y') }}</span>
+                                    <span class="block text-[10px] font-medium text-slate-500 mt-1"><i class="far fa-clock"></i> {{ $imun->created_at->format('H:i') }} WIB</span>
                                 </td>
 
                                 {{-- 2. IDENTITAS --}}
                                 <td>
-                                    <div class="flex flex-col gap-1.5 items-start">
-                                        <span class="text-[14px] font-black text-slate-800 font-poppins truncate max-w-[240px]" title="{{ $imun->kunjungan?->pasien?->nama_lengkap }}">{{ $imun->kunjungan?->pasien?->nama_lengkap ?? 'Data Terhapus' }}</span>
-                                        <span class="pill-badge bg-{{ $badgeColor }}-50 text-{{ $badgeColor }}-600 border border-{{ $badgeColor }}-100">
-                                            <i class="fas fa-tag"></i> {{ $tipeLengkap }}
-                                        </span>
+                                    <h4 class="text-[13px] font-semibold text-slate-800 truncate mb-1" title="{{ $nama }}">{{ $nama }}</h4>
+                                    <div class="flex items-center gap-1.5">
+                                        <i class="far fa-address-card text-slate-300 text-[10px]"></i>
+                                        <span class="text-[11px] font-mono text-slate-500 tracking-wide">{{ $nik }}</span>
                                     </div>
                                 </td>
 
-                                {{-- 3. DETAIL VAKSIN --}}
+                                {{-- 3. DETAIL VAKSIN (Dengan Smart Badging dari Model) --}}
                                 <td>
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0 border border-indigo-100">
-                                            <i class="fas fa-syringe text-xs"></i>
+                                    <div class="flex items-center gap-3.5">
+                                        <div class="w-10 h-10 rounded-xl bg-{{ $badgeColor }}-50 text-{{ $badgeColor }}-600 flex items-center justify-center text-sm border border-{{ $badgeColor }}-100 shrink-0 shadow-sm">
+                                            <i class="fas {{ $icon }}"></i>
                                         </div>
-                                        <div class="flex flex-col gap-1">
-                                            <span class="text-[13px] font-black text-slate-800">{{ $imun->vaksin }}</span>
-                                            <div class="flex items-center gap-1.5">
-                                                <span class="pill-badge bg-indigo-600 text-white shadow-sm">Dosis {{ $imun->dosis }}</span>
-                                                <span class="pill-badge bg-slate-50 text-slate-500 border border-slate-200">{{ $imun->jenis_imunisasi }}</span>
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <h4 class="text-[14px] font-bold text-slate-800">{{ $imun->vaksin }}</h4>
+                                                <span class="text-[9px] font-bold text-{{ $badgeColor }}-700 bg-{{ $badgeColor }}-100 border border-{{ $badgeColor }}-200 px-2 py-0.5 rounded uppercase tracking-widest shadow-sm">Dosis {{ $imun->dosis }}</span>
                                             </div>
+                                            <p class="text-[11px] font-medium text-slate-500">{{ $imun->jenis_imunisasi }} &bull; Kategori: <span class="font-semibold">{{ $kategori }}</span></p>
                                         </div>
                                     </div>
                                 </td>
 
                                 {{-- 4. OTORITAS --}}
-                                <td class="text-center">
-                                    <div class="flex flex-col items-center justify-center">
-                                        <div class="w-7 h-7 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 text-[10px] font-black mb-1.5">
+                                <td>
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 text-[10px] font-bold shrink-0">
                                             {{ strtoupper(substr($imun->kunjungan?->petugas?->name ?? 'B', 0, 1)) }}
                                         </div>
-                                        <span class="text-[10px] font-bold text-slate-600 truncate max-w-[120px]">{{ $imun->kunjungan?->petugas?->name ?? 'Bidan Desa' }}</span>
+                                        <div class="min-w-0">
+                                            <p class="text-[12px] font-semibold text-slate-700 truncate">{{ $imun->kunjungan?->petugas?->name ?? 'Bidan Desa' }}</p>
+                                            <p class="text-[9px] font-medium text-slate-400 uppercase tracking-widest truncate mt-0.5">{{ $imun->penyelenggara }}</p>
+                                        </div>
                                     </div>
                                 </td>
 
-                                {{-- 5. AKSI (SEBELUMNYA SERTIFIKAT) --}}
-                                <td class="text-center pr-8">
-                                    <a href="{{ route('kader.imunisasi.show', $imun->id) }}" class="inline-flex w-9 h-9 rounded-full bg-slate-50 border border-slate-200 items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-sm transition-all hover:scale-110" title="Detail Arsip">
-                                        <i class="fas fa-file-invoice text-sm"></i>
+                                {{-- 5. AKSI (READ ONLY) --}}
+                                <td class="text-center pr-6">
+                                    <a href="{{ route('kader.imunisasi.show', $imun->id) }}" class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-slate-200 text-indigo-500 hover:text-white hover:bg-indigo-600 hover:border-indigo-600 transition-colors shadow-sm" title="Lihat Sertifikat Vaksin">
+                                        <i class="fas fa-file-medical text-[13px]"></i>
                                     </a>
                                 </td>
                             </tr>
@@ -206,34 +225,28 @@
                         </tbody>
                     </table>
                 </div>
-                
-                @if($imunisasis->hasPages())
-                <div id="paginationArea" class="mt-4 flex justify-center pt-4 border-t border-slate-100">
-                    {{ $imunisasis->links() }}
-                </div>
-                @endif
             </div>
+
+            {{-- Paginasi --}}
+            @if($imunisasis->hasPages())
+            <div id="paginationArea" class="mt-6 flex justify-end">
+                {{ $imunisasis->links() }}
+            </div>
+            @endif
 
         @else
-            {{-- DATA KOSONG: TABEL & HEADER MUSNAH, HANYA TAMPIL ANIMASI --}}
-            <div class="table-canvas flex flex-col items-center justify-center p-12 lg:p-24 fade-in-up">
-                <div class="relative w-36 h-36 mb-6 flex items-center justify-center">
-                    <div class="absolute inset-0 bg-indigo-100 rounded-full blur-2xl opacity-60"></div>
-                    
-                    {{-- Gelombang Radar --}}
-                    <div class="svg-ring w-24 h-24"></div>
-                    <div class="svg-ring w-24 h-24" style="animation-delay: 1s;"></div>
-                    
-                    {{-- Logo Tameng Vaksin 3D Murni --}}
-                    <svg class="svg-shield w-20 h-20 text-indigo-500 relative z-10" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1ZM12 11.99H19C18.47 16.11 15.72 19.78 12 20.92V12H5V6.3L12 3.19V11.99Z"></path>
-                    </svg>
+            {{-- EMPTY STATE (Bersih & Elegan) --}}
+            <div class="bg-white/80 backdrop-blur-sm rounded-[28px] border border-slate-200 p-16 md:p-24 text-center shadow-sm">
+                <div class="relative w-24 h-24 mx-auto mb-5 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-indigo-100 rounded-full blur-xl opacity-60"></div>
+                    <div class="w-16 h-16 bg-white rounded-[16px] flex items-center justify-center text-indigo-400 text-2xl border border-indigo-50 shadow-sm relative z-10 transform -rotate-3">
+                        <i class="fas fa-shield-virus"></i>
+                    </div>
                 </div>
-                <h4 class="text-[18px] font-black text-slate-800 uppercase tracking-widest mb-2 font-poppins">Pencarian Kosong</h4>
-                <p class="text-[13px] text-slate-500 font-medium leading-relaxed max-w-sm text-center">Sistem telah memindai data rekam medis, namun tidak ada riwayat imunisasi yang cocok dengan pencarian Anda saat ini.</p>
+                <h4 class="text-[15px] font-bold text-slate-800 uppercase tracking-widest mb-2 font-poppins">Riwayat Kosong</h4>
+                <p class="text-[13px] text-slate-500 font-medium max-w-md mx-auto leading-relaxed">Sistem tidak menemukan arsip imunisasi yang cocok dengan filter atau kata pencarian Anda.</p>
             </div>
         @endif
-
     </div>
 </div>
 
@@ -248,12 +261,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const hiddenSearch = document.getElementById('hiddenSearch');
     const hiddenKategori = document.getElementById('hiddenKategori');
 
-    // ENGINE AJAX SUPER CEPAT
+    // ENGINE AJAX SUPER MULUS
     async function fetchRealTimeData(url, isSearch = false) {
         if(isSearch) spinner.classList.remove('hidden');
-        
-        // Transisi Opasitas Instan (Tanpa Blur yang Bikin Lemot)
-        contentArea.classList.add('fast-loading');
+        contentArea.classList.add('is-loading');
         
         try {
             const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
@@ -265,44 +276,34 @@ document.addEventListener('DOMContentLoaded', function() {
             window.history.pushState({}, '', url);
             bindPagination();
         } catch (error) {
-            console.error("Gagal memuat data:", error);
+            console.error("Gagal memuat data EHR:", error);
         } finally {
             spinner.classList.add('hidden');
-            contentArea.classList.remove('fast-loading');
+            contentArea.classList.remove('is-loading');
         }
     }
 
-    // PENCARIAN KETIK (DEBOUNCE KILAT: 200ms)
+    // PENCARIAN KETIK (DEBOUNCE)
     if(searchInput) {
         searchInput.addEventListener('input', function(e) {
             clearTimeout(typingTimer);
             hiddenSearch.value = e.target.value;
-            
             typingTimer = setTimeout(() => {
                 const url = new URL(form.action);
                 url.searchParams.set('search', e.target.value);
                 url.searchParams.set('kategori', hiddenKategori.value);
                 fetchRealTimeData(url.toString(), true);
-            }, 200); // 200ms memberikan respon yang jauh lebih instan & snappy
+            }, 350); 
         });
     }
 
-    // EVENT KLIK TAB KATEGORI
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    // EVENT KLIK TAB KATEGORI (SEGMENTED CONTROL)
+    document.querySelectorAll('.segment-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.remove('bg-indigo-600', 'text-white', 'shadow-[0_8px_20px_rgba(99,102,241,0.3)]', 'scale-105');
-                b.classList.add('bg-white', 'text-slate-500', 'hover:bg-slate-50', 'hover:text-indigo-600');
-                const icon = b.querySelector('i');
-                if(icon) { icon.classList.remove('text-indigo-200'); icon.classList.add('text-slate-400'); }
-            });
-            
-            this.classList.remove('bg-white', 'text-slate-500', 'hover:bg-slate-50', 'hover:text-indigo-600');
-            this.classList.add('bg-indigo-600', 'text-white', 'shadow-[0_8px_20px_rgba(99,102,241,0.3)]', 'scale-105');
-            const myIcon = this.querySelector('i');
-            if(myIcon) { myIcon.classList.remove('text-slate-400'); myIcon.classList.add('text-indigo-200'); }
+            document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
 
             const kat = this.dataset.kategori;
             hiddenKategori.value = kat;

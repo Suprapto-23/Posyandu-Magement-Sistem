@@ -285,23 +285,24 @@ Route::middleware(['auth', 'role:kader'])->prefix('kader')->name('kader.')->grou
     Route::put('/profile/password', [\App\Http\Controllers\Kader\ProfileController::class, 'updatePassword'])->name('profile.update-password');
 
     // Notifikasi
-    Route::prefix('notifikasi')->name('notifikasi.')->group(function() {
-        Route::get('/', [\App\Http\Controllers\Kader\NotifikasiController::class, 'index'])->name('index');
-        Route::get('/fetch', [\App\Http\Controllers\Kader\NotifikasiController::class, 'fetchRecent'])->name('fetch');
-        Route::post('/mark-all-read', [\App\Http\Controllers\Kader\NotifikasiController::class, 'markAllRead'])->name('markall');
-        Route::post('/{id}/read', [\App\Http\Controllers\Kader\NotifikasiController::class, 'markAsRead'])->name('read');
-    });
+    Route::prefix('notifikasi')->name('notifikasi.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Kader\NotifikasiController::class, 'index'])->name('index');
+    Route::post('/read-all', [App\Http\Controllers\Kader\NotifikasiController::class, 'markAllRead'])->name('markAllRead');
+    Route::post('/{id}/read', [App\Http\Controllers\Kader\NotifikasiController::class, 'markAsRead'])->name('read');
+    Route::delete('/{id}', [App\Http\Controllers\Kader\NotifikasiController::class, 'destroy'])->name('destroy');
+    Route::get('/fetch', [App\Http\Controllers\Kader\NotifikasiController::class, 'fetchRecent'])->name('fetch');
+});
     //absensi:
        // Bagian khusus Absensi di dalam group Kader
-Route::get('absensi', [\App\Http\Controllers\Kader\AbsensiController::class, 'index'])->name('absensi.index');
-Route::post('absensi', [\App\Http\Controllers\Kader\AbsensiController::class, 'store'])->name('absensi.store');
+        Route::get('absensi', [\App\Http\Controllers\Kader\AbsensiController::class, 'index'])->name('absensi.index');
+        Route::post('absensi', [\App\Http\Controllers\Kader\AbsensiController::class, 'store'])->name('absensi.store');
 
-// RUTE BARU: Halaman Berhasil
-Route::get('absensi/berhasil/tersimpan', [\App\Http\Controllers\Kader\AbsensiController::class, 'success'])->name('absensi.success');
+        // RUTE BARU: Halaman Berhasil
+        Route::get('absensi/berhasil/tersimpan', [\App\Http\Controllers\Kader\AbsensiController::class, 'success'])->name('absensi.success');
 
-Route::get('absensi/riwayat', [\App\Http\Controllers\Kader\AbsensiController::class, 'riwayat'])->name('absensi.riwayat');
-Route::get('absensi/{id}', [\App\Http\Controllers\Kader\AbsensiController::class, 'show'])->name('absensi.show');
-Route::delete('absensi/{id}', [\App\Http\Controllers\Kader\AbsensiController::class, 'destroy'])->name('absensi.destroy');   
+        Route::get('absensi/riwayat', [\App\Http\Controllers\Kader\AbsensiController::class, 'riwayat'])->name('absensi.riwayat');
+        Route::get('absensi/{id}', [\App\Http\Controllers\Kader\AbsensiController::class, 'show'])->name('absensi.show');
+        Route::delete('absensi/{id}', [\App\Http\Controllers\Kader\AbsensiController::class, 'destroy'])->name('absensi.destroy');   
         });
 
 // ==================== USER (WARGA) ====================

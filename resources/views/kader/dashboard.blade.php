@@ -4,525 +4,183 @@
 @section('page-name', 'Beranda Utama')
 
 @push('styles')
-{{-- Google Fonts: Outfit (display) + DM Sans (body) --}}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-
 <style>
-/* ============================================================
-   CSS VARIABLES — NEXUS DESIGN SYSTEM
-   ============================================================ */
-:root {
-    --nexus-bg: #f4f6fb;
-    --nexus-card: #ffffff;
-    --nexus-border: rgba(215, 222, 240, 0.7);
-    --nexus-indigo: #4f46e5;
-    --nexus-indigo-light: #eef2ff;
-    --nexus-text-primary: #0f172a;
-    --nexus-text-muted: #64748b;
-    --nexus-radius-xl: 24px;
-    --nexus-radius-lg: 18px;
-    --nexus-shadow-card: 0 2px 20px -4px rgba(15,23,42,0.06), 0 1px 4px -1px rgba(15,23,42,0.04);
-    --nexus-shadow-hover: 0 16px 40px -8px rgba(79,70,229,0.14), 0 4px 12px -2px rgba(15,23,42,0.06);
-    --font-display: 'Outfit', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
-}
+    /* ====================================================================
+       NEXUS ANIMATION & GLASS ENGINE
+       ==================================================================== */
+    .fade-in-up { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; }
+    
+    .nexus-glass-card { 
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); 
+        border: 1px solid rgba(226, 232, 240, 0.8); 
+        box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.05); 
+        border-radius: 28px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nexus-glass-card:hover {
+        transform: translateY(-4px); border-color: rgba(99, 102, 241, 0.3);
+        box-shadow: 0 20px 50px -10px rgba(79, 70, 229, 0.12);
+    }
 
-/* ============================================================
-   BASE RESETS
-   ============================================================ */
-body { font-family: var(--font-body); background: var(--nexus-bg); }
+    /* SCROLLBAR MICRO */
+    .micro-scroll::-webkit-scrollbar { width: 4px; }
+    .micro-scroll::-webkit-scrollbar-track { background: transparent; }
+    .micro-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .micro-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-/* ============================================================
-   ENTRANCE ANIMATIONS
-   ============================================================ */
-@keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(22px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
-@keyframes scaleIn {
-    from { opacity: 0; transform: scale(0.94); }
-    to   { opacity: 1; transform: scale(1); }
-}
-@keyframes numberCount {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
+    /* ====================================================================
+       CSS MASCOT ANIMATION (DIAMANKAN UNTUK MOBILE)
+       ==================================================================== */
+    .mascot-orbit { position: absolute; inset: -8px; border-radius: 50%; border: 2px dashed rgba(255,255,255,0.2); animation: orbitSpin 12s linear infinite; }
+    .mascot-orbit::before { content: '✦'; position: absolute; top: -4px; left: 50%; transform: translateX(-50%); font-size: 12px; color: rgba(255,255,255,0.8); }
+    @keyframes orbitSpin { to { transform: rotate(360deg); } }
+    
+    .mascot-face {
+        background: linear-gradient(145deg, #ffffff 0%, #eef2ff 100%); border-radius: 50%;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.2), inset 0 -4px 20px rgba(79,70,229,0.15);
+        animation: mascotFloat 3.5s ease-in-out infinite; display: flex; align-items: center; justify-content: center;
+    }
+    @keyframes mascotFloat { 0%, 100% { transform: translateY(0px) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
 
-.anim-1 { animation: fadeSlideUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both; }
-.anim-2 { animation: fadeSlideUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both; }
-.anim-3 { animation: fadeSlideUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both; }
-.anim-4 { animation: fadeSlideUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both; }
-
-/* ============================================================
-   NEXUS CARD
-   ============================================================ */
-.nx-card {
-    background: var(--nexus-card);
-    border: 1px solid var(--nexus-border);
-    border-radius: var(--nexus-radius-xl);
-    box-shadow: var(--nexus-shadow-card);
-    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
-    font-family: var(--font-body);
-}
-.nx-card:hover {
-    box-shadow: var(--nexus-shadow-hover);
-    border-color: rgba(79, 70, 229, 0.2);
-    transform: translateY(-3px);
-}
-
-/* ============================================================
-   HERO SECTION
-   ============================================================ */
-.hero-gradient {
-    background: linear-gradient(135deg, #3730a3 0%, #4f46e5 45%, #6366f1 100%);
-    border-radius: 28px;
-    position: relative;
-    overflow: hidden;
-}
-.hero-gradient::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: 
-        radial-gradient(ellipse 80% 80% at 80% -20%, rgba(99,102,241,0.5) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 50% at 10% 110%, rgba(55,48,163,0.6) 0%, transparent 60%);
-    pointer-events: none;
-}
-
-/* Noise texture overlay */
-.hero-gradient::after {
-    content: '';
-    position: absolute; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    opacity: 0.3;
-    pointer-events: none;
-}
-
-/* Decorative grid lines on hero */
-.hero-grid {
-    position: absolute; inset: 0;
-    background-image: 
-        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-}
-
-/* ============================================================
-   CUTE CHARACTER ANIMATION (Pure CSS — no Lottie needed!)
-   ============================================================ */
-.mascot-wrapper {
-    position: relative;
-    width: 180px;
-    height: 180px;
-    flex-shrink: 0;
-}
-
-/* Glowing orbit ring */
-.mascot-orbit {
-    position: absolute; inset: -10px;
-    border-radius: 50%;
-    border: 2px dashed rgba(255,255,255,0.2);
-    animation: orbitSpin 12s linear infinite;
-}
-.mascot-orbit::before {
-    content: '✦';
-    position: absolute; top: 6px; left: 50%;
-    transform: translateX(-50%);
-    font-size: 14px; color: rgba(255,255,255,0.7);
-}
-@keyframes orbitSpin { to { transform: rotate(360deg); } }
-
-/* The character itself */
-.mascot-face {
-    width: 140px; height: 140px;
-    background: linear-gradient(145deg, #ffffff 0%, #e8edff 100%);
-    border-radius: 50%;
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.25), inset 0 -4px 20px rgba(79,70,229,0.15);
-    animation: mascotFloat 3.5s ease-in-out infinite;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 64px;
-    user-select: none;
-}
-@keyframes mascotFloat {
-    0%, 100% { transform: translate(-50%, -50%) translateY(0px) rotate(-2deg); }
-    50%       { transform: translate(-50%, -50%) translateY(-12px) rotate(2deg); }
-}
-
-/* Sparkles around mascot */
-.spark {
-    position: absolute;
-    width: 8px; height: 8px;
-    background: #fcd34d;
-    border-radius: 50%;
-    animation: sparkle 2.5s ease-in-out infinite;
-}
-.spark-1 { top: 10%; right: 15%; animation-delay: 0s; }
-.spark-2 { top: 60%; right: 2%;  animation-delay: 0.7s; width: 6px; height: 6px; background: #a5f3fc; }
-.spark-3 { top: 20%; left: 8%;   animation-delay: 1.4s; width: 5px; height: 5px; background: #c084fc; }
-.spark-4 { bottom: 10%; left: 20%; animation-delay: 0.3s; width: 7px; height: 7px; background: #fb7185; }
-
-@keyframes sparkle {
-    0%, 100% { opacity: 0; transform: scale(0); }
-    50%       { opacity: 1; transform: scale(1); }
-}
-
-/* ============================================================
-   STAT CARDS
-   ============================================================ */
-.stat-icon-wrap {
-    width: 52px; height: 52px;
-    border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
-    flex-shrink: 0;
-}
-.nx-card:hover .stat-icon-wrap {
-    transform: scale(1.12) rotate(6deg);
-}
-
-.stat-number {
-    font-family: var(--font-display);
-    font-size: 40px;
-    font-weight: 800;
-    line-height: 1;
-    color: var(--nexus-text-primary);
-    transition: color 0.3s ease;
-    animation: numberCount 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
-}
-.nx-card:hover .stat-number { color: var(--nexus-indigo); }
-
-.stat-badge {
-    font-family: var(--font-display);
-    font-size: 11px; font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 30px;
-    letter-spacing: 0.02em;
-}
-.badge-up   { background: #dcfce7; color: #16a34a; }
-.badge-zero { background: #f1f5f9; color: #94a3b8; }
-
-/* Dark stat card (5th card) */
-.stat-dark {
-    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #3730a3 100%) !important;
-    border: 1px solid rgba(99,102,241,0.3) !important;
-}
-.stat-dark::before {
-    content: '';
-    position: absolute; inset: 0; border-radius: var(--nexus-radius-xl);
-    background: radial-gradient(ellipse at 80% 120%, rgba(99,102,241,0.4) 0%, transparent 60%);
-    pointer-events: none;
-}
-
-/* ============================================================
-   CHART SECTION
-   ============================================================ */
-.chart-legend-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-/* ============================================================
-   ACTIVITY LOG
-   ============================================================ */
-.log-item {
-    display: flex; align-items: flex-start; gap: 14px;
-    padding: 14px 16px;
-    background: #fff;
-    border: 1px solid rgba(226,232,240,0.8);
-    border-radius: var(--nexus-radius-lg);
-    transition: all 0.25s ease;
-}
-.log-item:hover {
-    background: #fafbff;
-    border-color: rgba(79,70,229,0.2);
-    box-shadow: 0 4px 16px -4px rgba(79,70,229,0.1);
-    transform: translateX(3px);
-}
-.log-avatar {
-    width: 44px; height: 44px;
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
-}
-.log-item:hover .log-avatar { transform: scale(1.08); }
-
-/* ============================================================
-   JADWAL CARDS
-   ============================================================ */
-.jadwal-item {
-    display: flex; align-items: center; gap: 14px;
-    padding: 14px 16px;
-    border-radius: var(--nexus-radius-lg);
-    border: 1px solid var(--nexus-border);
-    background: #fff;
-    transition: all 0.25s ease;
-}
-.jadwal-item:hover {
-    border-color: rgba(79,70,229,0.25);
-    box-shadow: 0 6px 20px -4px rgba(79,70,229,0.12);
-    transform: translateY(-2px);
-}
-
-/* ============================================================
-   SCROLLBAR
-   ============================================================ */
-.nx-scroll::-webkit-scrollbar { width: 5px; }
-.nx-scroll::-webkit-scrollbar-track { background: transparent; }
-.nx-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-.nx-scroll::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
-
-/* ============================================================
-   CLOCK PILL
-   ============================================================ */
-.clock-pill {
-    display: inline-flex; align-items: center; gap: 10px;
-    padding: 10px 18px;
-    background: rgba(255,255,255,0.12);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 50px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-}
-
-/* ============================================================
-   EMPTY STATE
-   ============================================================ */
-.empty-state-icon {
-    font-size: 52px;
-    animation: mascotFloat 3s ease-in-out infinite;
-    display: inline-block;
-}
-
-/* ============================================================
-   SECTION TITLE
-   ============================================================ */
-.nx-section-title {
-    font-family: var(--font-display);
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--nexus-text-primary);
-}
-.nx-section-sub {
-    font-size: 13px;
-    color: var(--nexus-text-muted);
-    margin-top: 2px;
-}
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 768px) {
-    .hero-gradient { padding: 28px 24px; border-radius: 22px; }
-    .stat-number { font-size: 32px; }
-    .mascot-wrapper { width: 130px; height: 130px; }
-    .mascot-face { width: 100px; height: 100px; font-size: 48px; }
-}
-
-/* Progress bar for visit indicator */
-.progress-bar-track {
-    height: 6px;
-    background: #f1f5f9;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-top: 8px;
-}
-.progress-bar-fill {
-    height: 100%;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #4f46e5, #818cf8);
-    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-}
+    .spark { position: absolute; border-radius: 50%; animation: sparkle 2.5s ease-in-out infinite; }
+    @keyframes sparkle { 0%, 100% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1); } }
 </style>
 @endpush
 
 @section('content')
-
 @php
     $jam = \Carbon\Carbon::now('Asia/Jakarta')->format('H');
     $sapaan = $jam < 11 ? 'Selamat Pagi' : ($jam < 15 ? 'Selamat Siang' : ($jam < 18 ? 'Selamat Sore' : 'Selamat Malam'));
     $emoji  = $jam < 11 ? '🌤️' : ($jam < 15 ? '☀️' : ($jam < 18 ? '🌅' : '🌙'));
-    $namaDepan = explode(' ', Auth::user()->name)[0] ?? 'Kader Hebat';
+    $namaDepan = explode(' ', Auth::user()->name)[0] ?? 'Kader';
+    $totalWarga = ($stats['total_balita'] ?? 0) + ($stats['total_remaja'] ?? 0) + ($stats['total_lansia'] ?? 0) + ($stats['total_ibu_hamil'] ?? 0);
 @endphp
 
-<div class="space-y-6 pb-14 max-w-[1600px] mx-auto" style="font-family: var(--font-body);">
+<div class="max-w-[1400px] mx-auto relative pb-16">
+
+    {{-- Latar Belakang Dekoratif Global --}}
+    <div class="fixed top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-indigo-50/80 to-transparent rounded-full blur-3xl pointer-events-none z-0"></div>
 
     {{-- =======================================================
-         1. HERO BANNER — Sambutan + Maskot Lucu CSS
+         1. HERO SECTION (ULTRA PREMIUM GRADIENT)
          ======================================================= --}}
-    <div class="hero-gradient p-8 md:p-10 anim-1" style="box-shadow: 0 20px 60px -10px rgba(79,70,229,0.35);">
-        <div class="hero-grid"></div>
+    <div class="relative rounded-[32px] md:rounded-[40px] p-6 md:p-10 mb-8 overflow-hidden shadow-[0_20px_60px_-15px_rgba(79,70,229,0.4)] fade-in-up border border-indigo-400/30 bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-700 z-10">
+        
+        {{-- Tekstur Background Hero --}}
+        <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTAgMGgyMHYyMEgwem0xMCAxMGgxMHYxMEgxMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]"></div>
+        <div class="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
 
-        <div class="relative z-10 flex flex-col xl:flex-row items-center justify-between gap-8">
-
-            {{-- Kiri: Teks --}}
-            <div class="flex-1 text-center xl:text-left">
-                
-                {{-- Realtime Clock --}}
-                <div class="clock-pill mb-6 mx-auto xl:mx-0" style="width: fit-content;">
-                    <span class="relative flex h-2.5 w-2.5 shrink-0">
+        <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
+            
+            {{-- Kiri: Teks & Info --}}
+            <div class="flex-1 text-center lg:text-left w-full">
+                {{-- Kapsul Jam Realtime --}}
+                <div class="inline-flex items-center gap-2.5 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full mb-6">
+                    <span class="relative flex h-2.5 w-2.5">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
                     </span>
-                    <span id="realtime-clock" class="text-white text-[13px] font-semibold tracking-wide" style="font-family: var(--font-display);">
-                        Memuat...
-                    </span>
+                    <span id="realtime-clock" class="text-[11px] font-black text-white uppercase tracking-widest font-poppins">Memuat Waktu...</span>
                 </div>
 
-                <h1 style="font-family: var(--font-display); font-size: clamp(30px, 4vw, 48px); font-weight: 900; color: #fff; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 14px;">
+                <h1 class="text-3xl md:text-5xl lg:text-[54px] font-black text-white tracking-tight font-poppins mb-4 leading-tight">
                     {{ $sapaan }}, {{ $namaDepan }}! {{ $emoji }}
                 </h1>
-                
-                <p style="color: rgba(199,210,254,0.9); font-size: 15px; line-height: 1.7; max-width: 520px; font-weight: 500;">
-                    Selamat datang kembali di pusat komando Posyandu. Bersama-sama kita wujudkan generasi yang sehat, cerdas, dan kuat. 💪
+                <p class="text-indigo-100 font-medium text-[13px] md:text-[15px] leading-relaxed max-w-xl mx-auto lg:mx-0 mb-8">
+                    Selamat datang di pusat komando Posyandu. Bersama-sama kita wujudkan generasi yang sehat, cerdas, dan kuat.
                 </p>
 
-                {{-- Quick Stats Pills --}}
-                <div class="flex flex-wrap gap-3 mt-6 justify-center xl:justify-start">
-                    <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; padding: 7px 16px; display: inline-flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-users" style="color: #a5f3fc; font-size: 13px;"></i>
-                        <span style="color: #fff; font-size: 13px; font-weight: 700; font-family: var(--font-display);">
-                            {{ ($stats['total_balita'] ?? 0) + ($stats['total_remaja'] ?? 0) + ($stats['total_lansia'] ?? 0) + ($stats['total_ibu_hamil'] ?? 0) }} Total Warga
-                        </span>
+                {{-- Kapsul Statistik Cepat (Responsif Mobile) --}}
+                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                    <div class="px-4 py-2.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center gap-2">
+                        <i class="fas fa-users text-sky-300"></i>
+                        <span class="text-white text-[12px] font-bold">{{ number_format($totalWarga) }} Total Warga</span>
                     </div>
-                    <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; padding: 7px 16px; display: inline-flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-calendar-day" style="color: #fcd34d; font-size: 13px;"></i>
-                        <span style="color: #fff; font-size: 13px; font-weight: 700; font-family: var(--font-display);">
-                            {{ $stats['imunisasi_hari_ini'] ?? 0 }} Imunisasi Hari Ini
-                        </span>
+                    <div class="px-4 py-2.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center gap-2">
+                        <i class="fas fa-syringe text-emerald-300"></i>
+                        <span class="text-white text-[12px] font-bold">{{ $stats['imunisasi_hari_ini'] ?? 0 }} Imunisasi Hari Ini</span>
                     </div>
                     @if(($stats['jadwal_hari_ini'] ?? 0) > 0)
-                    <div style="background: rgba(251,191,36,0.25); backdrop-filter: blur(10px); border: 1px solid rgba(251,191,36,0.4); border-radius: 30px; padding: 7px 16px; display: inline-flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-bolt" style="color: #fcd34d; font-size: 13px;"></i>
-                        <span style="color: #fef9c3; font-size: 13px; font-weight: 700; font-family: var(--font-display);">
-                            {{ $stats['jadwal_hari_ini'] }} Agenda Aktif
-                        </span>
+                    <div class="px-4 py-2.5 bg-amber-500/20 backdrop-blur-md border border-amber-500/40 rounded-full flex items-center gap-2">
+                        <i class="fas fa-bolt text-amber-300"></i>
+                        <span class="text-amber-100 text-[12px] font-bold">{{ $stats['jadwal_hari_ini'] }} Agenda Aktif</span>
                     </div>
                     @endif
                 </div>
             </div>
 
-            {{-- Kanan: Mascot + CTA --}}
-            <div class="shrink-0 flex flex-col items-center gap-5">
-                
-                {{-- CSS Mascot (no Lottie, always works!) --}}
-                <div class="mascot-wrapper">
+            {{-- Kanan: CSS Mascot & Tombol Action (Disembunyikan Mascotnya di HP kecil agar lega) --}}
+            <div class="shrink-0 flex flex-col items-center gap-6 w-full lg:w-auto">
+                <div class="relative w-36 h-36 hidden sm:block">
                     <div class="mascot-orbit"></div>
-                    <div class="mascot-face">🩺</div>
-                    <div class="spark spark-1"></div>
-                    <div class="spark spark-2"></div>
-                    <div class="spark spark-3"></div>
-                    <div class="spark spark-4"></div>
+                    <div class="mascot-face w-28 h-28 mx-auto mt-4 text-5xl">🩺</div>
+                    <div class="spark bg-amber-300 w-2 h-2 top-4 right-6"></div>
+                    <div class="spark bg-sky-300 w-1.5 h-1.5 bottom-8 left-4 delay-100"></div>
+                    <div class="spark bg-pink-300 w-2 h-2 top-10 left-6 delay-200"></div>
                 </div>
 
-                <a href="{{ route('kader.pemeriksaan.index') }}"
-                   style="display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; background: #fff; border-radius: 18px; color: #4f46e5; font-family: var(--font-display); font-size: 15px; font-weight: 800; text-decoration: none; box-shadow: 0 12px 30px rgba(0,0,0,0.18); transition: all 0.3s cubic-bezier(0.22,1,0.36,1); border: 1px solid rgba(255,255,255,0.5);"
-                   onmouseover="this.style.transform='translateY(-4px) scale(1.03)'; this.style.boxShadow='0 20px 40px rgba(0,0,0,0.22)'"
-                   onmouseout="this.style.transform=''; this.style.boxShadow='0 12px 30px rgba(0,0,0,0.18)'">
-                    <i class="fas fa-stethoscope"></i>
-                    Mulai Pelayanan
-                    <span style="width: 30px; height: 30px; background: #eef2ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-arrow-right" style="font-size: 11px;"></i>
-                    </span>
+                <a href="{{ route('kader.pemeriksaan.index') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-indigo-600 font-black text-[13px] uppercase tracking-widest rounded-2xl hover:bg-indigo-50 hover:scale-105 transition-all duration-300 shadow-[0_10px_25px_rgba(0,0,0,0.2)] group">
+                    <i class="fas fa-stethoscope text-lg group-hover:rotate-12 transition-transform"></i> Mulai Pelayanan
                 </a>
             </div>
-
         </div>
     </div>
 
     {{-- =======================================================
-         2. STAT CARDS — 5 Kartu Simetris Presisi
+         2. STAT CARDS (5 KARTU GRID RESPONSIVE)
          ======================================================= --}}
     @php
         $statCards = [
-            [
-                'label' => 'Total Balita',
-                'value' => $stats['total_balita'] ?? 0,
-                'bulan' => $pendaftaran_bulan_ini['balita'] ?? 0,
-                'icon'  => 'fa-baby',
-                'color' => '#ef4444',
-                'bg'    => '#fff1f2',
-            ],
-            [
-                'label' => 'Ibu Hamil',
-                'value' => $stats['total_ibu_hamil'] ?? 0,
-                'bulan' => $pendaftaran_bulan_ini['ibu_hamil'] ?? 0,
-                'icon'  => 'fa-female',
-                'color' => '#ec4899',
-                'bg'    => '#fdf2f8',
-            ],
-            [
-                'label' => 'Remaja',
-                'value' => $stats['total_remaja'] ?? 0,
-                'bulan' => $pendaftaran_bulan_ini['remaja'] ?? 0,
-                'icon'  => 'fa-user-graduate',
-                'color' => '#0ea5e9',
-                'bg'    => '#f0f9ff',
-            ],
-            [
-                'label' => 'Lansia',
-                'value' => $stats['total_lansia'] ?? 0,
-                'bulan' => $pendaftaran_bulan_ini['lansia'] ?? 0,
-                'icon'  => 'fa-wheelchair',
-                'color' => '#10b981',
-                'bg'    => '#f0fdf4',
-            ],
+            ['label' => 'Total Balita', 'val' => $stats['total_balita'] ?? 0, 'new' => $pendaftaran_bulan_ini['balita'] ?? 0, 'icon' => 'fa-baby', 'col' => 'rose'],
+            ['label' => 'Ibu Hamil', 'val' => $stats['total_ibu_hamil'] ?? 0, 'new' => $pendaftaran_bulan_ini['ibu_hamil'] ?? 0, 'icon' => 'fa-female', 'col' => 'pink'],
+            ['label' => 'Remaja', 'val' => $stats['total_remaja'] ?? 0, 'new' => $pendaftaran_bulan_ini['remaja'] ?? 0, 'icon' => 'fa-user-graduate', 'col' => 'sky'],
+            ['label' => 'Lansia', 'val' => $stats['total_lansia'] ?? 0, 'new' => $pendaftaran_bulan_ini['lansia'] ?? 0, 'icon' => 'fa-wheelchair', 'col' => 'emerald'],
         ];
+        $maxVal = max(1, $stats['total_balita'] ?? 1, $stats['total_ibu_hamil'] ?? 1, $stats['total_remaja'] ?? 1, $stats['total_lansia'] ?? 1);
     @endphp
 
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-5 anim-2">
-
-        @foreach($statCards as $idx => $card)
-        <div class="nx-card p-6 flex flex-col justify-between relative overflow-hidden" style="min-height: 170px;">
-            {{-- Subtle background shape --}}
-            <div style="position: absolute; bottom: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: {{ $card['bg'] }}; opacity: 0.7; pointer-events: none;"></div>
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 mb-8 relative z-10 fade-in-up delay-1">
+        
+        @foreach($statCards as $c)
+        <div class="nexus-glass-card p-5 md:p-6 flex flex-col justify-between group overflow-hidden relative min-h-[160px]">
+            <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-{{ $c['col'] }}-50 rounded-full opacity-50 pointer-events-none group-hover:scale-150 transition-transform duration-700"></div>
             
-            <div class="flex justify-between items-start mb-4">
-                <div class="stat-icon-wrap" style="background: {{ $card['bg'] }}; color: {{ $card['color'] }};">
-                    <i class="fas {{ $card['icon'] }}"></i>
+            <div class="flex justify-between items-start mb-4 relative z-10">
+                <div class="w-12 h-12 rounded-[14px] bg-{{ $c['col'] }}-50 text-{{ $c['col'] }}-500 flex items-center justify-center text-xl border border-{{ $c['col'] }}-100 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300 shadow-sm shrink-0">
+                    <i class="fas {{ $c['icon'] }}"></i>
                 </div>
-                <span class="stat-badge {{ $card['bulan'] > 0 ? 'badge-up' : 'badge-zero' }}">
-                    {{ $card['bulan'] > 0 ? '+' : '' }}{{ $card['bulan'] }} <span style="font-size: 9px; opacity: 0.7;">BLN</span>
+                <span class="px-2.5 py-1 bg-{{ $c['new'] > 0 ? $c['col'].'-100' : 'slate-100' }} text-{{ $c['new'] > 0 ? $c['col'].'-600' : 'slate-400' }} text-[9px] font-black rounded-full border border-{{ $c['new'] > 0 ? $c['col'].'-200' : 'slate-200' }}">
+                    {{ $c['new'] > 0 ? '+'.$c['new'] : '0' }} BLN
                 </span>
             </div>
-            <div>
-                <p class="stat-number">{{ number_format($card['value']) }}</p>
-                <p style="font-size: 11px; font-weight: 600; color: var(--nexus-text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 5px;">{{ $card['label'] }}</p>
-                
-                {{-- Mini progress bar (visual flair) --}}
-                <div class="progress-bar-track">
-                    @php $maxVal = max(1, $stats['total_balita'] ?? 1, $stats['total_ibu_hamil'] ?? 1, $stats['total_remaja'] ?? 1, $stats['total_lansia'] ?? 1); @endphp
-                    <div class="progress-bar-fill" style="width: {{ min(100, ($card['value'] / $maxVal) * 100) }}%; background: linear-gradient(90deg, {{ $card['color'] }}, {{ $card['color'] }}aa);"></div>
+            <div class="relative z-10">
+                <h3 class="text-3xl font-black text-slate-800 font-poppins leading-none">{{ number_format($c['val']) }}</h3>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1.5">{{ $c['label'] }}</p>
+                {{-- Progress Bar Mini --}}
+                <div class="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+                    <div class="h-full bg-{{ $c['col'] }}-400 rounded-full transition-all duration-1000" style="width: {{ min(100, ($c['val'] / $maxVal) * 100) }}%"></div>
                 </div>
             </div>
         </div>
         @endforeach
 
-        {{-- Card 5: Agenda Hari Ini (Dark Premium) --}}
-        <div class="nx-card stat-dark p-6 flex flex-col justify-between relative overflow-hidden col-span-2 lg:col-span-1" style="min-height: 170px;">
+        {{-- Kartu ke-5: Agenda Aktif (Dark Mode) - Span 2 di mobile agar rapi --}}
+        <div class="nexus-glass-card col-span-2 lg:col-span-1 p-5 md:p-6 flex flex-col justify-between group overflow-hidden relative min-h-[160px] bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700">
+            <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-xl"></div>
             <div class="flex justify-between items-start mb-4 relative z-10">
-                <div style="width: 52px; height: 52px; border-radius: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #a5b4fc; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);" class="stat-icon-wrap-dark">
+                <div class="w-12 h-12 rounded-[14px] bg-indigo-500/30 text-indigo-300 flex items-center justify-center text-xl border border-indigo-400/30 shadow-sm shrink-0">
                     <i class="fas fa-calendar-check"></i>
                 </div>
-                <span style="background: rgba(251,191,36,0.2); border: 1px solid rgba(251,191,36,0.35); border-radius: 30px; padding: 4px 10px; font-size: 11px; font-weight: 700; color: #fcd34d; display: flex; align-items: center; gap: 5px;">
-                    <i class="fas fa-bolt" style="font-size: 9px;"></i> Aktif
+                <span class="px-2.5 py-1 bg-amber-500/20 text-amber-300 text-[9px] font-black rounded-full border border-amber-500/30 flex items-center gap-1">
+                    <i class="fas fa-bolt text-[8px]"></i> AKTIF
                 </span>
             </div>
             <div class="relative z-10">
-                <p style="font-family: var(--font-display); font-size: 40px; font-weight: 800; color: #fff; line-height: 1;">{{ $stats['jadwal_hari_ini'] ?? 0 }}</p>
-                <p style="font-size: 11px; font-weight: 600; color: rgba(165,180,252,0.8); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 5px;">Agenda Hari Ini</p>
-                <div class="progress-bar-track" style="background: rgba(255,255,255,0.08);">
-                    <div style="height: 100%; border-radius: 10px; width: {{ ($stats['jadwal_hari_ini'] ?? 0) > 0 ? '100%' : '0%' }}; background: linear-gradient(90deg, #818cf8, #c084fc); transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);"></div>
+                <h3 class="text-3xl font-black text-white font-poppins leading-none">{{ $stats['jadwal_hari_ini'] ?? 0 }}</h3>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1.5">Agenda Hari Ini</p>
+                <div class="w-full h-1.5 bg-slate-700 rounded-full mt-3 overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full" style="width: {{ ($stats['jadwal_hari_ini'] ?? 0) > 0 ? '100%' : '0%' }}"></div>
                 </div>
             </div>
         </div>
@@ -530,172 +188,102 @@ body { font-family: var(--font-body); background: var(--nexus-bg); }
     </div>
 
     {{-- =======================================================
-         3. ROW: ABSENSI HARI INI + IMUNISASI HARI INI
+         3. WIDGET GRID (CHART & AKTIVITAS)
          ======================================================= --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 anim-3">
-
-        {{-- Absensi Hari Ini --}}
-        <div class="nx-card p-6 flex items-center gap-5">
-            <div style="width: 64px; height: 64px; border-radius: 20px; background: linear-gradient(135deg, #4f46e5, #818cf8); display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; flex-shrink: 0; box-shadow: 0 8px 24px -4px rgba(79,70,229,0.4);">
-                <i class="fas fa-clipboard-check"></i>
-            </div>
-            <div class="flex-1">
-                <p style="font-size: 12px; font-weight: 600; color: var(--nexus-text-muted); text-transform: uppercase; letter-spacing: 0.08em;">Absensi Hari Ini</p>
-                <p style="font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--nexus-text-primary); line-height: 1; margin-top: 4px;">{{ $stats['jadwal_hari_ini'] ?? 0 }}</p>
-                <p style="font-size: 13px; color: var(--nexus-text-muted); margin-top: 6px;">
-                    <i class="fas fa-check-circle" style="color: #4f46e5;"></i>
-                    Kehadiran tercatat hari ini
-                </p>
-            </div>
-            <a href="{{ route('kader.absensi.index') }}"
-               style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 13px; background: #eef2ff; color: #4f46e5; text-decoration: none; transition: all 0.2s ease; flex-shrink: 0;"
-               onmouseover="this.style.background='#4f46e5'; this.style.color='#fff'"
-               onmouseout="this.style.background='#eef2ff'; this.style.color='#4f46e5'">
-                <i class="fas fa-arrow-right" style="font-size: 14px;"></i>
-            </a>
-        </div>
-
-        {{-- Imunisasi Hari Ini --}}
-        <div class="nx-card p-6 flex items-center gap-5">
-            <div style="width: 64px; height: 64px; border-radius: 20px; background: linear-gradient(135deg, #10b981, #34d399); display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; flex-shrink: 0; box-shadow: 0 8px 24px -4px rgba(16,185,129,0.4);">
-                <i class="fas fa-syringe"></i>
-            </div>
-            <div class="flex-1">
-                <p style="font-size: 12px; font-weight: 600; color: var(--nexus-text-muted); text-transform: uppercase; letter-spacing: 0.08em;">Imunisasi Hari Ini</p>
-                <p style="font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--nexus-text-primary); line-height: 1; margin-top: 4px;">{{ $stats['imunisasi_hari_ini'] ?? 0 }}</p>
-                <p style="font-size: 13px; color: var(--nexus-text-muted); margin-top: 6px;">
-                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                    Data imunisasi tercatat
-                </p>
-            </div>
-            <div style="width: 64px; height: 64px; position: relative; flex-shrink: 0;">
-                <svg viewBox="0 0 42 42" style="transform: rotate(-90deg); width: 100%; height: 100%;">
-                    <circle cx="21" cy="21" r="15.91549431" fill="transparent" stroke="#f1f5f9" stroke-width="4"></circle>
-                    @php $pct = min(100, (($stats['imunisasi_hari_ini'] ?? 0) / max(1, 10)) * 100); @endphp
-                    <circle cx="21" cy="21" r="15.91549431" fill="transparent" stroke="#10b981" stroke-width="4"
-                        stroke-dasharray="{{ $pct }} {{ 100 - $pct }}" stroke-dashoffset="0" stroke-linecap="round"></circle>
-                </svg>
-                <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 13px; font-weight: 800; color: #10b981;">{{ $stats['imunisasi_hari_ini'] ?? 0 }}</span>
-            </div>
-        </div>
-
-    </div>
-
-    {{-- =======================================================
-         4. GRAFIK KUNJUNGAN + LOG AKTIVITAS
-         ======================================================= --}}
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 anim-3">
-
-        {{-- CHART: Trafik Kunjungan 7 Hari --}}
-        <div class="nx-card xl:col-span-2 flex flex-col" style="padding: 0; overflow: hidden;">
-            
-            {{-- Chart Header --}}
-            <div style="padding: 24px 28px 20px; border-bottom: 1px solid var(--nexus-border); display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 relative z-10 fade-in-up delay-2">
+        
+        {{-- KIRI: TRAFIK ABSENSI (8 KOLOM) --}}
+        <div class="xl:col-span-8 nexus-glass-card overflow-hidden flex flex-col min-h-[400px]">
+            <div class="px-6 md:px-8 py-5 border-b border-slate-100 bg-white/50 flex flex-wrap justify-between items-center gap-4">
                 <div>
-                    <p class="nx-section-title">Trafik Absensi Warga</p>
-                    <p class="nx-section-sub">Pergerakan kehadiran selama 7 hari terakhir</p>
+                    <h3 class="text-[16px] font-black text-slate-800 font-poppins leading-none">Trafik Absensi Warga</h3>
+                    <p class="text-[11px] font-bold text-slate-400 mt-1">Pergerakan kehadiran selama 7 hari terakhir</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <div class="chart-legend-dot" style="background: #4f46e5;"></div>
-                        <span style="font-size: 12px; color: var(--nexus-text-muted); font-weight: 500;">Absensi</span>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
+                        <span class="text-[11px] font-bold text-slate-500">Absensi</span>
                     </div>
-                    <span style="background: var(--nexus-indigo-light); color: var(--nexus-indigo); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 30px; font-family: var(--font-display); letter-spacing: 0.04em;">7 HARI TERAKHIR</span>
+                    <span class="px-3 py-1 bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-indigo-100">7 Hari</span>
                 </div>
             </div>
-
-            {{-- Chart Body --}}
-            <div style="padding: 24px 24px 20px; flex: 1;">
+            
+            <div class="p-6 md:p-8 flex-1 relative bg-white/30">
                 @if(empty($chartData) || array_sum($chartData) == 0)
-                    {{-- Empty State Gemas --}}
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 280px; background: #fafbff; border-radius: 16px; border: 2px dashed #e0e7ff;">
-                        <div class="empty-state-icon" style="font-size: 56px;">📊</div>
-                        <p style="font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--nexus-text-primary); margin-top: 16px;">Belum Ada Data Absensi</p>
-                        <p style="font-size: 13px; color: var(--nexus-text-muted); margin-top: 6px;">Data akan muncul saat ada warga yang melakukan absensi.</p>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 m-6 rounded-3xl border-2 border-dashed border-slate-200">
+                        <div class="text-5xl mb-4 animate-bounce"><i class="fas fa-chart-bar text-slate-300"></i></div>
+                        <h4 class="text-[14px] font-black text-slate-700 font-poppins">Belum Ada Data Absensi</h4>
+                        <p class="text-[12px] text-slate-400 mt-1 max-w-xs">Grafik analitik akan tergambar otomatis setelah warga melakukan registrasi kehadiran.</p>
                     </div>
                 @else
-                    <div style="position: relative; width: 100%; height: 300px;">
+                    <div class="relative w-full h-[250px] md:h-[300px]">
                         <canvas id="trafficChart"></canvas>
                     </div>
                 @endif
             </div>
 
-            {{-- Chart Footer: Summary --}}
-            <div style="padding: 16px 28px; border-top: 1px solid var(--nexus-border); display: flex; gap: 20px; background: #fafbff; border-radius: 0 0 24px 24px; flex-wrap: wrap;">
+            {{-- Summary Footer --}}
+            <div class="px-6 md:px-8 py-4 bg-slate-50/80 border-t border-slate-100 flex flex-wrap gap-6 md:gap-10">
                 @php
                     $totalChart = array_sum($chartData ?? [0]);
                     $avgChart = count($chartData ?? []) > 0 ? round($totalChart / count($chartData)) : 0;
                     $maxChart = !empty($chartData) ? max($chartData) : 0;
                 @endphp
                 <div>
-                    <p style="font-size: 11px; color: var(--nexus-text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Total 7 Hari</p>
-                    <p style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--nexus-text-primary);">{{ $totalChart }}</p>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Hadir</p>
+                    <p class="text-xl font-black text-slate-800 font-poppins">{{ $totalChart }}</p>
                 </div>
-                <div style="width: 1px; background: var(--nexus-border);"></div>
+                <div class="w-px h-10 bg-slate-200 hidden md:block"></div>
                 <div>
-                    <p style="font-size: 11px; color: var(--nexus-text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Rata-rata/Hari</p>
-                    <p style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #4f46e5;">{{ $avgChart }}</p>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rata-rata Harian</p>
+                    <p class="text-xl font-black text-indigo-600 font-poppins">{{ $avgChart }}</p>
                 </div>
-                <div style="width: 1px; background: var(--nexus-border);"></div>
+                <div class="w-px h-10 bg-slate-200 hidden md:block"></div>
                 <div>
-                    <p style="font-size: 11px; color: var(--nexus-text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Tertinggi</p>
-                    <p style="font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #10b981;">{{ $maxChart }}</p>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Puncak Tertinggi</p>
+                    <p class="text-xl font-black text-emerald-500 font-poppins">{{ $maxChart }}</p>
                 </div>
             </div>
         </div>
 
-        {{-- LOG AKTIVITAS — Warga Baru Terdaftar --}}
-        <div class="nx-card flex flex-col" style="padding: 0; overflow: hidden; min-height: 460px;">
-            <div style="padding: 22px 24px 18px; border-bottom: 1px solid var(--nexus-border); display: flex; justify-content: space-between; align-items: center;">
+        {{-- KANAN: WARGA BARU TERDAFTAR (4 KOLOM) --}}
+        <div class="xl:col-span-4 nexus-glass-card overflow-hidden flex flex-col min-h-[400px]">
+            <div class="px-6 py-5 border-b border-slate-100 bg-white/50 flex justify-between items-center">
                 <div>
-                    <p class="nx-section-title">Warga Baru</p>
-                    <p class="nx-section-sub">Balita terdaftar terbaru</p>
+                    <h3 class="text-[16px] font-black text-slate-800 font-poppins leading-none">Warga Baru</h3>
+                    <p class="text-[11px] font-bold text-slate-400 mt-1">Balita terdaftar terbaru</p>
                 </div>
-                <span style="display: flex; align-items: center; gap: 7px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px; padding: 5px 12px; font-size: 11px; font-weight: 700; color: #16a34a; font-family: var(--font-display); letter-spacing: 0.05em;">
-                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #22c55e; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></span>
-                    TERBARU
-                </span>
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100 shadow-sm"><i class="fas fa-baby"></i></div>
             </div>
-
-            <div class="nx-scroll flex-1 overflow-y-auto" style="padding: 16px; background: #f8fafc; max-height: 380px;">
+            
+            <div class="p-4 flex-1 overflow-y-auto micro-scroll bg-slate-50/30 max-h-[300px]">
                 @if(isset($balita_baru) && count($balita_baru) > 0)
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div class="space-y-3">
                         @foreach($balita_baru as $balita)
-                            <div class="log-item">
-                                <div class="log-avatar" style="background: #fff1f2; color: #ef4444;">
-                                    <i class="fas fa-baby"></i>
-                                </div>
-                                <div style="flex: 1; min-width: 0;">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-                                        <p style="font-size: 14px; font-weight: 700; color: var(--nexus-text-primary); font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                            {{ $balita->nama_lengkap ?? 'Balita' }}
-                                        </p>
-                                        <span style="font-size: 10px; font-weight: 600; color: var(--nexus-text-muted); background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 2px 8px; flex-shrink: 0;">
-                                            {{ $balita->created_at->translatedFormat('d M') }}
-                                        </span>
+                            <div class="p-4 bg-white border border-slate-100 rounded-[16px] flex items-center gap-4 hover:shadow-md hover:border-indigo-100 transition-all group">
+                                <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"><i class="fas fa-baby text-sm"></i></div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex justify-between items-start mb-0.5">
+                                        <p class="text-[13px] font-black text-slate-800 truncate font-poppins">{{ $balita->nama_lengkap ?? 'Balita' }}</p>
+                                        <span class="text-[9px] font-black px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md shrink-0">{{ $balita->created_at->translatedFormat('d M') }}</span>
                                     </div>
-                                    <p style="font-size: 12px; color: var(--nexus-text-muted); margin-top: 3px;">
-                                        <span style="color: #ef4444; font-weight: 600;">Balita</span> · Terdaftar di sistem
-                                    </p>
+                                    <p class="text-[11px] text-slate-500 truncate"><span class="font-bold text-rose-500">Balita</span> &bull; Terdaftar di sistem</p>
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 @else
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 240px; text-align: center; padding: 20px;">
-                        <div class="empty-state-icon">👶</div>
-                        <p style="font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--nexus-text-primary); margin-top: 14px;">Belum Ada Data</p>
-                        <p style="font-size: 12px; color: var(--nexus-text-muted); margin-top: 4px;">Data balita baru akan muncul otomatis.</p>
+                    <div class="h-full flex flex-col items-center justify-center text-center p-6">
+                        <div class="text-4xl mb-3"><i class="fas fa-inbox text-slate-300"></i></div>
+                        <h4 class="text-[13px] font-black text-slate-700 font-poppins">Belum Ada Data</h4>
+                        <p class="text-[11px] text-slate-400 mt-1">Data warga baru akan muncul di sini.</p>
                     </div>
                 @endif
             </div>
 
-            <div style="padding: 14px 16px; border-top: 1px solid var(--nexus-border); background: #fff; border-radius: 0 0 24px 24px;">
-                <a href="{{ route('kader.data.balita.index') }}"
-                   style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border-radius: 14px; border: 1.5px solid #e0e7ff; background: #fafbff; color: #4f46e5; font-size: 12px; font-weight: 700; font-family: var(--font-display); text-decoration: none; letter-spacing: 0.04em; transition: all 0.2s ease; text-transform: uppercase;"
-                   onmouseover="this.style.background='#4f46e5'; this.style.color='#fff'; this.style.borderColor='#4f46e5'"
-                   onmouseout="this.style.background='#fafbff'; this.style.color='#4f46e5'; this.style.borderColor='#e0e7ff'">
-                    Database Balita <i class="fas fa-arrow-right" style="font-size: 10px;"></i>
+            <div class="p-4 bg-white border-t border-slate-100">
+                <a href="{{ route('kader.data.balita.index') }}" class="w-full py-3.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white border border-indigo-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-center flex items-center justify-center gap-2 transition-all">
+                    Database Balita <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -703,86 +291,78 @@ body { font-family: var(--font-body); background: var(--nexus-bg); }
     </div>
 
     {{-- =======================================================
-         5. ROW: JADWAL MENDATANG + PENDAFTARAN BULAN INI
+         4. WIDGET BOTTOM (JADWAL & DONUT CHART)
          ======================================================= --}}
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 anim-4">
-
-        {{-- JADWAL MENDATANG --}}
-        <div class="nx-card" style="padding: 0; overflow: hidden;">
-            <div style="padding: 22px 24px 18px; border-bottom: 1px solid var(--nexus-border); display: flex; justify-content: space-between; align-items: center;">
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 mt-6 relative z-10 fade-in-up delay-3">
+        
+        {{-- KIRI: JADWAL MENDATANG (7 KOLOM) --}}
+        <div class="xl:col-span-7 nexus-glass-card overflow-hidden flex flex-col min-h-[300px]">
+            <div class="px-6 md:px-8 py-5 border-b border-slate-100 bg-white/50 flex justify-between items-center">
                 <div>
-                    <p class="nx-section-title">Jadwal Mendatang</p>
-                    <p class="nx-section-sub">Agenda Posyandu yang akan datang</p>
+                    <h3 class="text-[16px] font-black text-slate-800 font-poppins leading-none">Jadwal Mendatang</h3>
+                    <p class="text-[11px] font-bold text-slate-400 mt-1">Agenda operasional posyandu</p>
                 </div>
-                <div style="width: 40px; height: 40px; border-radius: 12px; background: #fff7ed; border: 1px solid #fed7aa; display: flex; align-items: center; justify-content: center; color: #f97316; font-size: 18px;">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center border border-amber-100 shadow-sm"><i class="fas fa-calendar-alt"></i></div>
             </div>
-            <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+            
+            <div class="p-6 flex-1 flex flex-col justify-center bg-white/30">
                 @forelse($jadwal_mendatang ?? [] as $jadwal)
-                <div class="jadwal-item">
-                    <div style="width: 50px; height: 50px; border-radius: 14px; background: #eef2ff; color: #4f46e5; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid #e0e7ff;">
-                        <span style="font-family: var(--font-display); font-size: 18px; font-weight: 800; line-height: 1;">{{ \Carbon\Carbon::parse($jadwal->tanggal)->format('d') }}</span>
-                        <span style="font-size: 9px; font-weight: 600; text-transform: uppercase; color: #818cf8; letter-spacing: 0.05em;">{{ \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('M') }}</span>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-4 mb-3 last:mb-0 bg-white border border-slate-100 rounded-[20px] hover:border-indigo-200 hover:shadow-lg transition-all group">
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex flex-col items-center justify-center shrink-0 border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <span class="text-lg font-black font-poppins leading-none">{{ \Carbon\Carbon::parse($jadwal->tanggal)->format('d') }}</span>
+                            <span class="text-[9px] font-black uppercase tracking-widest mt-0.5">{{ \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('M') }}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[14px] font-black text-slate-800 truncate font-poppins">{{ $jadwal->nama_kegiatan ?? 'Kegiatan Posyandu' }}</p>
+                            <p class="text-[12px] font-medium text-slate-500 mt-1 truncate"><i class="fas fa-map-marker-alt text-slate-400 mr-1.5"></i>{{ $jadwal->lokasi ?? 'Posyandu Bantarkulon' }}</p>
+                        </div>
+                        <span class="px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-black rounded-full w-max">AKTIF</span>
                     </div>
-                    <div style="flex: 1; min-width: 0;">
-                        <p style="font-size: 14px; font-weight: 700; color: var(--nexus-text-primary); font-family: var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            {{ $jadwal->nama_kegiatan ?? 'Kegiatan Posyandu' }}
-                        </p>
-                        <p style="font-size: 12px; color: var(--nexus-text-muted); margin-top: 3px;">
-                            <i class="fas fa-map-marker-alt" style="font-size: 10px;"></i> {{ $jadwal->lokasi ?? 'Posyandu' }}
-                        </p>
-                    </div>
-                    <span style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px; padding: 4px 10px; font-size: 10px; font-weight: 700; color: #16a34a; flex-shrink: 0; font-family: var(--font-display);">Aktif</span>
-                </div>
                 @empty
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center;">
-                    <div class="empty-state-icon">📅</div>
-                    <p style="font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--nexus-text-primary); margin-top: 14px;">Tidak Ada Jadwal</p>
-                    <p style="font-size: 12px; color: var(--nexus-text-muted); margin-top: 4px;">Belum ada agenda mendatang yang dijadwalkan.</p>
-                </div>
+                    <div class="flex flex-col items-center justify-center text-center p-6">
+                        <div class="text-4xl mb-3"><i class="far fa-calendar-times text-slate-300"></i></div>
+                        <h4 class="text-[14px] font-black text-slate-700 font-poppins">Tidak Ada Jadwal</h4>
+                        <p class="text-[12px] text-slate-400 mt-1">Belum ada agenda mendatang yang dijadwalkan.</p>
+                    </div>
                 @endforelse
             </div>
         </div>
 
-        {{-- PENDAFTARAN BULAN INI — Donut Chart --}}
-        <div class="nx-card" style="padding: 0; overflow: hidden;">
-            <div style="padding: 22px 24px 18px; border-bottom: 1px solid var(--nexus-border); display: flex; justify-content: space-between; align-items: center;">
+        {{-- KANAN: DONUT CHART PENDAFTARAN (5 KOLOM) --}}
+        <div class="xl:col-span-5 nexus-glass-card overflow-hidden flex flex-col min-h-[300px]">
+            <div class="px-6 md:px-8 py-5 border-b border-slate-100 bg-white/50 flex justify-between items-center">
                 <div>
-                    <p class="nx-section-title">Pendaftaran Bulan Ini</p>
-                    <p class="nx-section-sub">Distribusi warga baru {{ now()->translatedFormat('F Y') }}</p>
+                    <h3 class="text-[16px] font-black text-slate-800 font-poppins leading-none">Pendaftaran Bulan Ini</h3>
+                    <p class="text-[11px] font-bold text-slate-400 mt-1">Distribusi warga {{ now()->translatedFormat('F Y') }}</p>
                 </div>
-                <div style="width: 40px; height: 40px; border-radius: 12px; background: #eef2ff; border: 1px solid #e0e7ff; display: flex; align-items: center; justify-content: center; color: #4f46e5; font-size: 18px;">
-                    <i class="fas fa-chart-pie"></i>
-                </div>
+                <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-500 flex items-center justify-center border border-sky-100 shadow-sm"><i class="fas fa-chart-pie"></i></div>
             </div>
-            <div style="padding: 20px 24px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap;">
-                
-                {{-- Donut Chart --}}
-                <div style="position: relative; width: 140px; height: 140px; flex-shrink: 0;">
-                    <canvas id="donutChart" style="width: 140px; height: 140px;"></canvas>
+            
+            <div class="p-6 md:p-8 flex-1 flex flex-col sm:flex-row items-center justify-center gap-8 md:gap-10 bg-white/30">
+                {{-- Chart Canvas --}}
+                <div class="relative w-[160px] h-[160px] shrink-0">
+                    <canvas id="donutChart"></canvas>
                     @php $totalBulan = array_sum(array_values($pendaftaran_bulan_ini ?? ['balita'=>0,'remaja'=>0,'lansia'=>0,'ibu_hamil'=>0])); @endphp
-                    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                        <p style="font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--nexus-text-primary); line-height: 1;">{{ $totalBulan }}</p>
-                        <p style="font-size: 10px; color: var(--nexus-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;">Warga</p>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <p class="text-3xl font-black text-slate-800 font-poppins leading-none">{{ $totalBulan }}</p>
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">WARGA</p>
                     </div>
                 </div>
 
                 {{-- Legend --}}
-                <div style="flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 160px;">
-                    @php
-                        $donutItems = [
-                            ['label' => 'Balita',    'val' => $pendaftaran_bulan_ini['balita'] ?? 0,    'color' => '#ef4444'],
-                            ['label' => 'Ibu Hamil', 'val' => $pendaftaran_bulan_ini['ibu_hamil'] ?? 0, 'color' => '#ec4899'],
-                            ['label' => 'Remaja',    'val' => $pendaftaran_bulan_ini['remaja'] ?? 0,    'color' => '#0ea5e9'],
-                            ['label' => 'Lansia',    'val' => $pendaftaran_bulan_ini['lansia'] ?? 0,    'color' => '#10b981'],
-                        ];
-                    @endphp
-                    @foreach($donutItems as $di)
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 10px; height: 10px; border-radius: 50%; background: {{ $di['color'] }}; flex-shrink: 0;"></div>
-                        <span style="font-size: 13px; color: var(--nexus-text-muted); font-weight: 500; flex: 1;">{{ $di['label'] }}</span>
-                        <span style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--nexus-text-primary);">{{ $di['val'] }}</span>
+                <div class="flex flex-col gap-3 w-full sm:w-auto">
+                    @foreach([
+                        ['label' => 'Balita', 'val' => $pendaftaran_bulan_ini['balita'] ?? 0, 'col' => '#fb7185'],
+                        ['label' => 'Ibu Hamil', 'val' => $pendaftaran_bulan_ini['ibu_hamil'] ?? 0, 'col' => '#f472b6'],
+                        ['label' => 'Remaja', 'val' => $pendaftaran_bulan_ini['remaja'] ?? 0, 'col' => '#38bdf8'],
+                        ['label' => 'Lansia', 'val' => $pendaftaran_bulan_ini['lansia'] ?? 0, 'col' => '#34d399'],
+                    ] as $di)
+                    <div class="flex items-center justify-between gap-6 px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full" style="background-color: {{ $di['col'] }}"></div>
+                            <span class="text-[12px] font-bold text-slate-600">{{ $di['label'] }}</span>
+                        </div>
+                        <span class="text-[14px] font-black text-slate-800 font-poppins">{{ $di['val'] }}</span>
                     </div>
                     @endforeach
                 </div>
@@ -795,230 +375,122 @@ body { font-family: var(--font-body); background: var(--nexus-bg); }
 @endsection
 
 @push('scripts')
+{{-- Wajib panggil CDN Chart.js --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-// =============================================================================
-// 1. REALTIME CLOCK
-// =============================================================================
-(function initClock() {
-    const el = document.getElementById('realtime-clock');
-    if (!el) return;
+    // 1. JAM REALTIME DENGAN FORMAT PREMIUM
+    function initClock() {
+        const el = document.getElementById('realtime-clock');
+        if (!el) return;
+        const hari  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+        const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
 
-    const hari  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-    const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-
-    function tick() {
-        const d  = new Date();
-        const hh = String(d.getHours()).padStart(2,'0');
-        const mm = String(d.getMinutes()).padStart(2,'0');
-        const ss = String(d.getSeconds()).padStart(2,'0');
-        el.innerHTML = `${hari[d.getDay()]}, ${String(d.getDate()).padStart(2,'0')} ${bulan[d.getMonth()]} ${d.getFullYear()} &nbsp;|&nbsp; ${hh}:${mm}:${ss} WIB`;
-    }
-    tick();
-    setInterval(tick, 1000);
-})();
-
-// =============================================================================
-// 2. CHART.JS — LINE CHART (Traffic)
-// =============================================================================
-function renderLineChart() {
-    if (typeof Chart === 'undefined') {
-        return setTimeout(renderLineChart, 300);
+        function tick() {
+            const d  = new Date();
+            const hh = String(d.getHours()).padStart(2,'0');
+            const mm = String(d.getMinutes()).padStart(2,'0');
+            el.innerHTML = `${hari[d.getDay()]}, ${d.getDate()} ${bulan[d.getMonth()]} &bull; ${hh}:${mm} WIB`;
+        }
+        tick(); setInterval(tick, 1000);
     }
 
-    const canvas = document.getElementById('trafficChart');
-    if (!canvas) return;
+    // 2. CHART.JS: TRAFIK ABSENSI (LINE CHART)
+    function renderTrafficChart() {
+        const canvas = document.getElementById('trafficChart');
+        if (!canvas || typeof Chart === 'undefined') return;
 
-    const labels = {!! json_encode($chartLabels ?? []) !!};
-    const data   = {!! json_encode($chartData ?? []) !!};
+        const labels = {!! json_encode($chartLabels ?? []) !!};
+        const data   = {!! json_encode($chartData ?? []) !!};
 
-    if (!labels.length || Math.max(...data) === 0) return;
+        if (window._trafficChart) window._trafficChart.destroy();
 
-    // Destroy existing
-    if (window._trafficChart instanceof Chart) {
-        window._trafficChart.destroy();
-    }
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.25)'); // Indigo
+        gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
 
-    const ctx = canvas.getContext('2d');
-
-    // Gradient fill
-    const grad = ctx.createLinearGradient(0, 0, 0, 280);
-    grad.addColorStop(0,   'rgba(79,70,229,0.22)');
-    grad.addColorStop(0.6, 'rgba(79,70,229,0.06)');
-    grad.addColorStop(1,   'rgba(79,70,229,0)');
-
-    Chart.defaults.font.family = "'DM Sans', sans-serif";
-
-    window._trafficChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Kunjungan',
-                data,
-                borderColor: '#4f46e5',
-                backgroundColor: grad,
-                borderWidth: 3,
-                fill: true,
-                tension: 0.45,
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#4f46e5',
-                pointBorderWidth: 2.5,
-                pointRadius: 5,
-                pointHoverRadius: 8,
-                pointHoverBackgroundColor: '#4f46e5',
-                pointHoverBorderColor: '#fff',
-                pointHoverBorderWidth: 2,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: {
-                duration: 1200,
-                easing: 'easeOutQuart'
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        
+        window._trafficChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Kehadiran Warga',
+                    data: data,
+                    borderColor: '#4f46e5',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4, // Curvy line
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#4f46e5',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                }]
             },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#1e293b',
-                    titleColor: '#94a3b8',
-                    bodyColor: '#f8fafc',
-                    padding: { top: 12, bottom: 12, left: 16, right: 16 },
-                    borderRadius: 14,
-                    titleFont: { size: 11, weight: '600', family: "'DM Sans', sans-serif" },
-                    bodyFont: { size: 18, weight: '800', family: "'Outfit', sans-serif" },
-                    displayColors: false,
-                        callbacks: {
-                            title: (items) => items[0].label,
-                            label: (item) => `${item.parsed.y} Warga Hadir`
-                        }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(226,232,240,0.6)', drawTicks: false },
-                    border: { display: false },
-                    ticks: {
-                        padding: 12,
-                        stepSize: 1,
-                        font: { size: 12, weight: '600' },
-                        color: '#94a3b8'
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b', padding: 12, cornerRadius: 12,
+                        titleFont: { size: 13, family: "'Poppins', sans-serif" },
+                        bodyFont: { size: 12 }, displayColors: false,
                     }
                 },
-                x: {
-                    grid: { display: false },
-                    border: { display: false },
-                    ticks: {
-                        padding: 12,
-                        font: { size: 12, weight: '600' },
-                        color: '#94a3b8'
-                    }
-                }
-            },
-            interaction: { mode: 'index', intersect: false }
-        }
-    });
-}
-
-// =============================================================================
-// 3. CHART.JS — DONUT CHART (Pendaftaran)
-// =============================================================================
-function renderDonutChart() {
-    if (typeof Chart === 'undefined') {
-        return setTimeout(renderDonutChart, 300);
-    }
-
-    const canvas = document.getElementById('donutChart');
-    if (!canvas) return;
-
-    if (window._donutChart instanceof Chart) {
-        window._donutChart.destroy();
-    }
-
-    const donutData = [
-        {!! $pendaftaran_bulan_ini['balita'] ?? 0 !!},
-        {!! $pendaftaran_bulan_ini['ibu_hamil'] ?? 0 !!},
-        {!! $pendaftaran_bulan_ini['remaja'] ?? 0 !!},
-        {!! $pendaftaran_bulan_ini['lansia'] ?? 0 !!}
-    ];
-
-    const total = donutData.reduce((a,b) => a+b, 0);
-    // If all zero, show placeholder
-    const finalData = total === 0 ? [1,1,1,1] : donutData;
-
-    window._donutChart = new Chart(canvas, {
-        type: 'doughnut',
-        data: {
-            labels: ['Balita','Ibu Hamil','Remaja','Lansia'],
-            datasets: [{
-                data: finalData,
-                backgroundColor: ['#ef4444','#ec4899','#0ea5e9','#10b981'],
-                borderColor: '#ffffff',
-                borderWidth: 3,
-                hoverOffset: 6
-            }]
-        },
-        options: {
-            responsive: false,
-            cutout: '72%',
-            animation: { duration: 1000, easing: 'easeOutQuart' },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    enabled: total > 0,
-                    backgroundColor: '#1e293b',
-                    titleColor: '#94a3b8',
-                    bodyColor: '#f8fafc',
-                    padding: { top: 10, bottom: 10, left: 14, right: 14 },
-                    borderRadius: 12,
-                    displayColors: false,
-                    callbacks: {
-                        label: (item) => `${item.label}: ${total > 0 ? item.parsed : 0} orang`
-                    }
-                }
-            }
-        }
-    });
-}
-
-// =============================================================================
-// 4. INTERSECTION OBSERVER — Animate on scroll
-// =============================================================================
-function initScrollAnimations() {
-    const items = document.querySelectorAll('.anim-1, .anim-2, .anim-3, .anim-4');
-    if (!('IntersectionObserver' in window)) return;
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.animationPlayState = 'running';
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false }, ticks: { stepSize: 1, padding: 10, color: '#94a3b8' } },
+                    x: { grid: { display: false, drawBorder: false }, ticks: { padding: 10, color: '#94a3b8', font: {weight: 'bold'} } }
+                },
+                interaction: { intersect: false, mode: 'index' }
             }
         });
-    }, { threshold: 0.1 });
+    }
 
-    items.forEach(el => {
-        el.style.animationPlayState = 'paused';
-        observer.observe(el);
+    // 3. CHART.JS: DISTRIBUSI WARGA (DONUT CHART)
+    function renderDonutChart() {
+        const canvas = document.getElementById('donutChart');
+        if (!canvas || typeof Chart === 'undefined') return;
+
+        if (window._donutChart) window._donutChart.destroy();
+
+        const donutData = [
+            {!! $pendaftaran_bulan_ini['balita'] ?? 0 !!},
+            {!! $pendaftaran_bulan_ini['ibu_hamil'] ?? 0 !!},
+            {!! $pendaftaran_bulan_ini['remaja'] ?? 0 !!},
+            {!! $pendaftaran_bulan_ini['lansia'] ?? 0 !!}
+        ];
+
+        const total = donutData.reduce((a,b) => a+b, 0);
+        const finalData = total === 0 ? [1,1,1,1] : donutData; // Placeholder jika kosong
+        const bgColors = total === 0 ? ['#f1f5f9','#f1f5f9','#f1f5f9','#f1f5f9'] : ['#fb7185','#f472b6','#38bdf8','#34d399'];
+
+        window._donutChart = new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: ['Balita','Ibu Hamil','Remaja','Lansia'],
+                datasets: [{ data: finalData, backgroundColor: bgColors, borderColor: '#ffffff', borderWidth: 4, hoverOffset: 4 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '75%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: total > 0, backgroundColor: '#1e293b', padding: 12, cornerRadius: 12, displayColors: false,
+                        callbacks: { label: (item) => `${item.label}: ${total > 0 ? item.parsed : 0} orang` }
+                    }
+                }
+            }
+        });
+    }
+
+    // INIT ALL SCRIPTS (Aman untuk SPA Navigation)
+    document.addEventListener('DOMContentLoaded', () => {
+        initClock();
+        setTimeout(() => { renderTrafficChart(); renderDonutChart(); }, 200);
     });
-}
-
-// =============================================================================
-// 5. INIT ALL
-// =============================================================================
-window.addEventListener('load', function() {
-    renderLineChart();
-    renderDonutChart();
-    initScrollAnimations();
-});
-
-// Also run on DOMContentLoaded as fallback
-document.addEventListener('DOMContentLoaded', function() {
-    // Delay slightly to ensure Chart.js is ready
-    setTimeout(function() {
-        renderLineChart();
-        renderDonutChart();
-    }, 200);
-});
 </script>
 @endpush

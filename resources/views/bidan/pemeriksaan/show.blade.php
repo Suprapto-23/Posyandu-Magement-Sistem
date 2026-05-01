@@ -1,880 +1,285 @@
 @extends('layouts.bidan')
 
-@section('title', 'Validasi & Pemeriksaan Lanjutan')
-@section('page-name', 'Workspace Bidan')
+@section('title', 'Ruang Validasi Medis')
+@section('page-name', 'Meja 5 — Validasi Klinis')
 
 @push('styles')
 <style>
-    .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     
-    /* Form Input Medis */
+    .clinical-card { background: white; border-radius: 28px; border: 1px solid #f1f5f9; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.03); overflow: hidden; }
+    
     .med-input { 
-        width: 100%; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 14px; 
-        padding: 12px 16px; color: #0f172a; font-weight: 600; font-size: 13px; 
-        transition: all 0.3s ease; outline: none;
+        width: 100%; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; 
+        padding: 14px 18px; color: #0f172a; font-weight: 700; font-size: 13px; 
+        transition: all 0.3s ease; outline: none; appearance: none;
     }
     .med-input:focus { background: #fff; border-color: #06b6d4; box-shadow: 0 0 0 4px rgba(6,182,212,0.1); }
-    .med-label { 
-        display: block; font-size: 10px; font-weight: 900; color: #64748b; 
-        text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; 
-    }
-    .input-unit { position: relative; }
-    .input-unit input { padding-right: 48px; }
-    .input-unit .unit { 
-        position: absolute; right: 14px; top: 50%; transform: translateY(-50%); 
-        font-size: 11px; font-weight: 900; color: #94a3b8; pointer-events: none; 
-    }
-    
-    /* Kartu data Kader (read-only) */
-    .kader-card { 
-        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; 
-        padding: 14px 16px; 
-    }
-    .kader-card .kd-label { font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
-    .kader-card .kd-val { font-size: 22px; font-weight: 900; color: #0f172a; line-height: 1.1; margin-top: 2px; }
-    .kader-card .kd-unit { font-size: 11px; font-weight: 700; color: #94a3b8; margin-left: 2px; }
-    .kader-card.highlight { border-color: #e0f2fe; background: #f0f9ff; }
-    .kader-card.warn { border-color: #fee2e2; background: #fff1f2; }
-    
-    /* Radio keputusan */
-    .keputusan-radio:checked + div { 
-        border-color: #06b6d4; background: #ecfeff; transform: translateY(-2px); 
-        box-shadow: 0 8px 20px -6px rgba(6,182,212,0.2); 
-    }
-    .keputusan-radio:checked + div .icon-box { background: #06b6d4; color: white; }
-    .keputusan-radio-tolak:checked + div { 
-        border-color: #f43f5e; background: #fff1f2; transform: translateY(-2px); 
-        box-shadow: 0 8px 20px -6px rgba(244,63,94,0.2); 
-    }
-    .keputusan-radio-tolak:checked + div .icon-box { background: #f43f5e; color: white; }
-    
-    /* Section header dalam form */
-    .form-section-header {
-        display: flex; align-items: center; gap: 8px;
-        font-size: 13px; font-weight: 900; color: #1e293b;
-        padding-bottom: 12px; border-bottom: 2px solid #f1f5f9; margin-bottom: 18px;
-    }
-    .form-section-header i { color: #06b6d4; }
-    
-    /* Badge kategori pasien */
-    .badge-balita { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
-    .badge-remaja { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
-    .badge-lansia { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-    .badge-ibuhamil { background: #fce7f3; color: #9d174d; border: 1px solid #fbcfe8; }
-    .badge-bayi { background: #cffafe; color: #155e75; border: 1px solid #a5f3fc; }
-    
-    /* Alert KEK */
-    @keyframes pulse-border { 0%,100%{box-shadow:0 0 0 0 rgba(244,63,94,0)} 50%{box-shadow:0 0 0 6px rgba(244,63,94,0.15)} }
-    .kek-alert { animation: pulse-border 2s infinite; }
-    
-    /* Blok pembagi antar seksi */
-    .divider { height: 1px; background: linear-gradient(to right, transparent, #e2e8f0, transparent); margin: 24px 0; }
+    .med-label { display: block; font-size: 10px; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+
+    .swal2-popup.nexus-swal { border-radius: 32px !important; padding: 2rem !important; border: 1px solid #f1f5f9 !important; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1) !important; }
+    .swal2-confirm, .swal2-cancel { border-radius: 14px !important; font-weight: 900 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; font-size: 12px !important; padding: 14px 28px !important; }
 </style>
 @endpush
 
 @section('content')
-
 @php
-    // ── Deteksi Kategori Pasien ─────────────────────────────────────────
-    $namaPasien  = $pemeriksaan->balita->nama_lengkap 
-                ?? $pemeriksaan->remaja->nama_lengkap 
-                ?? $pemeriksaan->lansia->nama_lengkap 
-                ?? $pemeriksaan->ibuHamil->nama_lengkap 
-                ?? 'Pasien Anonim';
-                
-    $kategoriRaw = strtolower(class_basename($pemeriksaan->kategori_pasien ?? $pemeriksaan->pasien_type));
-    
-    // Normalisasi nama kategori
-    $isBalita   = $kategoriRaw === 'balita';
-    $isBayi     = $kategoriRaw === 'bayi';           // bayi = balita < 12 bulan (gunakan tabel balitas)
-    $isRemaja   = $kategoriRaw === 'remaja';
-    $isLansia   = $kategoriRaw === 'lansia';
-    $isBumil    = in_array($kategoriRaw, ['ibu_hamil','ibuhamil','ibuhamil','bumil']);
-    
-    // Nama & warna tampilan per kategori
-    if ($isBalita || $isBayi) { 
-        $kategoriLabel = $isBayi ? 'Bayi' : 'Balita'; 
-        $nCol = $isBayi ? 'cyan'   : 'sky'; 
-        $nIco = $isBayi ? 'baby'   : 'child'; 
-        $badgeClass = $isBayi ? 'badge-bayi' : 'badge-balita';
-    } elseif ($isRemaja) { 
-        $kategoriLabel = 'Remaja';   $nCol = 'violet'; $nIco = 'user-graduate'; $badgeClass = 'badge-remaja';
-    } elseif ($isLansia) { 
-        $kategoriLabel = 'Lansia';   $nCol = 'emerald'; $nIco = 'user-clock';   $badgeClass = 'badge-lansia';
-    } elseif ($isBumil) { 
-        $kategoriLabel = 'Ibu Hamil'; $nCol = 'pink';   $nIco = 'person-pregnant'; $badgeClass = 'badge-ibuhamil';
-    } else { 
-        $kategoriLabel = 'Pasien';   $nCol = 'slate';  $nIco = 'user';         $badgeClass = '';
-    }
-    
-    // Status verifikasi
+    $namaPasien = $pemeriksaan->nama_pasien;
+    $kategori = strtolower($pemeriksaan->kategori_pasien ?? 'umum');
     $isVerified = $pemeriksaan->status_verifikasi === 'verified';
-    
-    // Peringatan KEK (Kekurangan Energi Kronik) otomatis dari data Kader
-    // LiLA < 23.5 cm = risiko KEK (ini hanya INDIKATOR, bukan diagnosis — bidan yang memutuskan)
-    $lilaKader = floatval($pemeriksaan->lingkar_lengan ?? $pemeriksaan->lila ?? 0);
-    $isRisikoKEK = ($lilaKader > 0 && $lilaKader < 23.5) && ($isBumil || $isRemaja);
+
+    $config = match($kategori) {
+        'balita', 'bayi' => ['col' => 'sky', 'ico' => 'fa-baby', 'label' => 'Anak & Balita'],
+        'remaja'         => ['col' => 'violet', 'ico' => 'fa-user-graduate', 'label' => 'Usia Remaja'],
+        'ibu_hamil'      => ['col' => 'pink', 'ico' => 'fa-female', 'label' => 'Ibu Hamil'],
+        'lansia'         => ['col' => 'emerald', 'ico' => 'fa-user-clock', 'label' => 'Lansia'],
+        default          => ['col' => 'slate', 'ico' => 'fa-user', 'label' => 'Umum'],
+    };
 @endphp
 
-<div class="max-w-5xl mx-auto space-y-6 animate-slide-up pb-12">
+<div class="max-w-[1200px] mx-auto space-y-6 fade-in-up pb-20">
 
-    {{-- ── Navigasi Kembali ─────────────────────────────────────────── --}}
-    <div class="flex items-center justify-between">
-        <a href="{{ route('bidan.pemeriksaan.index') }}" 
-           class="inline-flex items-center gap-2 text-[12px] font-bold text-slate-400 hover:text-cyan-600 transition-colors">
-            <i class="fas fa-arrow-left"></i> Kembali ke Antrian
-        </a>
-        <span class="text-[11px] font-bold text-slate-400">
-            Kode: {{ $pemeriksaan->kunjungan->kode_kunjungan ?? '#'.$pemeriksaan->id }}
-        </span>
-    </div>
-
-    {{-- ══════════════════════════════════════════════════════════════
-         KARTU 1: IDENTITAS PASIEN
-         ══════════════════════════════════════════════════════════════ --}}
-    <div class="bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+    {{-- HEADER --}}
+    <div class="clinical-card p-6 md:p-8 border-l-[10px] border-l-cyan-500 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 opacity-[0.03] text-[150px] pointer-events-none"><i class="fas {{ $config['ico'] }}"></i></div>
         
-        <div class="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative overflow-hidden">
-            {{-- Background dekoratif --}}
-            <div class="absolute -right-16 -bottom-16 w-56 h-56 rounded-full opacity-10 pointer-events-none"
-                 style="background: radial-gradient(circle, var(--color-{{ $nCol }}-400, #0ea5e9), transparent)"></div>
-
-            {{-- Info pasien --}}
-            <div class="flex items-center gap-5 relative z-10">
-                <div class="w-[70px] h-[70px] rounded-[18px] flex items-center justify-center text-3xl shrink-0 shadow-md
-                            {{ $nCol == 'sky' ? 'bg-sky-100 text-sky-500' : '' }}
-                            {{ $nCol == 'cyan' ? 'bg-cyan-100 text-cyan-500' : '' }}
-                            {{ $nCol == 'violet' ? 'bg-violet-100 text-violet-500' : '' }}
-                            {{ $nCol == 'emerald' ? 'bg-emerald-100 text-emerald-500' : '' }}
-                            {{ $nCol == 'pink' ? 'bg-pink-100 text-pink-500' : '' }}">
-                    <i class="fas fa-{{ $nIco }}"></i>
+        <div class="flex items-center gap-6 relative z-10 w-full md:w-auto">
+            <div class="w-[72px] h-[72px] rounded-[22px] bg-cyan-50 text-cyan-600 flex items-center justify-center text-[32px] shadow-inner border border-cyan-100 shrink-0">
+                <i class="fas {{ $config['ico'] }}"></i>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-1">
+                    <span class="px-2.5 py-1 bg-cyan-100 text-cyan-700 text-[9px] font-black uppercase rounded-md border border-cyan-200">Meja 5 Bidan</span>
+                    <span class="text-[10px] font-bold text-slate-400">KODE: #{{ str_pad($pemeriksaan->id, 5, '0', STR_PAD_LEFT) }}</span>
                 </div>
-                <div>
-                    <span class="inline-block px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg mb-2 {{ $badgeClass }}">
-                        {{ $kategoriLabel }}
-                    </span>
-                    <h2 class="text-2xl font-black text-slate-800 tracking-tight leading-none mb-1">
-                        {{ $namaPasien }}
-                    </h2>
-                    <div class="flex items-center gap-3 text-[11px] font-medium text-slate-500">
-                        <span><i class="far fa-calendar-alt mr-1 text-slate-400"></i>
-                            {{ \Carbon\Carbon::parse($pemeriksaan->tanggal_periksa ?? $pemeriksaan->created_at)->translatedFormat('d F Y') }}
-                        </span>
-                        <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                        <span>Diukur Kader: {{ Str::words($pemeriksaan->pemeriksa->name ?? 'Sistem', 2, '') }}</span>
-                    </div>
+                <h1 class="text-[26px] font-black text-slate-800 tracking-tight font-poppins leading-none mb-1.5">{{ $namaPasien }}</h1>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 bg-{{$config['col']}}-50 text-{{$config['col']}}-600 text-[9px] font-black uppercase rounded border border-{{$config['col']}}-100">{{ $config['label'] }}</span>
+                    <span class="text-[11px] font-bold text-slate-400">NIK: {{ $pemeriksaan->nik_pasien }}</span>
                 </div>
             </div>
-
-            {{-- Badge status verifikasi --}}
-            <div class="relative z-10 shrink-0">
-                @if($isVerified)
-                    <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-100 px-4 py-3 rounded-2xl">
-                        <div class="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-                            <i class="fas fa-check text-sm"></i>
-                        </div>
-                        <div>
-                            <p class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Status</p>
-                            <p class="text-[13px] font-black text-slate-800">Tervalidasi</p>
-                        </div>
-                    </div>
-                @else
-                    <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 px-4 py-3 rounded-2xl">
-                        <div class="w-9 h-9 rounded-full bg-amber-400 text-white flex items-center justify-center animate-pulse">
-                            <i class="fas fa-clock text-sm"></i>
-                        </div>
-                        <div>
-                            <p class="text-[9px] font-black text-amber-600 uppercase tracking-widest">Status</p>
-                            <p class="text-[13px] font-black text-slate-800">Perlu Validasi</p>
-                        </div>
-                    </div>
-                @endif
-            </div>
         </div>
-
-        {{-- Alert KEK dari data kader --}}
-        @if($isRisikoKEK)
-        <div class="mx-6 mb-4 flex items-center gap-3 px-4 py-3 bg-rose-50 border border-rose-200 rounded-2xl kek-alert">
-            <i class="fas fa-exclamation-triangle text-rose-500 text-lg"></i>
-            <div>
-                <p class="text-[11px] font-black text-rose-700">
-                    Indikator Risiko KEK — LiLA: {{ $lilaKader }} cm (di bawah ambang 23,5 cm)
-                </p>
-                <p class="text-[10px] font-medium text-rose-500 mt-0.5">
-                    Ini adalah indikator otomatis dari data kader. Keputusan final ada pada bidan.
-                </p>
-            </div>
-        </div>
-        @endif
-
-    </div>
-
-    {{-- ══════════════════════════════════════════════════════════════
-         KARTU 2: HASIL PENGUKURAN FISIK (DARI KADER — READ ONLY)
-         ══════════════════════════════════════════════════════════════ --}}
-    <div class="bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-8">
         
-        <div class="form-section-header">
-            <i class="fas fa-clipboard-list"></i>
-            Hasil Pengukuran Fisik Kader (Meja 2 — Baca Saja)
-        </div>
-
-        {{-- GRID UMUM (Semua Kategori) --}}
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
-            <div class="kader-card highlight">
-                <p class="kd-label">Berat Badan</p>
-                <p class="kd-val">{{ $pemeriksaan->berat_badan ?? '-' }}<span class="kd-unit">kg</span></p>
-            </div>
-            <div class="kader-card highlight">
-                <p class="kd-label">{{ ($isBalita||$isBayi) ? 'Panjang Badan' : 'Tinggi Badan' }}</p>
-                <p class="kd-val">{{ $pemeriksaan->tinggi_badan ?? '-' }}<span class="kd-unit">cm</span></p>
-            </div>
-            <div class="kader-card">
-                <p class="kd-label">LiLA (Lingkar Lengan)</p>
-                <p class="kd-val {{ ($lilaKader > 0 && $lilaKader < 23.5) ? 'text-rose-500' : '' }}">
-                    {{ $pemeriksaan->lingkar_lengan ?? $pemeriksaan->lila ?? '-' }}<span class="kd-unit">cm</span>
-                </p>
-            </div>
-            @if($pemeriksaan->suhu_tubuh)
-            <div class="kader-card {{ floatval($pemeriksaan->suhu_tubuh) > 37.5 ? 'warn' : '' }}">
-                <p class="kd-label">Suhu Tubuh</p>
-                <p class="kd-val {{ floatval($pemeriksaan->suhu_tubuh) > 37.5 ? 'text-rose-500' : '' }}">
-                    {{ $pemeriksaan->suhu_tubuh }}<span class="kd-unit">°C</span>
-                    @if(floatval($pemeriksaan->suhu_tubuh) > 37.5)
-                        <span class="text-[9px] block text-rose-500 font-black">DEMAM</span>
-                    @endif
-                </p>
-            </div>
-            @endif
-        </div>
-
-        {{-- GRID SPESIFIK BALITA / BAYI --}}
-        @if($isBalita || $isBayi)
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 bg-sky-50/50 rounded-2xl border border-sky-100">
-            <p class="col-span-full text-[9px] font-black text-sky-500 uppercase tracking-widest mb-1">Data Khusus Balita</p>
-            <div class="kader-card">
-                <p class="kd-label text-sky-500">Lingkar Kepala</p>
-                <p class="kd-val">{{ $pemeriksaan->lingkar_kepala ?? '-' }}<span class="kd-unit">cm</span></p>
-            </div>
-            <div class="kader-card">
-                <p class="kd-label text-sky-500">Lingkar Perut</p>
-                <p class="kd-val">{{ $pemeriksaan->lingkar_perut ?? '-' }}<span class="kd-unit">cm</span></p>
-            </div>
-        </div>
-        @endif
-
-        {{-- GRID SPESIFIK REMAJA / LANSIA / BUMIL --}}
-        @if($isRemaja || $isLansia || $isBumil)
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-4 
-                    {{ $isRemaja ? 'bg-violet-50/50 border-violet-100' : '' }}
-                    {{ $isLansia ? 'bg-emerald-50/50 border-emerald-100' : '' }}
-                    {{ $isBumil ? 'bg-pink-50/50 border-pink-100' : '' }}
-                    rounded-2xl border">
-            <p class="col-span-full text-[9px] font-black uppercase tracking-widest mb-1
-                       {{ $isRemaja ? 'text-violet-500' : '' }}
-                       {{ $isLansia ? 'text-emerald-600' : '' }}
-                       {{ $isBumil ? 'text-pink-500' : '' }}">
-                Data Khusus {{ $kategoriLabel }}
+        <div class="bg-slate-50 rounded-[20px] p-5 border border-slate-100 text-left md:text-right w-full md:w-auto relative z-10 shrink-0">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Pemeriksa Awal (Kader)</p>
+            <p class="text-[14px] font-black text-indigo-600 font-poppins flex items-center md:justify-end gap-2">
+                <i class="fas fa-id-badge text-indigo-300"></i> {{ $pemeriksaan->pemeriksa->name ?? 'Sistem Bidan' }}
             </p>
-            <div class="kader-card {{ floatval($pemeriksaan->tekanan_darah) > 0 && intval($pemeriksaan->tekanan_darah) >= 140 ? 'warn' : '' }}">
-                <p class="kd-label">Tekanan Darah</p>
-                <p class="kd-val text-sm">{{ $pemeriksaan->tekanan_darah ?? '-' }}<span class="kd-unit">mmHg</span></p>
-                @if(intval($pemeriksaan->tekanan_darah) >= 140)
-                    <p class="text-[9px] font-black text-rose-500 mt-1">HIPERTENSI</p>
-                @endif
-            </div>
-            @if($isLansia)
-            <div class="kader-card">
-                <p class="kd-label">Lingkar Perut (LP)</p>
-                <p class="kd-val">{{ $pemeriksaan->lingkar_perut ?? '-' }}<span class="kd-unit">cm</span></p>
-            </div>
-            @endif
-            @if($isBumil)
-            <div class="kader-card">
-                <p class="kd-label">TFU (Tinggi Fundus)</p>
-                <p class="kd-val">{{ $pemeriksaan->tfu ?? '-' }}<span class="kd-unit">cm</span></p>
-            </div>
-            @endif
+            <p class="text-[10px] font-medium text-slate-400 mt-1 italic"><i class="far fa-clock mr-1"></i>Diukur {{ $pemeriksaan->created_at->diffForHumans() }}</p>
         </div>
-        @endif
-
     </div>
 
-    {{-- ══════════════════════════════════════════════════════════════
-         KARTU 3: FORM PEMERIKSAAN LANJUTAN BIDAN + VALIDASI
-         ══════════════════════════════════════════════════════════════ --}}
-    <div class="bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+    <form id="formValidasi" action="{{ route('bidan.pemeriksaan.update', $pemeriksaan->id) }}" method="POST">
+        @csrf @method('PUT')
         
-        {{-- Header form --}}
-        <div class="px-8 py-5 bg-gradient-to-r from-cyan-600 to-blue-600 flex items-center justify-between">
-            <div>
-                <p class="text-[9px] font-black text-cyan-200 uppercase tracking-widest mb-0.5">Meja 5 — Bidan</p>
-                <h3 class="text-[16px] font-black text-white flex items-center gap-2">
-                    <i class="fas fa-user-md"></i> Pemeriksaan Lanjutan & Diagnosa
-                </h3>
-            </div>
-            <span class="px-3 py-1.5 bg-white/20 text-white text-[10px] font-black rounded-lg uppercase tracking-widest backdrop-blur-sm">
-                {{ $kategoriLabel }}
-            </span>
-        </div>
-        
-        <div class="p-6 md:p-8">
-            <form id="formPemeriksaan" action="{{ route('bidan.pemeriksaan.update', $pemeriksaan->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-
-                {{-- ── A. KEPUTUSAN BIDAN ──────────────────────────────────── --}}
-                <div class="mb-8">
-                    <div class="form-section-header">
-                        <i class="fas fa-gavel"></i>
-                        A. Keputusan Validasi
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        
-                        {{-- Validasi --}}
-                        <label class="cursor-pointer">
-                            {{-- 
-                                PERBAIKAN BUG: Sebelumnya ditulis '{{ $isVerified ? 'checked' : 'checked' }}'
-                                yang membuat tombol SELALU checked. Sudah diperbaiki.
-                            --}}
-                            <input type="radio" name="status_verifikasi" value="verified" 
-                                   class="sr-only keputusan-radio"
-                                   {{ $isVerified ? 'checked' : '' }}>
-                            <div class="flex items-center gap-4 p-4 border-2 border-slate-200 rounded-[18px] transition-all bg-white hover:border-cyan-200">
-                                <div class="icon-box w-11 h-11 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-lg transition-colors">
-                                    <i class="fas fa-check-double"></i>
-                                </div>
-                                <div>
-                                    <p class="text-[13px] font-black text-slate-800">Validasi & Selesai</p>
-                                    <p class="text-[10px] font-medium text-slate-500 mt-0.5">Data akurat, simpan ke rekam medis warga.</p>
-                                </div>
-                            </div>
-                        </label>
-
-                        {{-- Tolak --}}
-                        <label class="cursor-pointer">
-                            <input type="radio" name="status_verifikasi" value="ditolak"
-                                   class="sr-only keputusan-radio-tolak"
-                                   {{ ($pemeriksaan->status_verifikasi === 'ditolak') ? 'checked' : '' }}>
-                            <div class="flex items-center gap-4 p-4 border-2 border-slate-200 rounded-[18px] transition-all bg-white hover:border-rose-200">
-                                <div class="icon-box w-11 h-11 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-lg transition-colors">
-                                    <i class="fas fa-undo-alt"></i>
-                                </div>
-                                <div>
-                                    <p class="text-[13px] font-black text-slate-800">Kembalikan ke Kader</p>
-                                    <p class="text-[10px] font-medium text-slate-500 mt-0.5">Data fisik tidak valid, kader perlu ukur ulang.</p>
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="divider"></div>
-
-                {{-- ── B. PENGUKURAN TAMBAHAN BIDAN ───────────────────────── --}}
-                {{-- Ini adalah pengukuran yang dilakukan bidan sendiri, bukan dari kader --}}
-                <div class="mb-8">
-                    <div class="form-section-header">
-                        <i class="fas fa-thermometer-half"></i>
-                        B. Pengukuran Tambahan oleh Bidan
-                    </div>
-
-                    {{-- ══ SEKSI KHUSUS BALITA / BAYI ══ --}}
-                    @if($isBalita || $isBayi)
-                    <div class="space-y-4 p-5 bg-sky-50/50 border border-sky-100 rounded-[20px]">
-                        <p class="text-[10px] font-black text-sky-600 uppercase tracking-widest">Pengukuran Fisik Balita / Bayi</p>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="med-label">Suhu Tubuh</label>
-                                <div class="input-unit">
-                                    <input type="number" step="0.1" name="suhu_tubuh" 
-                                           class="med-input" placeholder="36.5"
-                                           value="{{ $pemeriksaan->suhu_tubuh }}">
-                                    <span class="unit">°C</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="med-label">Lingkar Kepala</label>
-                                <div class="input-unit">
-                                    <input type="number" step="0.1" name="lingkar_kepala" 
-                                           class="med-input" placeholder="0.0"
-                                           value="{{ $pemeriksaan->lingkar_kepala }}">
-                                    <span class="unit">cm</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="med-label">Lingkar Perut</label>
-                                <div class="input-unit">
-                                    <input type="number" step="0.1" name="lingkar_perut" 
-                                           class="med-input" placeholder="0.0"
-                                           value="{{ $pemeriksaan->lingkar_perut }}">
-                                    <span class="unit">cm</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- ══ SEKSI KHUSUS REMAJA ══ --}}
-                    @if($isRemaja)
-                    <div class="space-y-4 p-5 bg-violet-50/50 border border-violet-100 rounded-[20px]">
-                        <p class="text-[10px] font-black text-violet-600 uppercase tracking-widest">Pengukuran Tambahan Remaja</p>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="med-label">Suhu Tubuh</label>
-                                <div class="input-unit">
-                                    <input type="number" step="0.1" name="suhu_tubuh" 
-                                           class="med-input" placeholder="36.5"
-                                           value="{{ $pemeriksaan->suhu_tubuh }}">
-                                    <span class="unit">°C</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="med-label">Hemoglobin (HB)
-                                    <span class="text-[9px] font-medium text-slate-400 normal-case tracking-normal ml-1">jika tersedia alat</span>
-                                </label>
-                                <div class="input-unit">
-                                    <input type="number" step="0.1" name="hb" 
-                                           class="med-input" placeholder="12.0"
-                                           value="{{ $pemeriksaan->hb }}">
-                                    <span class="unit">g/dL</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- ══ SEKSI KHUSUS LANSIA ══ --}}
-                    @if($isLansia)
-                    <div class="space-y-4 p-5 bg-emerald-50/50 border border-emerald-100 rounded-[20px]">
-                        <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Pemeriksaan Biomedis Lansia</p>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div>
-                                <label class="med-label">Suhu Tubuh</label>
-                                <div class="input-unit">
-                                    <input type="number" step="0.1" name="suhu_tubuh" 
-                                           class="med-input" placeholder="36.5"
-                                           value="{{ $pemeriksaan->suhu_tubuh }}">
-                                    <span class="unit">°C</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="med-label">Gula Darah Sewaktu (GDS)
-                                    <span class="text-[9px] font-medium text-slate-400 normal-case tracking-normal ml-1">jika tersedia</span>
-                                </label>
-                                <div class="input-unit">
-                                    <input type="number" step="1" name="gula_darah" 
-                                           class="med-input" placeholder="120"
-                                           value="{{ $pemeriksaan->gula_darah }}">
-                                    <span class="unit">mg/dL</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="med-label">Kolesterol
-                                    <span class="text-[9px] font-medium text-slate-400 normal-case tracking-normal ml-1">jika tersedia</span>
-                                </label>
-                                <div class="input-unit">
-                                    <input type="number" step="1" name="kolesterol" 
-                                           class="med-input" placeholder="200"
-                                           value="{{ $pemeriksaan->kolesterol }}">
-                                    <span class="unit">mg/dL</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="med-label">Asam Urat
-                                    <span class="text-[9px] font-medium text-slate-400 normal-case tracking-normal ml-1">jika tersedia</span>
-                                </label>
-                                <div class="input-unit">
-                                    <input type="number" step="0.1" name="asam_urat" 
-                                           class="med-input" placeholder="5.5"
-                                           value="{{ $pemeriksaan->asam_urat }}">
-                                    <span class="unit">mg/dL</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- ══ SEKSI KHUSUS IBU HAMIL ══ --}}
-                    @if($isBumil)
-                    <div class="space-y-4 p-5 bg-pink-50/50 border border-pink-100 rounded-[20px]">
-                        <p class="text-[10px] font-black text-pink-600 uppercase tracking-widest">Pemeriksaan Kebidanan</p>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="med-label text-pink-600">Suhu Tubuh</label>
-                                <div class="input-unit">
-                                    <input type="number" step="0.1" name="suhu_tubuh" 
-                                           class="med-input" placeholder="36.5"
-                                           value="{{ $pemeriksaan->suhu_tubuh }}">
-                                    <span class="unit">°C</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="med-label text-pink-600">Hemoglobin (HB)</label>
-                                <div class="input-unit">
-                                    <input type="number" step="0.1" name="hb" 
-                                           class="med-input" placeholder="11.0"
-                                           value="{{ $pemeriksaan->hb }}">
-                                    <span class="unit">g/dL</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="med-label text-pink-600">Usia Kehamilan</label>
-                                <div class="input-unit">
-                                    <input type="number" step="1" name="usia_kehamilan" 
-                                           class="med-input" placeholder="20"
-                                           value="{{ $pemeriksaan->usia_kehamilan }}">
-                                    <span class="unit">mgg</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="med-label text-pink-600">TFU (Tinggi Fundus Uteri)</label>
-                                <div class="input-unit">
-                                    <input type="text" name="tfu" 
-                                           class="med-input" placeholder="Contoh: 28"
-                                           value="{{ $pemeriksaan->tfu }}">
-                                    <span class="unit">cm</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="med-label text-pink-600">Denyut Jantung Janin (DJJ)</label>
-                                <div class="input-unit">
-                                    <input type="text" name="djj" 
-                                           class="med-input" placeholder="140"
-                                           value="{{ $pemeriksaan->djj }}">
-                                    <span class="unit">bpm</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="med-label text-pink-600">Presentasi / Posisi Janin</label>
-                                <select name="posisi_janin" class="med-input cursor-pointer">
-                                    <option value="">-- Pilih Presentasi --</option>
-                                    <option value="Kepala" {{ $pemeriksaan->posisi_janin == 'Kepala' ? 'selected' : '' }}>Kepala (Presentasi Normal)</option>
-                                    <option value="Sungsang" {{ $pemeriksaan->posisi_janin == 'Sungsang' ? 'selected' : '' }}>Sungsang (Bokong/Kaki)</option>
-                                    <option value="Lintang" {{ $pemeriksaan->posisi_janin == 'Lintang' ? 'selected' : '' }}>Lintang (Transversal)</option>
-                                    <option value="Miring" {{ $pemeriksaan->posisi_janin == 'Miring' ? 'selected' : '' }}>Miring (Oblique)</option>
-                                    <option value="Belum Bisa Ditentukan" {{ $pemeriksaan->posisi_janin == 'Belum Bisa Ditentukan' ? 'selected' : '' }}>Belum Bisa Ditentukan</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-                </div>
-
-                <div class="divider"></div>
-
-                {{-- ── C. PENILAIAN KLINIS BIDAN ───────────────────────────── --}}
-                {{-- Ini adalah penilaian MANUAL bidan, BUKAN deteksi sistem otomatis --}}
-                {{-- Catatan untuk penguji: semua nilai di bawah diisi oleh bidan, bukan dihitung sistem --}}
-                <div class="mb-8">
-                    <div class="form-section-header">
-                        <i class="fas fa-stethoscope"></i>
-                        C. Penilaian Klinis (Diisi Bidan)
-                    </div>
-
-                    {{-- ══ PENILAIAN BALITA / BAYI ══ --}}
-                    @if($isBalita || $isBayi)
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-5 bg-sky-50/50 border border-sky-100 rounded-[20px]">
-                        <p class="col-span-full text-[9px] font-black text-sky-600 uppercase tracking-widest mb-1">Status Gizi Balita (Standar WHO/Kemenkes)</p>
-                        
-                        <div>
-                            <label class="med-label">Status BB/U <span class="text-[9px] font-medium text-slate-400 normal-case tracking-normal">(Berat Badan/Umur)</span></label>
-                            <select name="status_gizi_bb_u" class="med-input cursor-pointer border-sky-200">
-                                <option value="">-- Pilih Status --</option>
-                                <option value="BB Sangat Kurang" {{ ($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'BB Sangat Kurang' ? 'selected' : '' }}>
-                                    BB Sangat Kurang (&lt; -3 SD)
-                                </option>
-                                <option value="BB Kurang" {{ ($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'BB Kurang' ? 'selected' : '' }}>
-                                    BB Kurang (-3 s/d &lt;-2 SD)
-                                </option>
-                                <option value="BB Normal" {{ ($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'BB Normal' ? 'selected' : '' }}>
-                                    BB Normal (-2 s/d +1 SD)
-                                </option>
-                                <option value="Risiko BB Lebih" {{ ($pemeriksaan->status_gizi_bb_u ?? $pemeriksaan->status_gizi) == 'Risiko BB Lebih' ? 'selected' : '' }}>
-                                    Risiko BB Lebih (&gt; +1 SD)
-                                </option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="med-label">Status TB/U <span class="text-[9px] font-medium text-slate-400 normal-case tracking-normal">(Tinggi Badan/Umur)</span></label>
-                            <select name="indikasi_stunting" class="med-input cursor-pointer border-rose-200 focus:border-rose-400 focus:ring-rose-50 bg-rose-50/30">
-                                <option value="">-- Pilih Status --</option>
-                                <option value="Sangat Pendek" {{ $pemeriksaan->indikasi_stunting == 'Sangat Pendek' ? 'selected' : '' }}>
-                                    Sangat Pendek / Severely Stunted (&lt; -3 SD)
-                                </option>
-                                <option value="Pendek" {{ $pemeriksaan->indikasi_stunting == 'Pendek' ? 'selected' : '' }}>
-                                    Pendek / Stunted (-3 s/d &lt;-2 SD)
-                                </option>
-                                <option value="Normal" {{ ($pemeriksaan->indikasi_stunting == 'Normal' || $pemeriksaan->indikasi_stunting == 'Tidak Stunting') ? 'selected' : '' }}>
-                                    Normal (-2 s/d +3 SD)
-                                </option>
-                                <option value="Tinggi" {{ $pemeriksaan->indikasi_stunting == 'Tinggi' ? 'selected' : '' }}>
-                                    Tinggi (&gt; +3 SD)
-                                </option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="med-label">Status BB/TB <span class="text-[9px] font-medium text-slate-400 normal-case tracking-normal">(Gizi/Wasting)</span></label>
-                            <select name="status_gizi" class="med-input cursor-pointer border-sky-200">
-                                <option value="">-- Pilih Status --</option>
-                                <option value="Gizi Buruk" {{ $pemeriksaan->status_gizi == 'Gizi Buruk' ? 'selected' : '' }}>
-                                    Gizi Buruk / Sangat Kurus (&lt; -3 SD)
-                                </option>
-                                <option value="Gizi Kurang" {{ $pemeriksaan->status_gizi == 'Gizi Kurang' ? 'selected' : '' }}>
-                                    Gizi Kurang / Kurus (-3 s/d &lt;-2 SD)
-                                </option>
-                                <option value="Gizi Baik" {{ $pemeriksaan->status_gizi == 'Gizi Baik' ? 'selected' : '' }}>
-                                    Gizi Baik / Normal (-2 s/d +1 SD)
-                                </option>
-                                <option value="Risiko Lebih" {{ $pemeriksaan->status_gizi == 'Risiko Lebih' ? 'selected' : '' }}>
-                                    Risiko Berat Lebih (+1 s/d +2 SD)
-                                </option>
-                                <option value="Gizi Lebih" {{ $pemeriksaan->status_gizi == 'Gizi Lebih' ? 'selected' : '' }}>
-                                    Gizi Lebih / Obesitas (&gt; +2 SD)
-                                </option>
-                            </select>
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- ══ PENILAIAN REMAJA ══ --}}
-                    @if($isRemaja)
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-5 bg-violet-50/50 border border-violet-100 rounded-[20px]">
-                        <p class="col-span-full text-[9px] font-black text-violet-600 uppercase tracking-widest mb-1">Status Gizi & Anemia Remaja</p>
-                        <div>
-                            <label class="med-label">Status IMT Remaja</label>
-                            <select name="status_imt" class="med-input cursor-pointer">
-                                <option value="">-- Pilih Status IMT --</option>
-                                <option value="Sangat Kurus" {{ ($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Sangat Kurus' ? 'selected' : '' }}>Sangat Kurus</option>
-                                <option value="Kurus" {{ ($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Kurus' ? 'selected' : '' }}>Kurus</option>
-                                <option value="Normal" {{ ($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Normal' ? 'selected' : '' }}>Normal</option>
-                                <option value="Gemuk" {{ ($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Gemuk' ? 'selected' : '' }}>Gemuk</option>
-                                <option value="Obesitas" {{ ($pemeriksaan->status_imt ?? $pemeriksaan->status_gizi) == 'Obesitas' ? 'selected' : '' }}>Obesitas</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="med-label">Status Anemia (dari HB)</label>
-                            <select name="status_anemia" class="med-input cursor-pointer">
-                                <option value="">-- Pilih Status --</option>
-                                <option value="Tidak Anemia" {{ $pemeriksaan->status_anemia == 'Tidak Anemia' ? 'selected' : '' }}>Tidak Anemia (HB ≥ 12 g/dL)</option>
-                                <option value="Anemia Ringan" {{ $pemeriksaan->status_anemia == 'Anemia Ringan' ? 'selected' : '' }}>Anemia Ringan (HB 10–11.9)</option>
-                                <option value="Anemia Sedang" {{ $pemeriksaan->status_anemia == 'Anemia Sedang' ? 'selected' : '' }}>Anemia Sedang (HB 8–9.9)</option>
-                                <option value="Anemia Berat" {{ $pemeriksaan->status_anemia == 'Anemia Berat' ? 'selected' : '' }}>Anemia Berat (HB &lt; 8)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="med-label">Status KEK (LiLA) <span class="text-[9px] text-slate-400 normal-case font-normal ml-1">Remaja Perempuan</span></label>
-                            <select name="status_kek" class="med-input cursor-pointer">
-                                <option value="">-- Pilih Status --</option>
-                                <option value="Tidak KEK" {{ ($pemeriksaan->status_kek ?? 'Tidak KEK') == 'Tidak KEK' ? 'selected' : '' }}>Tidak KEK (LiLA ≥ 23.5 cm)</option>
-                                <option value="KEK" {{ $pemeriksaan->status_kek == 'KEK' ? 'selected' : '' }}>KEK (LiLA &lt; 23.5 cm)</option>
-                            </select>
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- ══ PENILAIAN LANSIA ══ --}}
-                    @if($isLansia)
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-5 bg-emerald-50/50 border border-emerald-100 rounded-[20px]">
-                        <p class="col-span-full text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">Penilaian Klinis Lansia</p>
-                        <div>
-                            <label class="med-label">Status Gizi / IMT Lansia</label>
-                            <select name="status_gizi" class="med-input cursor-pointer">
-                                <option value="">-- Pilih Status --</option>
-                                <option value="Kurus" {{ $pemeriksaan->status_gizi == 'Kurus' ? 'selected' : '' }}>Kurus (IMT &lt; 18.5)</option>
-                                <option value="Normal" {{ $pemeriksaan->status_gizi == 'Normal' ? 'selected' : '' }}>Normal (IMT 18.5–24.9)</option>
-                                <option value="Gemuk" {{ $pemeriksaan->status_gizi == 'Gemuk' ? 'selected' : '' }}>Gemuk (IMT 25–26.9)</option>
-                                <option value="Obesitas" {{ $pemeriksaan->status_gizi == 'Obesitas' ? 'selected' : '' }}>Obesitas (IMT ≥ 27)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="med-label">Skala Kemandirian (Barthel/ABC)</label>
-                            <select name="tingkat_kemandirian" class="med-input cursor-pointer">
-                                <option value="">-- Pilih Skala --</option>
-                                <option value="A" {{ $pemeriksaan->tingkat_kemandirian == 'A' ? 'selected' : '' }}>
-                                    A — Mandiri Sepenuhnya
-                                </option>
-                                <option value="B" {{ $pemeriksaan->tingkat_kemandirian == 'B' ? 'selected' : '' }}>
-                                    B — Bantuan Sebagian
-                                </option>
-                                <option value="C" {{ $pemeriksaan->tingkat_kemandirian == 'C' ? 'selected' : '' }}>
-                                    C — Ketergantungan Total
-                                </option>
-                            </select>
-                        </div>
-                    </div>
-                    @endif
-
-                    {{-- ══ PENILAIAN IBU HAMIL ══ --}}
-                    @if($isBumil)
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-5 bg-pink-50/50 border border-pink-100 rounded-[20px]">
-                        <p class="col-span-full text-[9px] font-black text-pink-600 uppercase tracking-widest mb-1">Penilaian Risiko Kehamilan</p>
-                        <div>
-                            <label class="med-label text-pink-600">Status Anemia (dari HB)</label>
-                            <select name="status_anemia" class="med-input cursor-pointer">
-                                <option value="">-- Pilih Status --</option>
-                                <option value="Tidak Anemia" {{ $pemeriksaan->status_anemia == 'Tidak Anemia' ? 'selected' : '' }}>Tidak Anemia (HB ≥ 11 g/dL)</option>
-                                <option value="Anemia Ringan" {{ $pemeriksaan->status_anemia == 'Anemia Ringan' ? 'selected' : '' }}>Anemia Ringan (HB 8–10.9)</option>
-                                <option value="Anemia Sedang" {{ $pemeriksaan->status_anemia == 'Anemia Sedang' ? 'selected' : '' }}>Anemia Sedang (HB 6–7.9)</option>
-                                <option value="Anemia Berat" {{ $pemeriksaan->status_anemia == 'Anemia Berat' ? 'selected' : '' }}>Anemia Berat (HB &lt; 6)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="med-label text-pink-600">Status KEK (dari LiLA)</label>
-                            <select name="status_kek" class="med-input cursor-pointer">
-                                <option value="">-- Pilih Status --</option>
-                                <option value="Tidak KEK" {{ ($pemeriksaan->status_kek ?? 'Tidak KEK') == 'Tidak KEK' ? 'selected' : '' }}>Tidak KEK (LiLA ≥ 23.5 cm)</option>
-                                <option value="KEK" {{ $pemeriksaan->status_kek == 'KEK' ? 'selected' : '' }}>KEK (LiLA &lt; 23.5 cm)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="med-label text-pink-600">Kategori Risiko Kehamilan</label>
-                            <select name="status_risiko" class="med-input cursor-pointer">
-                                <option value="">-- Pilih Kategori --</option>
-                                <option value="Risiko Rendah" {{ $pemeriksaan->status_risiko == 'Risiko Rendah' ? 'selected' : '' }}>Risiko Rendah</option>
-                                <option value="Risiko Sedang" {{ $pemeriksaan->status_risiko == 'Risiko Sedang' ? 'selected' : '' }}>Risiko Sedang</option>
-                                <option value="Risiko Tinggi" {{ $pemeriksaan->status_risiko == 'Risiko Tinggi' ? 'selected' : '' }}>Risiko Tinggi (Rujuk!)</option>
-                            </select>
-                        </div>
-                    </div>
-                    @endif
-                </div>
-
-                <div class="divider"></div>
-
-                {{-- ── D. DIAGNOSA & TINDAKAN (UNIVERSAL) ──────────────────── --}}
-                <div class="space-y-5 mb-8">
-                    <div class="form-section-header">
-                        <i class="fas fa-file-medical"></i>
-                        D. Kesimpulan Diagnosa & Tindakan
-                    </div>
-
-                    <div>
-                        <label class="med-label">
-                            Kesimpulan / Diagnosa <span class="text-rose-500">*</span>
-                        </label>
-                        <textarea name="diagnosa" rows="3" required
-                                  class="med-input resize-none"
-                                  placeholder="Tuliskan kesimpulan klinis dari seluruh hasil pemeriksaan. Contoh: Tumbuh kembang anak sesuai umur, tidak ada indikasi gizi buruk.">{{ $pemeriksaan->diagnosa }}</textarea>
-                    </div>
-
-                    <div>
-                        <label class="med-label">
-                            Tindakan / Pelayanan yang Diberikan <span class="text-rose-500">*</span>
-                        </label>
-                        <textarea name="tindakan" rows="2"
-                                  class="med-input resize-none"
-                                  placeholder="Contoh: Pemberian Vitamin A, edukasi gizi, rujuk ke Puskesmas, imunisasi lanjutan...">{{ $pemeriksaan->tindakan }}</textarea>
-                    </div>
-
-                    <div class="bg-cyan-50 border border-cyan-100 rounded-[18px] p-5">
-                        <label class="med-label text-cyan-700">
-                            <i class="fas fa-comment-medical mr-1"></i>
-                            Catatan untuk Warga / Orang Tua
-                        </label>
-                        <p class="text-[10px] font-medium text-cyan-600 mb-2">
-                            Pesan ini akan ditampilkan di aplikasi warga sebagai catatan asuhan dari bidan.
-                        </p>
-                        <textarea name="catatan_bidan" rows="3"
-                                  class="med-input border-cyan-200 focus:border-cyan-400 focus:ring-cyan-50 bg-white"
-                                  placeholder="Contoh: Ibu, tolong perbanyak konsumsi protein hewani dan sayuran hijau ya. Jadwal kontrol berikutnya bulan depan...">{{ $pemeriksaan->catatan_bidan }}</textarea>
-                    </div>
-                </div>
-
-                {{-- ── TOMBOL AKSI ─────────────────────────────────────────── --}}
-                <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    @if($isVerified)
-                    <button type="button" onclick="confirmReset()" 
-                            class="px-6 py-3 bg-white border-2 border-rose-100 text-rose-500 font-black text-[11px] uppercase tracking-widest rounded-xl hover:bg-rose-50 transition-colors w-full sm:w-auto">
-                        <i class="fas fa-lock-open mr-1"></i> Buka Kunci Validasi
-                    </button>
-                    @else
-                        <div class="text-[11px] font-medium text-slate-400 flex items-center gap-2">
-                            <i class="fas fa-info-circle text-cyan-400"></i>
-                            Semua field bertanda <span class="text-rose-500 font-black">*</span> wajib diisi.
-                        </div>
-                    @endif
+        {{-- MENGGUNAKAN ITEMS-STRETCH AGAR KOLOM KIRI DAN KANAN SAMA TINGGI --}}
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            {{-- KOLOM KIRI: DATA FISIK KADER --}}
+            <div class="lg:col-span-4">
+                {{-- CLASS H-FULL MEMAKSA KARTU INI MENGISI SELURUH RUANG KE BAWAH --}}
+                <div class="clinical-card p-6 md:p-8 bg-slate-50/50 h-full flex flex-col border-2 border-slate-100">
+                    <h3 class="text-[14px] font-black text-slate-800 mb-5 flex items-center gap-2 border-b border-slate-200/60 pb-4 shrink-0">
+                        <i class="fas fa-clipboard-list text-cyan-500"></i> Hasil Ukur Fisik Kader
+                    </h3>
                     
-                    <button type="submit" id="btnSubmit"
-                            class="px-10 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black text-[12px] uppercase tracking-widest rounded-xl hover:shadow-[0_10px_25px_rgba(6,182,212,0.3)] transition-all hover:-translate-y-0.5 w-full sm:w-auto">
-                        <i class="fas fa-save mr-2"></i> Simpan Hasil Pemeriksaan
-                    </button>
+                    <div class="space-y-6 flex-1">
+                        <div class="bg-rose-50 p-3 rounded-xl border border-rose-100 flex gap-3 items-start">
+                            <i class="fas fa-info-circle text-rose-400 mt-0.5"></i>
+                            <p class="text-[10px] font-bold text-rose-500 leading-relaxed">Bidan berhak mengoreksi angka di bawah jika kader melakukan kesalahan input.</p>
+                        </div>
+                        
+                        <div>
+                            <label class="med-label">Berat Badan (kg)</label>
+                            <input type="number" step="0.01" name="berat_badan" value="{{ $pemeriksaan->berat_badan }}" class="med-input bg-white">
+                        </div>
+                        <div>
+                            <label class="med-label">Tinggi/Panjang Badan (cm)</label>
+                            <input type="number" step="0.1" name="tinggi_badan" value="{{ $pemeriksaan->tinggi_badan }}" class="med-input bg-white">
+                        </div>
+                        <div>
+                            <label class="med-label">Lingkar Lengan / LiLA (cm)</label>
+                            <input type="number" step="0.1" name="lingkar_lengan" value="{{ $pemeriksaan->lingkar_lengan }}" class="med-input bg-white">
+                        </div>
+                        @if(in_array($kategori, ['balita', 'bayi']))
+                        <div>
+                            <label class="med-label">Lingkar Kepala (cm)</label>
+                            <input type="number" step="0.1" name="lingkar_kepala" value="{{ $pemeriksaan->lingkar_kepala }}" class="med-input bg-white">
+                        </div>
+                        @endif
+                    </div>
                 </div>
+            </div>
 
-            </form>
+            {{-- KOLOM KANAN: FORM MEDIS BIDAN --}}
+            <div class="lg:col-span-8">
+                <div class="clinical-card border-2 border-cyan-500/20 h-full flex flex-col">
+                    
+                    <div class="px-8 py-5 bg-gradient-to-r from-cyan-600 to-blue-700 text-white shrink-0">
+                        <h3 class="text-[15px] font-black font-poppins flex items-center gap-2">
+                            <i class="fas fa-stethoscope"></i> Analisa Medis & Tindakan Bidan
+                        </h3>
+                    </div>
+                    
+                    <div class="p-8 space-y-8 flex-1 flex flex-col">
+                        
+                        {{-- 1. Pengukuran Vital --}}
+                        <div>
+                            <h4 class="text-[11px] font-black text-cyan-600 uppercase tracking-widest mb-4 border-b border-cyan-100 pb-2">1. Pengukuran Vital Tambahan</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                                <div>
+                                    <label class="med-label">Suhu Tubuh (°C)</label>
+                                    <input type="number" step="0.1" name="suhu_tubuh" value="{{ $pemeriksaan->suhu_tubuh }}" class="med-input" placeholder="36.5">
+                                </div>
+                                <div>
+                                    <label class="med-label">Tensi Darah (mmHg)</label>
+                                    <input type="text" name="tekanan_darah" value="{{ $pemeriksaan->tekanan_darah }}" class="med-input" placeholder="120/80">
+                                </div>
+                                
+                                @if(in_array($kategori, ['balita', 'bayi']))
+                                <div>
+                                    <label class="med-label">Status Gizi (BB/TB)</label>
+                                    <select name="status_gizi" class="med-input cursor-pointer">
+                                        <option value="">-- Pilih Status --</option>
+                                        <option value="Gizi Buruk" {{ $pemeriksaan->status_gizi == 'Gizi Buruk' ? 'selected' : '' }}>Gizi Buruk</option>
+                                        <option value="Gizi Kurang" {{ $pemeriksaan->status_gizi == 'Gizi Kurang' ? 'selected' : '' }}>Gizi Kurang</option>
+                                        <option value="Gizi Baik" {{ $pemeriksaan->status_gizi == 'Gizi Baik' ? 'selected' : '' }}>Gizi Baik (Normal)</option>
+                                        <option value="Gizi Lebih" {{ $pemeriksaan->status_gizi == 'Gizi Lebih' ? 'selected' : '' }}>Gizi Lebih (Obesitas)</option>
+                                    </select>
+                                </div>
+                                @elseif($kategori == 'remaja')
+                                <div>
+                                    <label class="med-label">Status Anemia (HB)</label>
+                                    <select name="status_anemia" class="med-input cursor-pointer">
+                                        <option value="">-- Pilih Status --</option>
+                                        <option value="Tidak Anemia" {{ $pemeriksaan->status_anemia == 'Tidak Anemia' ? 'selected' : '' }}>Tidak Anemia</option>
+                                        <option value="Anemia Ringan" {{ $pemeriksaan->status_anemia == 'Anemia Ringan' ? 'selected' : '' }}>Anemia Ringan</option>
+                                        <option value="Anemia Berat" {{ $pemeriksaan->status_anemia == 'Anemia Berat' ? 'selected' : '' }}>Anemia Berat</option>
+                                    </select>
+                                </div>
+                                @elseif($kategori == 'ibu_hamil')
+                                <div>
+                                    <label class="med-label text-pink-600">Risiko Kehamilan</label>
+                                    <select name="status_risiko" class="med-input cursor-pointer border-pink-200">
+                                        <option value="">-- Kategori Risiko --</option>
+                                        <option value="Risiko Rendah" {{ $pemeriksaan->status_risiko == 'Risiko Rendah' ? 'selected' : '' }}>Risiko Rendah (Normal)</option>
+                                        <option value="Risiko Tinggi" {{ $pemeriksaan->status_risiko == 'Risiko Tinggi' ? 'selected' : '' }}>Risiko Tinggi</option>
+                                    </select>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- 2. Diagnosa --}}
+                        <div class="flex-1">
+                            <h4 class="text-[11px] font-black text-cyan-600 uppercase tracking-widest mb-4 border-b border-cyan-100 pb-2">2. Kesimpulan Medis</h4>
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="med-label">Hasil Diagnosa Lengkap <span class="text-rose-500">*</span></label>
+                                    <textarea name="diagnosa" rows="3" required class="med-input resize-none" placeholder="Tuliskan diagnosa dari hasil pemeriksaan fisik dan vital... (misal: Pertumbuhan normal, tidak ada keluhan).">{{ $pemeriksaan->diagnosa }}</textarea>
+                                </div>
+                                <div>
+                                    <label class="med-label">Tindakan / Terapi / Saran <span class="text-rose-500">*</span></label>
+                                    <textarea name="tindakan" rows="2" required class="med-input resize-none" placeholder="Berikan resep vitamin, tindakan medis, atau saran edukasi...">{{ $pemeriksaan->tindakan }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- 3. Keputusan Final --}}
+                        <div>
+                            <h4 class="text-[11px] font-black text-cyan-600 uppercase tracking-widest mb-4 border-b border-cyan-100 pb-2">3. Keputusan Akhir Antrian</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 items-stretch">
+                                
+                                <label class="relative cursor-pointer group h-full">
+                                    <input type="radio" name="status_verifikasi" value="verified" class="peer sr-only" {{ $isVerified ? 'checked' : '' }}>
+                                    <div class="h-full p-5 border-2 border-slate-200 rounded-2xl flex items-center gap-4 bg-white transition-all duration-300
+                                                group-hover:border-cyan-200 peer-checked:border-cyan-500 peer-checked:bg-cyan-50 peer-checked:shadow-[0_8px_20px_rgba(6,182,212,0.15)] peer-checked:-translate-y-1">
+                                        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-xl shrink-0 transition-all duration-300 peer-checked:bg-cyan-500 peer-checked:text-white">
+                                            <i class="fas fa-check-double"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-black text-slate-800 text-[14px] leading-tight mb-1">Sahkan & Verifikasi</p>
+                                            <p class="text-[10px] font-bold text-slate-500 leading-snug">Data valid, simpan ke rekam medis (EMR).</p>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="relative cursor-pointer group h-full">
+                                    <input type="radio" name="status_verifikasi" value="ditolak" class="peer sr-only" {{ $pemeriksaan->status_verifikasi == 'ditolak' ? 'checked' : '' }}>
+                                    <div class="h-full p-5 border-2 border-slate-200 rounded-2xl flex items-center gap-4 bg-white transition-all duration-300
+                                                group-hover:border-rose-200 peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:shadow-[0_8px_20px_rgba(244,63,94,0.15)] peer-checked:-translate-y-1">
+                                        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-xl shrink-0 transition-all duration-300 peer-checked:bg-rose-500 peer-checked:text-white">
+                                            <i class="fas fa-undo-alt"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="font-black text-slate-800 text-[14px] leading-tight mb-1">Kembalikan ke Kader</p>
+                                            <p class="text-[10px] font-bold text-slate-500 leading-snug">Data fisik error, minta kader ukur ulang.</p>
+                                        </div>
+                                    </div>
+                                </label>
+
+                            </div>
+                        </div>
+
+                        {{-- Footer Submit --}}
+                        <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 mt-auto shrink-0">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Sesi Validasi Aktif</p>
+                            </div>
+                            <button type="submit" id="btnSubmit" class="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-black text-[12px] uppercase tracking-widest rounded-2xl hover:shadow-[0_15px_30px_rgba(6,182,212,0.3)] transition-all hover:-translate-y-1 active:scale-95 shadow-lg">
+                                <i class="fas fa-save mr-2"></i> Simpan Hasil Validasi
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            
         </div>
-
-        {{-- Form tersembunyi untuk reset validasi --}}
-        @if($isVerified)
-        <form id="formReset" action="{{ route('bidan.pemeriksaan.update', $pemeriksaan->id) }}" method="POST" class="hidden">
-            @csrf @method('PUT')
-            <input type="hidden" name="status_verifikasi" value="pending">
-        </form>
-        @endif
-    </div>
-
+    </form>
 </div>
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.getElementById('formPemeriksaan').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const statusEl = document.querySelector('input[name="status_verifikasi"]:checked');
-    if (!statusEl) {
-        Swal.fire({ icon: 'warning', title: 'Belum Dipilih', text: 'Pilih keputusan validasi terlebih dahulu (Validasi atau Kembalikan ke Kader).', confirmButtonColor: '#06b6d4', customClass: { popup: 'rounded-[24px]' } });
-        return;
-    }
-
-    const status = statusEl.value;
-    const isValidasi = status === 'verified';
-    
-    Swal.fire({
-        title: isValidasi ? 'Konfirmasi Validasi' : 'Kembalikan ke Kader?',
-        text: isValidasi 
-            ? 'Data akan disimpan ke rekam medis dan dapat dilihat warga.' 
-            : 'Data fisik akan dikembalikan ke kader untuk diukur ulang.',
-        icon: isValidasi ? 'success' : 'warning',
-        showCancelButton: true,
-        confirmButtonColor: isValidasi ? '#0891b2' : '#f43f5e',
-        cancelButtonColor: '#cbd5e1',
-        confirmButtonText: isValidasi ? 'Ya, Validasi' : 'Ya, Kembalikan',
-        cancelButtonText: 'Cek Lagi',
-        reverseButtons: true,
-        customClass: { popup: 'rounded-[24px]' }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const btn = document.getElementById('btnSubmit');
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Menyimpan...';
-            btn.disabled = true;
-            btn.classList.add('opacity-75', 'cursor-wait');
-            this.submit();
+    document.getElementById('formValidasi').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const status = document.querySelector('input[name="status_verifikasi"]:checked');
+        if(!status) {
+            Swal.fire({ 
+                icon: 'warning', 
+                title: 'Keputusan Belum Dipilih', 
+                text: 'Silakan pilih apakah data ini "Disahkan" atau "Dikembalikan ke Kader".', 
+                confirmButtonColor: '#06b6d4', 
+                customClass: { popup: 'nexus-swal' } 
+            });
+            return;
         }
-    });
-});
 
-function confirmReset() {
-    Swal.fire({
-        title: 'Buka Kunci Validasi?',
-        text: "Status akan dikembalikan ke 'Pending'. Warga tidak dapat melihat hasil diagnosa sampai divalidasi ulang.",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#f43f5e',
-        cancelButtonColor: '#cbd5e1',
-        confirmButtonText: 'Ya, Buka Kunci',
-        cancelButtonText: 'Batal',
-        reverseButtons: true,
-        customClass: { popup: 'rounded-[24px]' }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            document.getElementById('formReset').submit();
-        }
+        const isVerified = status.value === 'verified';
+
+        Swal.fire({
+            title: isVerified ? 'Verifikasi & Simpan EMR?' : 'Kembalikan ke Kader?',
+            text: isVerified ? "Data diagnosa Anda akan dikunci dan menjadi rekam medis resmi warga." : "Kader akan menerima notifikasi bahwa pengukuran fisiknya salah.",
+            icon: isVerified ? 'question' : 'warning',
+            showCancelButton: true,
+            confirmButtonColor: isVerified ? '#0891b2' : '#f43f5e',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: isVerified ? 'Ya, Sahkan Data' : 'Ya, Tolak Data',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            customClass: { popup: 'nexus-swal' }
+        }).then((res) => {
+            if (res.isConfirmed) {
+                const btn = document.getElementById('btnSubmit');
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Menyimpan...';
+                btn.classList.add('opacity-70', 'cursor-not-allowed', 'scale-95');
+                this.submit();
+            }
+        });
     });
-}
 </script>
 @endpush

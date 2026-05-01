@@ -44,7 +44,6 @@
     @stack('styles')
 </head>
 
-{{-- Alpine Data Wrapper --}}
 <body x-data="{ sidebarOpen: window.innerWidth >= 1280 }" @resize.window="sidebarOpen = window.innerWidth >= 1280" class="flex h-screen overflow-hidden selection:bg-cyan-100 selection:text-cyan-900">
 
     {{-- GLOBAL PAGE LOADER --}}
@@ -59,7 +58,7 @@
         <p class="text-[10px] font-black text-cyan-700 uppercase tracking-[0.25em]" id="loaderText">MEMUAT SISTEM...</p>
     </div>
 
-    {{-- MOBILE OVERLAY (Alpine.js) --}}
+    {{-- MOBILE OVERLAY --}}
     <div x-show="sidebarOpen && window.innerWidth < 1280" x-transition.opacity 
          @click="sidebarOpen = false" 
          class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 xl:hidden">
@@ -75,7 +74,6 @@
         {{-- TOP NAVBAR --}}
         <header class="h-[80px] glass-panel sticky top-0 z-40 flex items-center justify-between px-4 lg:px-8 border-b border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
             <div class="flex items-center gap-3 lg:gap-5">
-                {{-- Tombol Toggle Sidebar --}}
                 <button @click="sidebarOpen = !sidebarOpen" class="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 rounded-[12px] transition-colors bg-white border border-slate-200 shadow-sm focus:outline-none">
                     <i class="fas fa-bars-staggered"></i>
                 </button>
@@ -91,8 +89,9 @@
             <div class="flex items-center gap-3 sm:gap-5">
                 
                 {{-- WIDGET NOTIFIKASI ANTRIAN (Alpine.js Dropdown) --}}
+                {{-- PERBAIKAN MUTLAK RELASI DATABASE DI DALAM BLADE --}}
                 @php 
-                    $pendingNotifs = \App\Models\Pemeriksaan::with(['balita', 'remaja', 'lansia', 'ibuHamil'])->where('status_verifikasi', 'pending')->latest()->take(5)->get();
+                    $pendingNotifs = \App\Models\Pemeriksaan::with(['kunjungan.pasien'])->where('status_verifikasi', 'pending')->latest()->take(5)->get();
                     $notifCount = \App\Models\Pemeriksaan::where('status_verifikasi', 'pending')->count() ?? 0; 
                 @endphp
                 
@@ -126,8 +125,9 @@
                         <div class="max-h-[320px] overflow-y-auto custom-scrollbar bg-white">
                             @forelse($pendingNotifs as $notif)
                                 @php
-                                    $namaPasien = $notif->balita->nama_lengkap ?? $notif->remaja->nama_lengkap ?? $notif->lansia->nama_lengkap ?? $notif->ibuHamil->nama_lengkap ?? 'Pasien Anonim';
-                                    $kat = strtolower(class_basename($notif->kategori_pasien ?? $notif->pasien_type));
+                                    // PERBAIKAN: Memanfaatkan Accessor getNamaPasienAttribute dari Model
+                                    $namaPasien = $notif->nama_pasien ?? 'Pasien Anonim';
+                                    $kat = strtolower($notif->kategori_pasien ?? 'pasien');
                                 @endphp
                                 <a href="{{ route('bidan.pemeriksaan.show', $notif->id) }}" class="flex items-start gap-4 p-4 border-b border-slate-50 hover:bg-cyan-50 transition-colors group">
                                     <div class="flex-1 min-w-0">
@@ -178,7 +178,7 @@
             </div>
         </header>
 
-        {{-- INJEKSI KONTEN UTAMA (RATA TENGAH & LEBAR MAKSIMAL) --}}
+        {{-- INJEKSI KONTEN UTAMA --}}
         <main class="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 relative z-0 custom-scrollbar pb-24 lg:pb-8">
             <div class="max-w-7xl mx-auto w-full">
                 @yield('content')
@@ -241,9 +241,7 @@
             }));
         });
 
-        // ==========================================
         // SWEETALERT2 GLOBAL NOTIFICATION
-        // ==========================================
         const showToast = (icon, title, text) => {
             Swal.fire({
                 toast: true,

@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Kader;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Builder;
+use Carbon\Carbon;
 
-// Hanya memanggil entitas yang relevan untuk Imunisasi Posyandu
+// Memanggil Model Entitas
 use App\Models\Imunisasi;
 use App\Models\Kunjungan;
 use App\Models\Balita;
@@ -14,87 +16,163 @@ use App\Models\IbuHamil;
 
 /**
  * =========================================================================
- * IMUNISASI CONTROLLER (NEXUS EDITION - KADER WORKSPACE)
+ * IMUNISASI CONTROLLER (NEXUS ENTERPRISE ARCHITECTURE)
  * =========================================================================
- * FOKUS MEDIS: Imunisasi Dasar Balita & Tetanus Toxoid (TT) Ibu Hamil.
- * Modul ini bersifat Read-Only (Hanya Baca) untuk Kader.
+ * Mengelola akses Read-Only Imunisasi untuk Kader Posyandu.
+ * Kode dirombak menjadi Modular dengan Sistem Failsafe Polymorphism,
+ * Analytics Engine, dan Exception Handling tingkat tinggi.
  */
 class ImunisasiController extends Controller
 {
     /**
-     * 1. INDEX: DASHBOARD LOG IMUNISASI
+     * =========================================================================
+     * 1. INDEX: DASHBOARD LOG & ANALITIK IMUNISASI
+     * =========================================================================
      */
     public function index(Request $request)
     {
-        $kategori = $request->get('kategori', '');
-        $search   = $request->get('search', '');
+        try {
+            // Ambil Parameter Input dari URL
+            $kategori = $request->get('kategori', 'semua');
+            $search   = trim($request->get('search', ''));
 
-        // Eager Load untuk mencegah lambatnya database
-        $query = Imunisasi::with(['kunjungan.petugas', 'kunjungan.pasien'])
-                          ->latest('tanggal_imunisasi');
+            // A. KUMPULKAN METRIK STATISTIK (DASHBOARD ENGINE)
+            $statistics = $this->generateAnalytics();
 
-        // Filter Berdasarkan Kategori Target Vaksinasi
-        if (!empty($kategori) && $kategori !== 'semua') {
-            $pasienType = $kategori === 'ibu_hamil' ? 'App\Models\IbuHamil' : 'App\Models\Balita';
-            $query->whereHas('kunjungan', function($q) use ($pasienType) {
-                $q->where('pasien_type', $pasienType);
-            });
+            // B. BANGUN KUERI UTAMA (EAGER LOADING)
+            // with() digunakan untuk mencegah N+1 Query Problem yang bikin web lambat
+            $query = Imunisasi::with(['kunjungan.petugas', 'kunjungan.pasien'])
+                              ->latest('tanggal_imunisasi');
+
+            // C. TERAPKAN FILTER & PENCARIAN (MODULAR)
+            $this->applyCategoryFilter($query, $kategori);
+            $this->applySmartSearch($query, $search);
+
+            // D. EKSEKUSI PAGINASI
+            $imunisasis = $query->paginate(15)->withQueryString();
+
+            // E. RENDER UI (MENDUKUNG AJAX SEAMLESS)
+            if ($request->ajax() || $request->wantsJson()) {
+                return view('kader.imunisasi.index', array_merge(
+                    compact('imunisasis', 'kategori', 'search'), 
+                    $statistics
+                ))->render();
+            }
+                
+            return view('kader.imunisasi.index', array_merge(
+                compact('imunisasis', 'kategori', 'search'), 
+                $statistics
+            ));
+
+        } catch (\Throwable $e) {
+            // Jika database crash, sistem akan mencatatnya tanpa membuat layar blank
+            Log::error('IMUNISASI_INDEX_CRASH: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi gangguan pada server saat memuat data Imunisasi.');
         }
-
-        // Pencarian Real-Time Khusus Balita & Ibu Hamil
-        if (!empty($search)) {
-            $query->where(function($q) use ($search) {
-                $q->where('vaksin', 'like', "%{$search}%")
-                  ->orWhere('jenis_imunisasi', 'like', "%{$search}%")
-                  ->orWhereHas('kunjungan', function($q2) use ($search) {
-                      $q2->whereHasMorph('pasien', [Balita::class, IbuHamil::class], function($morphQ) use ($search) {
-                          $morphQ->where('nama_lengkap', 'like', "%{$search}%")
-                                 ->orWhere('nik', 'like', "%{$search}%");
-                      });
-                  });
-            });
-        }
-
-        $imunisasis = $query->paginate(15)->withQueryString();
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return view('kader.imunisasi.index', compact('imunisasis', 'kategori', 'search'))->render();
-        }
-            
-        return view('kader.imunisasi.index', compact('imunisasis', 'kategori', 'search'));
     }
 
     /**
+     * =========================================================================
      * 2. SHOW: DETAIL SERTIFIKAT IMUNISASI
+     * =========================================================================
      */
     public function show($id)
     {
-        $imunisasi = Imunisasi::with(['kunjungan.petugas', 'kunjungan.pasien'])->findOrFail($id);
-        return view('kader.imunisasi.show', compact('imunisasi'));
+        try {
+            $imunisasi = Imunisasi::with(['kunjungan.petugas', 'kunjungan.pasien'])->findOrFail($id);
+            return view('kader.imunisasi.show', compact('imunisasi'));
+        } catch (\Throwable $e) {
+            Log::error('IMUNISASI_SHOW_CRASH: ' . $e->getMessage());
+            return redirect()->route('kader.imunisasi.index')
+                             ->with('error', 'Arsip imunisasi tidak ditemukan atau telah dihapus oleh sistem.');
+        }
     }
+
+
+    /**
+     * =========================================================================
+     * PRIVATE ENGINES (FUNGSI PEMBANTU INTERNAL - CLEAN CODE)
+     * =========================================================================
+     * Fungsi-fungsi di bawah ini memisahkan logika rumit dari fungsi utama,
+     * membuat Controller sangat mudah dibaca, dilacak, dan dipelihara.
+     */
+
+    /**
+     * Menghitung metrik performa imunisasi secara Real-Time.
+     * Menggunakan klausa LIKE agar kebal terhadap error namespace di Laravel.
+     */
+    private function generateAnalytics(): array
+    {
+        $now = Carbon::now();
+
+        // Kueri Dasar Bulan Ini
+        $baseQuery = Imunisasi::whereMonth('tanggal_imunisasi', $now->month)
+                              ->whereYear('tanggal_imunisasi', $now->year);
+
+        return [
+            'statBulanIni' => (clone $baseQuery)->count(),
+            'statBalita'   => (clone $baseQuery)->whereHas('kunjungan', function($q) {
+                                  $q->where('pasien_type', 'like', '%Balita%');
+                              })->count(),
+            'statBumil'    => (clone $baseQuery)->whereHas('kunjungan', function($q) {
+                                  $q->where('pasien_type', 'like', '%IbuHamil%');
+                              })->count(),
+        ];
+    }
+
+    /**
+     * Menerapkan filter kategori ke dalam Query Builder.
+     */
+    private function applyCategoryFilter(Builder $query, string $kategori): void
+    {
+        if (empty($kategori) || $kategori === 'semua') {
+            return; // Lewati jika pilihannya "Semua"
+        }
+
+        $query->whereHas('kunjungan', function($q) use ($kategori) {
+            if ($kategori === 'ibu_hamil') {
+                $q->where('pasien_type', 'like', '%IbuHamil%');
+            } else {
+                $q->where('pasien_type', 'like', '%Balita%');
+            }
+        });
+    }
+
+    /**
+     * Menerapkan pencarian cerdas ke berbagai kolom dan tabel relasi (Polymorphic).
+     */
+    private function applySmartSearch(Builder $query, string $search): void
+    {
+        if (empty($search)) {
+            return;
+        }
+
+        $query->where(function($q) use ($search) {
+            // Pencarian Primer: Cari di Kolom Tabel Imunisasi
+            $q->where('vaksin', 'like', "%{$search}%")
+              ->orWhere('jenis_imunisasi', 'like', "%{$search}%")
+              ->orWhere('batch_number', 'like', "%{$search}%")
+            
+            // Pencarian Sekunder: Menyelam otomatis ke Tabel Pasien (Balita & Bumil)
+              ->orWhereHas('kunjungan', function($q2) use ($search) {
+                  $q2->whereHasMorph('pasien', [Balita::class, IbuHamil::class], function($morphQ) use ($search) {
+                      $morphQ->where('nama_lengkap', 'like', "%{$search}%")
+                             ->orWhere('nik', 'like', "%{$search}%");
+                  });
+              });
+        });
+    }
+
 
     /**
      * =========================================================================
      * SECURITY FIREWALL: BLOKIR AKSES CRUD UNTUK KADER
      * =========================================================================
+     * Melindungi sistem dari eksploitasi URL (Direct Route Access).
      */
-    public function create($kunjungan_id = null) {
-        return back()->with('error', 'Akses Terkunci! Input data Vaksin hanya wewenang Tenaga Bidan (Meja 5).');
-    }
-
-    public function store(Request $request, $kunjungan_id = null) {
-        abort(403, 'Akses Ditolak.');
-    }
-
-    public function edit($id) {
-        return back()->with('error', 'Akses Terkunci! Hanya Bidan yang berhak mengoreksi rekam medis Imunisasi.');
-    }
-
-    public function update(Request $request, $id) {
-        abort(403, 'Akses Ditolak.');
-    }
-
-    public function destroy($id) {
-        return back()->with('error', 'Akses Terkunci! Penghapusan riwayat vaksinasi dilarang untuk tingkat Kader.');
-    }
+    public function create()  { return back()->with('error', 'Akses Terkunci! Wewenang Bidan (Meja 5).'); }
+    public function store()   { abort(403, 'Akses Ditolak.'); }
+    public function edit($id) { return back()->with('error', 'Akses Terkunci! Wewenang Bidan (Meja 5).'); }
+    public function update()  { abort(403, 'Akses Ditolak.'); }
+    public function destroy() { return back()->with('error', 'Akses Terkunci! Wewenang Bidan (Meja 5).'); }
 }

@@ -3,83 +3,117 @@
 @section('page-name', 'Rekam Medis (EMR)')
 
 @push('styles')
-<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
-    /* Animasi Masuk Profesional */
-    .fade-in-up { animation: fadeInUp 0.5s ease-out forwards; opacity: 0; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* Input & Select Enterprise */
-    .form-control-modern {
-        background-color: #ffffff; border: 1px solid #cbd5e1; color: #334155;
-        transition: all 0.2s ease-in-out; outline: none; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    }
-    .form-control-modern:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
+    /* =================================================================
+       NEXUS SAAS DESIGN SYSTEM
+       ================================================================= */
     
-    select.form-control-modern {
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    /* Animasi Masuk Profesional */
+    .animate-fade-in { opacity: 0; animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Input & Select Nexus (Sleek) */
+    .nexus-input, .nexus-select {
+        background-color: #ffffff; border: 1px solid #e2e8f0; color: #334155;
+        font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600;
+        border-radius: 14px; transition: all 0.2s ease; width: 100%; outline: none;
+    }
+    .nexus-input { padding: 0.75rem 1.25rem 0.75rem 2.75rem; }
+    .nexus-select {
+        appearance: none; -webkit-appearance: none; cursor: pointer; padding: 0.75rem 2.5rem 0.75rem 1.25rem;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
         background-repeat: no-repeat; background-position: right 1rem center; background-size: 1rem;
     }
+    .nexus-input:focus, .nexus-select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+    .nexus-input:hover, .nexus-select:hover { border-color: #cbd5e1; }
 
-    /* Tabel Profesional (Clean Data Grid) */
-    .sirs-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    .sirs-table th { background-color: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.05em; padding: 1rem 1.25rem; border-bottom: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0; }
-    .sirs-table th:first-child { border-top-left-radius: 12px; border-left: 1px solid #e2e8f0; }
-    .sirs-table th:last-child { border-top-right-radius: 12px; border-right: 1px solid #e2e8f0; }
-    .sirs-table td { padding: 1.25rem; border-bottom: 1px solid #e2e8f0; vertical-align: top; background-color: #ffffff; transition: background-color 0.2s; }
-    .sirs-table td:first-child { border-left: 1px solid #e2e8f0; }
-    .sirs-table td:last-child { border-right: 1px solid #e2e8f0; }
-    .sirs-row:hover td { background-color: #f8fafc; }
-    .sirs-row:last-child td:first-child { border-bottom-left-radius: 12px; }
-    .sirs-row:last-child td:last-child { border-bottom-right-radius: 12px; }
+    /* Tabel Nexus Presisi */
+    .nexus-table-container { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); overflow: hidden; }
+    .nexus-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .nexus-table th { background: #f8fafc; color: #64748b; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 1rem 1.5rem; border-bottom: 1px solid #e2e8f0; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
+    .nexus-table td { padding: 1.25rem 1.5rem; vertical-align: middle; border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s; }
+    .nexus-table tr:last-child td { border-bottom: none; }
+    .nexus-table tr:hover td { background-color: #f8fafc; }
+
+    /* Scrollbar Estetik */
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
     /* Micro-Badges Medis (Tegas & Presisi) */
-    .med-badge { display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.65rem; font-weight: 700; white-space: nowrap; border: 1px solid transparent; }
-    .med-blue { background: #eff6ff; color: #0369a1; border-color: #bae6fd; }
-    .med-green { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
-    .med-amber { background: #fffbeb; color: #b45309; border-color: #fde68a; }
-    .med-rose { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
-    .med-purple { background: #faf5ff; color: #6b21a8; border-color: #e9d5ff; }
+    .med-badge { display: inline-flex; align-items: center; padding: 0.25rem 0.6rem; border-radius: 8px; font-size: 0.65rem; font-weight: 700; white-space: nowrap; border: 1px solid transparent; letter-spacing: 0.02em; }
+    .med-blue { background: #f0f9ff; color: #0284c7; border-color: #bae6fd; }
+    .med-green { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+    .med-amber { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+    .med-rose { background: #fff1f2; color: #e11d48; border-color: #fecdd3; }
+    .med-purple { background: #faf5ff; color: #7e22ce; border-color: #e9d5ff; }
 
-    /* CSS Native Animation untuk Empty State (Pengganti Lottie yang kebal Localhost) */
-    @keyframes floating-doc { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    @keyframes searching-glass { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(-10px, -10px) rotate(-15deg); } 75% { transform: translate(10px, 10px) rotate(15deg); } }
-    .anim-doc { animation: floating-doc 4s ease-in-out infinite; }
-    .anim-glass { animation: searching-glass 3s ease-in-out infinite; transform-origin: center; }
+    /* =================================================================
+       SWEETALERT 2 - ISOLASI TOTAL (ANTI-BUG ABU-ABU)
+       ================================================================= */
+    body.swal2-shown:not(.swal2-toast-shown) .swal2-container { z-index: 10000 !important; backdrop-filter: blur(6px) !important; background: rgba(15, 23, 42, 0.4) !important; }
+    
+    .nexus-modal { border-radius: 28px !important; padding: 2rem !important; background: #ffffff !important; width: 26em !important; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25) !important; border: 1px solid #f1f5f9 !important; }
+    .nexus-modal .swal2-title { font-family: 'Poppins', sans-serif !important; font-weight: 800 !important; font-size: 1.3rem !important; color: #0f172a !important; margin-bottom: 0.5rem !important; }
+    .nexus-modal .swal2-html-container { font-family: 'Inter', sans-serif !important; color: #64748b !important; font-size: 0.85rem !important; line-height: 1.6 !important; }
+    
+    .btn-swal-danger { background: #f43f5e !important; color: white !important; border-radius: 100px !important; padding: 12px 24px !important; font-weight: 700 !important; font-size: 11px !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; border: none !important; margin-right: 8px !important; transition: 0.2s !important; }
+    .btn-swal-danger:hover { background: #e11d48 !important; }
+    .btn-swal-cancel { background: #f1f5f9 !important; color: #475569 !important; border-radius: 100px !important; padding: 12px 24px !important; font-weight: 700 !important; font-size: 11px !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; border: none !important; transition: 0.2s !important; }
+    .btn-swal-cancel:hover { background: #e2e8f0 !important; }
+
+    /* Toast Pojok (Mini & Rapi) */
+    div:where(.swal2-container).swal2-top-end { pointer-events: none !important; }
+    div:where(.swal2-container).swal2-top-end > .swal2-toast {
+        pointer-events: auto !important; background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 14px !important; padding: 10px 18px !important; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1) !important; width: auto !important; display: flex !important; align-items: center !important; margin-top: 1rem !important; margin-right: 1rem !important;
+    }
+    div:where(.swal2-container).swal2-top-end .swal2-icon { transform: scale(0.6) !important; margin: 0 8px 0 -4px !important; }
+    div:where(.swal2-container).swal2-top-end .swal2-title { font-family: 'Inter', sans-serif !important; font-size: 13px !important; font-weight: 600 !important; color: #334155 !important; margin: 0 !important; }
 </style>
 @endpush
 
 @section('content')
-<div class="max-w-[1400px] mx-auto fade-in-up pb-12 relative z-10">
+<div class="max-w-[1400px] mx-auto animate-fade-in pb-12 relative z-10 mt-2">
+
+    {{-- AURA BACKGROUND LEMBUT --}}
+    <div class="fixed top-0 right-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+    <div class="fixed bottom-0 left-0 w-[400px] h-[400px] bg-sky-500/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
 
     {{-- 1. HEADER (ENTERPRISE LOOK) --}}
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-        <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-indigo-50 border border-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-widest mb-3">
-                <i class="fas fa-server"></i> Modul E-Rekam Medis
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div class="flex items-center gap-5">
+            <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl shrink-0 border border-indigo-100 shadow-sm">
+                <i class="fas fa-notes-medical"></i>
             </div>
-            <h1 class="text-3xl font-black text-slate-900 tracking-tight font-poppins mb-1">Log Pemeriksaan Fisik</h1>
-            <p class="text-slate-500 font-medium text-sm">Pusat data antropometri dan klinis warga terintegrasi.</p>
+            <div>
+                <div class="inline-flex items-center gap-2 mb-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-[9px] font-bold text-indigo-600 uppercase tracking-widest">Modul E-Rekam Medis</span>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800 tracking-tight font-poppins mb-0.5">Log Pemeriksaan Fisik</h1>
+                <p class="text-slate-500 font-medium text-[13px]">Pusat data antropometri dan klinis warga terintegrasi.</p>
+            </div>
         </div>
-        <div class="flex-shrink-0">
-            <a href="{{ route('kader.pemeriksaan.create') }}" class="w-full md:w-auto px-6 py-3 bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-indigo-700 transition-all shadow-sm flex items-center justify-center gap-2">
+        <div class="shrink-0">
+            <a href="{{ route('kader.pemeriksaan.create') }}" class="w-full md:w-auto px-6 py-3.5 bg-slate-800 text-white font-bold text-[11px] uppercase tracking-widest rounded-xl hover:bg-indigo-600 transition-colors shadow-sm flex items-center justify-center gap-2">
                 <i class="fas fa-plus"></i> Input Rekam Medis
             </a>
         </div>
     </div>
 
-    {{-- 2. PANEL FILTER & LIVE SEARCH (GRID LAYOUT RAPI) --}}
+    {{-- 2. PANEL FILTER (GRID LAYOUT RAPI & NATIVE) --}}
     @php
         $reqKategori = request('kategori', '');
         $reqStatus   = request('status', '');
     @endphp
 
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-6">
-        <form action="{{ route('kader.pemeriksaan.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+    <div class="bg-white/80 backdrop-blur-xl rounded-[24px] border border-slate-200 shadow-sm p-4 md:p-5 mb-6 relative z-20">
+        <form action="{{ route('kader.pemeriksaan.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
             
-            {{-- Navigasi Kategori (Segmented Control Presisi) --}}
-            <div class="md:col-span-5 lg:col-span-6 flex flex-wrap bg-slate-100 p-1 rounded-lg border border-slate-200">
+            {{-- Navigasi Kategori (Pills Style) --}}
+            <div class="md:col-span-12 lg:col-span-6 flex flex-wrap bg-slate-50 p-1.5 rounded-[16px] border border-slate-200">
                 @foreach([
                     ''          => ['label' => 'Semua', 'icon' => 'fa-border-all'],
                     'balita'    => ['label' => 'Balita', 'icon' => 'fa-child'],
@@ -87,17 +121,17 @@
                     'remaja'    => ['label' => 'Remaja', 'icon' => 'fa-user-graduate'],
                     'lansia'    => ['label' => 'Lansia', 'icon' => 'fa-wheelchair']
                 ] as $val => $data)
-                    <button type="submit" name="kategori" value="{{ $val }}" class="flex-1 px-3 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all {{ $reqKategori === $val ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700' }}">
-                        <i class="fas {{ $data['icon'] }} mr-1 {{ $reqKategori === $val ? 'text-indigo-500' : 'opacity-40' }}"></i> {{ $data['label'] }}
+                    <button type="submit" name="kategori" value="{{ $val }}" class="flex-1 px-3 py-2.5 rounded-[12px] text-[11px] font-bold uppercase tracking-wider transition-all {{ $reqKategori === $val ? 'bg-white text-indigo-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/50' }}">
+                        <i class="fas {{ $data['icon'] }} mr-1.5 {{ $reqKategori === $val ? 'text-indigo-500' : 'opacity-50' }}"></i> {{ $data['label'] }}
                     </button>
                 @endforeach
                 <input type="hidden" name="status" value="{{ $reqStatus }}">
             </div>
 
             {{-- Filter Status --}}
-            <div class="md:col-span-3 lg:col-span-3">
-                <select name="status" onchange="this.form.submit()" class="form-control-modern w-full text-xs font-bold rounded-lg px-4 py-2.5 h-full cursor-pointer">
-                    <option value="">-- Status Validasi Medis --</option>
+            <div class="md:col-span-5 lg:col-span-3 h-full">
+                <select name="status" onchange="this.form.submit()" class="nexus-select h-full">
+                    <option value="">Status Validasi Medis</option>
                     <option value="pending" {{ $reqStatus == 'pending' ? 'selected' : '' }}>Menunggu Bidan</option>
                     <option value="tervalidasi" {{ $reqStatus == 'tervalidasi' ? 'selected' : '' }}>Tervalidasi Bidan</option>
                     <option value="ditolak" {{ $reqStatus == 'ditolak' ? 'selected' : '' }}>Ditolak / Revisi</option>
@@ -105,150 +139,138 @@
             </div>
 
             {{-- Live Search Input --}}
-            <div class="md:col-span-4 lg:col-span-3 relative flex items-center h-full">
-                <i class="fas fa-search absolute left-4 text-slate-400 text-xs"></i>
-                <input type="text" id="liveSearchInput" name="search" value="{{ request('search') }}" placeholder="Cari Nama / NIK..." class="form-control-modern w-full text-xs font-bold rounded-lg pl-9 pr-4 py-2.5 h-full placeholder:text-slate-400 placeholder:font-normal">
+            <div class="md:col-span-7 lg:col-span-3 relative flex items-center h-full">
+                <i class="fas fa-search absolute left-4 text-slate-400 text-sm"></i>
+                <input type="text" id="liveSearchInput" name="search" value="{{ request('search') }}" placeholder="Cari Nama atau NIK..." class="nexus-input h-full">
             </div>
 
         </form>
     </div>
 
-    {{-- 3. DATA GRID (TABEL PROFESIONAL) --}}
-    <div class="overflow-x-auto relative z-10 pb-10" style="scrollbar-width: thin;">
-        <table class="sirs-table min-w-[1000px]">
-            <thead>
-                <tr>
-                    <th class="text-left w-36">Waktu & Kategori</th>
-                    <th class="text-left w-64">Identitas Pasien</th>
-                    <th class="text-left">Hasil Pengukuran Medis</th>
-                    <th class="text-center w-36">Status Validasi</th>
-                    <th class="text-right w-28">Tindakan</th>
-                </tr>
-            </thead>
-            <tbody id="medisTableBody">
-                
-                @forelse($pemeriksaans ?? [] as $item)
-                @php
-                    $kategori = strtoupper(str_replace('_', ' ', $item->kategori_pasien ?? 'UMUM'));
-                    $namaPasien = $item->nama_pasien;
-                    $nikPasien = $item->nik_pasien;
-                    $badgeColor = $item->status_verifikasi_badge;
-                    $statusText = $item->status_verifikasi_text;
-                    $iconStatus = $badgeColor == 'emerald' ? 'fa-check-circle' : ($badgeColor == 'rose' ? 'fa-times-circle' : 'fa-clock');
-                @endphp
-                
-                {{-- Row dengan Atribut Live Search --}}
-                <tr class="sirs-row med-row" data-search="{{ strtolower($namaPasien . ' ' . $nikPasien) }}">
+    {{-- 3. DATA GRID (TABEL PROFESIONAL NEXUS) --}}
+    <div class="nexus-table-container min-h-[400px] flex flex-col">
+        <div class="overflow-x-auto overflow-y-auto custom-scroll flex-1 max-h-[600px]">
+            <table class="nexus-table min-w-[1000px]">
+                <thead>
+                    <tr>
+                        <th class="w-40 pl-6 text-center">Tgl / Kategori</th>
+                        <th class="w-64">Identitas Pasien</th>
+                        <th>Hasil Pengukuran Fisik</th>
+                        <th class="w-40 text-center">Status Validasi</th>
+                        <th class="w-32 pr-6 text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="medisTableBody">
                     
-                    {{-- 1. WAKTU --}}
-                    <td>
-                        <div class="flex flex-col gap-1">
-                            <span class="text-sm font-bold text-slate-800">{{ $item->tanggal_periksa->format('d M Y') }}</span>
-                            <span class="text-[10px] font-bold text-slate-500">{{ $item->tanggal_periksa->format('H:i') }} WIB</span>
-                            <span class="inline-block mt-1 bg-slate-100 text-slate-600 text-[9px] font-bold uppercase px-2 py-0.5 rounded border border-slate-200 w-max">
-                                {{ $kategori }}
-                            </span>
-                        </div>
-                    </td>
-
-                    {{-- 2. IDENTITAS --}}
-                    <td>
-                        <div class="flex items-start gap-3">
-                            <div class="w-9 h-9 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0">
-                                {{ strtoupper(substr($namaPasien, 0, 1)) }}
+                    @forelse($pemeriksaans ?? [] as $item)
+                    @php
+                        $kategori = strtoupper(str_replace('_', ' ', $item->kategori_pasien ?? 'UMUM'));
+                        $namaPasien = $item->nama_pasien;
+                        $nikPasien = $item->nik_pasien;
+                        $badgeColor = $item->status_verifikasi_badge;
+                        $statusText = $item->status_verifikasi_text;
+                        $iconStatus = $badgeColor == 'emerald' ? 'fa-check-circle' : ($badgeColor == 'rose' ? 'fa-times-circle' : 'fa-clock');
+                    @endphp
+                    
+                    <tr class="med-row" data-search="{{ strtolower($namaPasien . ' ' . $nikPasien) }}">
+                        
+                        {{-- 1. WAKTU & KATEGORI --}}
+                        <td class="pl-6 text-center">
+                            <div class="flex flex-col items-center justify-center">
+                                <span class="text-[13px] font-bold text-slate-800">{{ $item->tanggal_periksa->format('d M Y') }}</span>
+                                <span class="text-[10px] font-semibold text-slate-500 mt-0.5">{{ $item->tanggal_periksa->format('H:i') }} WIB</span>
+                                <span class="inline-block mt-2 bg-slate-100 text-slate-600 text-[9px] font-bold uppercase px-2 py-0.5 rounded-md border border-slate-200">
+                                    {{ $kategori }}
+                                </span>
                             </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-bold text-slate-800 truncate max-w-[200px]" title="{{ $namaPasien }}">{{ $namaPasien }}</span>
-                                <span class="text-xs text-slate-500 font-mono mt-0.5">NIK: {{ $nikPasien }}</span>
+                        </td>
+
+                        {{-- 2. IDENTITAS --}}
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-[12px] bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0 font-poppins">
+                                    {{ strtoupper(substr($namaPasien, 0, 1)) }}
+                                </div>
+                                <div class="min-w-0">
+                                    <h4 class="text-[14px] font-semibold text-slate-800 truncate" title="{{ $namaPasien }}">{{ $namaPasien }}</h4>
+                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                        <i class="far fa-address-card text-slate-300 text-[10px]"></i>
+                                        <span class="text-[11px] text-slate-500 font-mono tracking-wide">NIK: {{ $nikPasien }}</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </td>
+                        </td>
 
-                    {{-- 3. HASIL FISIK (Micro Badges Rapi) --}}
-                    <td class="whitespace-normal">
-                        <div class="flex flex-wrap gap-1.5 max-w-[380px]">
-                            @if($item->berat_badan) <span class="med-badge med-blue">BB: {{ $item->berat_badan }} kg</span> @endif
-                            @if($item->tinggi_badan) <span class="med-badge med-green">TB: {{ $item->tinggi_badan }} cm</span> @endif
-                            @if($item->lingkar_kepala) <span class="med-badge med-amber">LK: {{ $item->lingkar_kepala }} cm</span> @endif
-                            @if($item->lingkar_lengan) <span class="med-badge med-amber">LILA: {{ $item->lingkar_lengan }} cm</span> @endif
-                            @if($item->lingkar_perut) <span class="med-badge med-amber">LP: {{ $item->lingkar_perut }} cm</span> @endif
-                            
-                            @if($item->tekanan_darah) <span class="med-badge med-rose">Tensi: {{ $item->tekanan_darah }}</span> @endif
-                            @if($item->hemoglobin) <span class="med-badge med-rose">Hb: {{ $item->hemoglobin }} g/dL</span> @endif
-                            
-                            @if($item->gula_darah) <span class="med-badge med-purple">Gula: {{ $item->gula_darah }}</span> @endif
-                            @if($item->kolesterol) <span class="med-badge med-purple">Koles: {{ $item->kolesterol }}</span> @endif
-                            @if($item->asam_urat) <span class="med-badge med-purple">AU: {{ $item->asam_urat }}</span> @endif
-
-                            @if(empty($item->berat_badan) && empty($item->tinggi_badan) && empty($item->tekanan_darah))
-                                <span class="text-xs text-slate-400 italic">Belum ada input klinis.</span>
-                            @endif
-                        </div>
-                    </td>
-
-                    {{-- 4. STATUS --}}
-                    <td class="text-center">
-                        <div class="inline-flex flex-col items-center justify-center py-1.5 px-3 rounded-md bg-{{ $badgeColor }}-50 border border-{{ $badgeColor }}-200 w-max mx-auto">
-                            <i class="fas {{ $iconStatus }} text-{{ $badgeColor }}-500 text-sm mb-1"></i>
-                            <span class="text-[9px] font-black text-{{ $badgeColor }}-600 uppercase tracking-wide">{{ $statusText }}</span>
-                        </div>
-                    </td>
-
-                    {{-- 5. AKSI --}}
-                    <td class="text-right">
-                        <div class="flex items-center justify-end gap-1.5">
-                            <a href="{{ route('kader.pemeriksaan.show', $item->id) }}" class="w-8 h-8 rounded-md bg-white border border-slate-200 text-indigo-500 hover:bg-indigo-50 hover:border-indigo-300 flex items-center justify-center transition-colors" title="Detail Medis"><i class="fas fa-file-medical text-sm"></i></a>
-                            
-                            <a href="{{ route('kader.pemeriksaan.edit', $item->id) }}" class="w-8 h-8 rounded-md bg-white border border-slate-200 text-amber-500 hover:bg-amber-50 hover:border-amber-300 flex items-center justify-center transition-colors" title="Edit Data"><i class="fas fa-pen text-sm"></i></a>
-                            
-                            <form action="{{ route('kader.pemeriksaan.destroy', $item->id) }}" method="POST" class="delete-form m-0 p-0">
-                                @csrf @method('DELETE')
-                                <button type="button" class="btn-delete w-8 h-8 rounded-md bg-white border border-slate-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 flex items-center justify-center transition-colors" title="Hapus"><i class="fas fa-trash-alt text-sm"></i></button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                @empty
-                @endforelse
-
-                {{-- 4. EMPTY STATE BERSATU DENGAN TABEL (DENGAN NATIVE SVG ANIMATION ANTI-ERROR) --}}
-                <tr id="emptyStateRow" style="{{ (isset($pemeriksaans) && count($pemeriksaans) > 0) ? 'display:none;' : '' }}">
-                    <td colspan="5" class="py-20 text-center border-b border-l border-r border-slate-200 bg-white rounded-b-xl">
-                        <div class="flex flex-col items-center justify-center max-w-md mx-auto">
-                            
-                            {{-- Native SVG Animation (Pengganti Lottie yang 100% Kebal Localhost) --}}
-                            <div class="relative w-40 h-40 mb-6 flex items-center justify-center">
-                                <div class="absolute inset-0 bg-indigo-50 rounded-full blur-xl"></div>
+                        {{-- 3. HASIL FISIK (Micro Badges Rapi) --}}
+                        <td class="whitespace-normal py-3">
+                            <div class="flex flex-wrap gap-2 max-w-[400px]">
+                                @if($item->berat_badan) <span class="med-badge med-blue">BB: {{ $item->berat_badan }} kg</span> @endif
+                                @if($item->tinggi_badan) <span class="med-badge med-green">TB: {{ $item->tinggi_badan }} cm</span> @endif
+                                @if($item->lingkar_kepala) <span class="med-badge med-amber">LK: {{ $item->lingkar_kepala }} cm</span> @endif
+                                @if($item->lingkar_lengan) <span class="med-badge med-amber">LILA: {{ $item->lingkar_lengan }} cm</span> @endif
+                                @if($item->lingkar_perut) <span class="med-badge med-amber">LP: {{ $item->lingkar_perut }} cm</span> @endif
                                 
-                                {{-- Ikon Papan Dada (Clipboard) --}}
-                                <svg class="anim-doc w-24 h-24 text-indigo-200 relative z-10" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M19 3H14.82C14.4 1.84 13.3 1 12 1S9.6 1.84 9.18 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM12 3C12.55 3 13 3.45 13 4C13 4.55 12.55 5 12 5C11.45 5 11 4.55 11 4C11 3.45 11.45 3 12 3ZM19 19H5V5H7V7H17V5H19V19Z"></path>
-                                    <path d="M11 10H7V12H11V10Z" fill="#6366f1"></path>
-                                    <path d="M17 10H13V12H17V10Z" fill="#818cf8"></path>
-                                    <path d="M17 14H7V16H17V14Z" fill="#818cf8"></path>
-                                </svg>
+                                @if($item->tekanan_darah) <span class="med-badge med-rose">Tensi: {{ $item->tekanan_darah }}</span> @endif
+                                @if($item->hemoglobin) <span class="med-badge med-rose">Hb: {{ $item->hemoglobin }} g/dL</span> @endif
                                 
-                                {{-- Ikon Kaca Pembesar Melayang --}}
-                                <svg class="anim-glass absolute right-2 bottom-4 w-16 h-16 text-indigo-500 z-20 drop-shadow-lg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21L15.05 15.05M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"></path>
-                                </svg>
-                            </div>
+                                @if($item->gula_darah) <span class="med-badge med-purple">Gula: {{ $item->gula_darah }}</span> @endif
+                                @if($item->kolesterol) <span class="med-badge med-purple">Koles: {{ $item->kolesterol }}</span> @endif
+                                @if($item->asam_urat) <span class="med-badge med-purple">AU: {{ $item->asam_urat }}</span> @endif
 
-                            <h4 class="text-lg font-bold text-slate-800 mb-2">Rekam Medis Tidak Ditemukan</h4>
-                            <p class="text-sm text-slate-500 mb-6">Sistem tidak menemukan data pemeriksaan yang sesuai dengan filter pencarian Anda saat ini.</p>
-                            <a href="{{ route('kader.pemeriksaan.create') }}" class="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-300 text-indigo-600 font-bold text-xs rounded-lg hover:bg-indigo-50 transition-colors shadow-sm">
-                                <i class="fas fa-plus"></i> Input Pasien Baru
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+                                @if(empty($item->berat_badan) && empty($item->tinggi_badan) && empty($item->tekanan_darah))
+                                    <span class="text-[11px] text-slate-400 italic">Belum ada input klinis spesifik.</span>
+                                @endif
+                            </div>
+                        </td>
+
+                        {{-- 4. STATUS --}}
+                        <td class="text-center">
+                            <div class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-{{ $badgeColor }}-50 border border-{{ $badgeColor }}-200 w-full max-w-[130px] mx-auto shadow-sm">
+                                <i class="fas {{ $iconStatus }} text-{{ $badgeColor }}-500 text-[10px]"></i>
+                                <span class="text-[9px] font-bold text-{{ $badgeColor }}-600 uppercase tracking-widest">{{ $statusText }}</span>
+                            </div>
+                        </td>
+
+                        {{-- 5. AKSI --}}
+                        <td class="text-right pr-6">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{{ route('kader.pemeriksaan.show', $item->id) }}" class="w-9 h-9 rounded-[10px] bg-white border border-slate-200 text-indigo-500 hover:bg-indigo-50 hover:border-indigo-300 flex items-center justify-center transition-colors shadow-sm" title="Detail Medis"><i class="fas fa-file-medical text-sm"></i></a>
+                                
+                                <a href="{{ route('kader.pemeriksaan.edit', $item->id) }}" class="w-9 h-9 rounded-[10px] bg-white border border-slate-200 text-amber-500 hover:bg-amber-50 hover:border-amber-300 flex items-center justify-center transition-colors shadow-sm" title="Koreksi Data"><i class="fas fa-pen text-[13px]"></i></a>
+                                
+                                <form action="{{ route('kader.pemeriksaan.destroy', $item->id) }}" method="POST" class="delete-form m-0 p-0">
+                                    @csrf @method('DELETE')
+                                    <button type="button" class="btn-delete w-9 h-9 rounded-[10px] bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-200 flex items-center justify-center transition-colors shadow-sm" title="Hapus Permanen"><i class="fas fa-trash-alt text-[13px]"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    @endforelse
+
+                    {{-- 4. EMPTY STATE BERSATU DENGAN TABEL --}}
+                    <tr id="emptyStateRow" style="{{ (isset($pemeriksaans) && count($pemeriksaans) > 0) ? 'display:none;' : '' }}">
+                        <td colspan="5" class="py-24 text-center bg-slate-50/50">
+                            <div class="flex flex-col items-center justify-center max-w-md mx-auto">
+                                <div class="w-20 h-20 bg-white rounded-full border border-slate-100 shadow-sm flex items-center justify-center text-indigo-300 text-3xl mx-auto mb-4">
+                                    <i class="fas fa-stethoscope"></i>
+                                </div>
+                                <h4 class="text-[15px] font-bold text-slate-700 uppercase tracking-widest mb-1">Rekam Medis Kosong</h4>
+                                <p class="text-[13px] text-slate-500 mb-6 font-medium">Sistem tidak menemukan log pemeriksaan yang sesuai dengan filter pencarian Anda saat ini.</p>
+                                <a href="{{ route('kader.pemeriksaan.create') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-indigo-600 font-bold text-[11px] uppercase tracking-widest rounded-xl hover:bg-indigo-50 hover:border-indigo-200 transition-colors shadow-sm">
+                                    <i class="fas fa-plus"></i> Input Pasien Baru
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     {{-- Pagination UI --}}
     @if(isset($pemeriksaans) && count($pemeriksaans) > 0 && method_exists($pemeriksaans, 'links'))
-    <div class="mt-4 flex justify-end">
+    <div class="mt-6 flex justify-end">
         {{ $pemeriksaans->links() }}
     </div>
     @endif
@@ -281,21 +303,25 @@
         }
     });
 
-    // 2. FITUR HAPUS DENGAN SWEETALERT
+    // 2. FITUR HAPUS DENGAN SWEETALERT (ANTI BUG BACKGROUND)
     document.querySelectorAll('.btn-delete').forEach(button => {
         button.addEventListener('click', function() {
             const form = this.closest('.delete-form');
             Swal.fire({
                 title: 'Hapus Rekam Medis?',
-                html: '<p class="text-sm text-slate-500">Log pemeriksaan fisik ini akan dihapus secara permanen dari database.</p>',
+                html: 'Log pemeriksaan fisik ini akan dihapus secara permanen dari database.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#f43f5e', 
-                cancelButtonColor: '#cbd5e1',  
+                buttonsStyling: false,
+                reverseButtons: true,
                 confirmButtonText: 'Ya, Hapus Data',
                 cancelButtonText: 'Batal',
-                customClass: { popup: 'rounded-2xl border border-slate-100 shadow-xl' },
-                reverseButtons: true
+                backdrop: true, // Pastikan ada layer gelap khusus untuk modal ini
+                customClass: { 
+                    popup: 'nexus-modal', 
+                    confirmButton: 'btn-swal-danger',
+                    cancelButton: 'btn-swal-cancel'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     form.submit();
@@ -304,17 +330,23 @@
         });
     });
 
-    // 3. NOTIFIKASI BERHASIL
+    // 3. NOTIFIKASI BERHASIL TOAST (MUNGIL & RAPI)
     @if(session('success'))
-        Swal.fire({
-            icon: 'success', title: 'Berhasil', text: "{{ session('success') }}",
-            confirmButtonColor: '#10b981', timer: 3000, showConfirmButton: false, customClass: { popup: 'rounded-2xl' }
+        const ToastSuccess = Swal.mixin({
+            toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+            backdrop: false, // MATIKAN BACKDROP AGAR LAYAR TIDAK HITAM SEPARUH
+            customClass: { popup: 'nexus-toast' }
         });
+        ToastSuccess.fire({ icon: 'success', title: "{{ session('success') }}" });
     @endif
+
+    // Notifikasi Error (Tetap Popup Tengah agar Jelas)
     @if(session('error'))
         Swal.fire({
             icon: 'error', title: 'Aksi Gagal', text: "{{ session('error') }}",
-            confirmButtonColor: '#f43f5e', customClass: { popup: 'rounded-2xl' }
+            buttonsStyling: false, backdrop: true,
+            confirmButtonText: 'Tutup',
+            customClass: { popup: 'nexus-modal', confirmButton: 'btn-swal-cancel' }
         });
     @endif
 </script>

@@ -3,185 +3,199 @@
 @section('title', 'Antrian Pemeriksaan Klinis')
 @section('page-name', 'Manajemen Antrian')
 
-@section('content')
+@push('styles')
 <style>
-    .animate-slide-up { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    /* NEXUS CLINICAL ANIMATION SYSTEM */
+    .fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     
-    /* Styling khusus untuk Tab Navigasi */
-    .tab-btn { position: relative; overflow: hidden; transition: all 0.3s ease; }
-    .tab-btn.active { background: #ffffff; color: #0891b2; box-shadow: 0 4px 15px -3px rgba(8, 145, 178, 0.15); border-color: #cffafe; }
-    .tab-btn.inactive { background: transparent; color: #64748b; border-color: transparent; }
-    .tab-btn.inactive:hover { background: #f8fafc; color: #334155; }
+    /* GLASS PANEL UI */
+    .nexus-glass { 
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); 
+        border: 1px solid rgba(226, 232, 240, 0.8); 
+        box-shadow: 0 10px 40px -10px rgba(6, 182, 212, 0.05); 
+        border-radius: 28px; transition: all 0.4s ease;
+    }
+
+    /* TAB SYSTEM PREMIUM */
+    .tab-nexus { position: relative; transition: all 0.3s ease; }
+    .tab-nexus.active { background: #ffffff; color: #0891b2; box-shadow: 0 4px 15px rgba(8, 145, 178, 0.1); border-color: #cffafe; }
+    .tab-nexus.inactive { color: #64748b; border-color: transparent; }
+    .tab-nexus.inactive:hover { background: rgba(255,255,255,0.5); color: #0e7490; }
+
+    /* TABLE MICRO-INTERACTION & LIVE SEARCH */
+    .tr-nexus { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-bottom: 1px solid #f1f5f9; }
+    .tr-nexus:hover { background-color: #f0fdfa; transform: scale(1.002); z-index: 10; position: relative; border-color: transparent; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(6,182,212,0.1); }
     
-    /* Efek hover pada baris tabel */
-    .table-row-hover:hover { background-color: #f8fafc; transform: scale-[1.002]; box-shadow: 0 4px 10px -5px rgba(0,0,0,0.05); border-radius: 16px; }
+    /* Menyembunyikan elemen Alpine sebelum dimuat */
+    [x-cloak] { display: none !important; }
 </style>
+@endpush
 
-<div class="space-y-6 lg:space-y-8 animate-slide-up">
+@section('content')
+<div class="max-w-[1400px] mx-auto relative pb-16 fade-in-up">
 
-    {{-- ================================================================
-         1. HERO HEADER (Informasi Modul)
-         ================================================================ --}}
-    <div class="bg-white rounded-[32px] p-6 md:p-8 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-gradient-to-tl from-cyan-100 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+    {{-- =================================================================
+         1. HERO HEADER (CLINICAL STYLE)
+         ================================================================= --}}
+    <div class="bg-gradient-to-r from-cyan-600 to-blue-700 rounded-[32px] p-8 md:p-10 mb-8 relative overflow-hidden shadow-[0_15px_40px_-10px_rgba(8,145,178,0.4)] border border-cyan-400/50 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTAgMGgyMHYyMEgwem0xMCAxMGgxMHYxMEgxMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]"></div>
+        <div class="absolute -right-10 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
         
-        <div class="flex items-center gap-5 relative z-10">
-            <div class="w-16 h-16 rounded-[20px] bg-cyan-50 text-cyan-600 flex items-center justify-center text-3xl shrink-0 shadow-inner border border-cyan-100">
-                <i class="fas fa-procedures"></i>
+        <div class="flex items-center gap-6 relative z-10 text-white w-full">
+            <div class="w-20 h-20 rounded-[22px] bg-white/20 backdrop-blur-md flex items-center justify-center text-4xl shrink-0 shadow-inner border border-white/30 transform -rotate-3">
+                <i class="fas fa-microscope text-white"></i>
             </div>
-            <div>
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight font-poppins mb-1">Antrian Meja 5</h1>
-                <p class="text-[13px] font-medium text-slate-500">Menerima data fisik dari Kader secara *real-time* untuk divalidasi.</p>
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-1.5">
+                    <h1 class="text-3xl font-black tracking-tight font-poppins">Antrian Meja 5</h1>
+                    <span class="px-3 py-1 bg-cyan-900/40 border border-cyan-400/30 rounded-lg text-[10px] font-black uppercase tracking-widest backdrop-blur-sm shadow-sm">Otoritas Bidan</span>
+                </div>
+                <p class="text-[14px] font-medium text-cyan-100 max-w-2xl leading-relaxed">
+                    Pusat Validasi Medis. Verifikasi data pengukuran fisik yang dikirim oleh Kader lapangan dan berikan diagnosa klinis yang presisi.
+                </p>
             </div>
         </div>
-
-        {{-- Tombol Input Manual (Jika Bidan yang mengukur langsung) --}}
-        <a href="{{ route('bidan.pemeriksaan.create') }}" class="relative z-10 inline-flex items-center gap-2 px-6 py-3.5 bg-slate-900 text-white text-[12px] font-black uppercase tracking-widest rounded-2xl hover:bg-black transition-all shadow-[0_10px_20px_rgba(0,0,0,0.1)] hover:-translate-y-1 w-full sm:w-auto justify-center">
-            <i class="fas fa-plus-circle text-lg text-cyan-400"></i> Input Mandiri
-        </a>
     </div>
 
-    {{-- ================================================================
-         2. AREA KERJA (Filter & Tabel)
-         ================================================================ --}}
-    <div class="bg-white rounded-[32px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col overflow-hidden">
+    {{-- =================================================================
+         2. WORKSPACE AREA (ALPINE.JS LIVE SEARCH ENGINE TERPASANG)
+         ================================================================= --}}
+    <div class="nexus-glass overflow-hidden flex flex-col" x-data="{ searchQuery: '{{ request('search') }}' }">
         
-        {{-- Kontrol Navigasi (Tabs & Search) --}}
-        <div class="p-5 md:p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div class="px-6 md:px-8 py-5 border-b border-slate-100 bg-slate-50/50 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             
-            {{-- Tabs --}}
-            <div class="flex items-center p-1.5 bg-slate-200/60 rounded-[20px] w-full lg:w-auto">
-                <a href="{{ route('bidan.pemeriksaan.index', ['tab' => 'pending']) }}" class="tab-btn flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-[16px] text-[11px] font-black uppercase tracking-widest border {{ $tab == 'pending' ? 'active' : 'inactive' }}">
-                    <i class="fas fa-clock text-sm"></i> Perlu Validasi
+            {{-- Tab Switcher --}}
+            <div class="flex items-center p-1.5 bg-slate-200/60 rounded-[18px] w-full lg:w-auto">
+                <a href="{{ route('bidan.pemeriksaan.index', ['tab' => 'pending']) }}" class="tab-nexus flex-1 lg:flex-none flex items-center justify-center gap-2.5 px-6 py-3 rounded-[14px] text-[11px] font-black uppercase tracking-widest border-2 {{ $tab == 'pending' ? 'active' : 'inactive' }}">
+                    <i class="fas fa-clock text-sm"></i> Antrian Aktif
                     @if($pendingCount > 0)
-                        <span class="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px] shadow-sm ml-1 animate-pulse">{{ $pendingCount }}</span>
+                        <span class="px-2 py-0.5 rounded-md bg-rose-500 text-white text-[9px] shadow-sm animate-pulse ml-1">{{ $pendingCount }}</span>
                     @endif
                 </a>
-                <a href="{{ route('bidan.pemeriksaan.index', ['tab' => 'verified']) }}" class="tab-btn flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-[16px] text-[11px] font-black uppercase tracking-widest border {{ $tab == 'verified' ? 'active' : 'inactive' }}">
-                    <i class="fas fa-check-double text-sm"></i> Riwayat Selesai
+                <a href="{{ route('bidan.pemeriksaan.index', ['tab' => 'verified']) }}" class="tab-nexus flex-1 lg:flex-none flex items-center justify-center gap-2.5 px-6 py-3 rounded-[14px] text-[11px] font-black uppercase tracking-widest border-2 {{ $tab == 'verified' ? 'active' : 'inactive' }}">
+                    <i class="fas fa-check-double text-sm"></i> Arsip Terverifikasi
                 </a>
             </div>
             
-            {{-- Search Bar --}}
-            <form method="GET" action="{{ route('bidan.pemeriksaan.index') }}" class="relative w-full lg:w-96">
+            {{-- Form Live Search Alpine.js --}}
+            <form id="searchForm" method="GET" action="{{ route('bidan.pemeriksaan.index') }}" class="relative w-full lg:w-[380px]">
                 <input type="hidden" name="tab" value="{{ $tab }}">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <i class="fas fa-search text-slate-400"></i>
+                <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-cyan-500" :class="searchQuery.length > 0 ? 'animate-bounce' : ''"></i>
                 </div>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama warga atau NIK..." class="w-full bg-white border border-slate-200 rounded-[16px] pl-11 pr-4 py-3.5 text-[13px] font-bold text-slate-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-50 outline-none transition-all shadow-sm">
-                @if(request('search'))
-                    <a href="{{ route('bidan.pemeriksaan.index', ['tab' => $tab]) }}" class="absolute inset-y-0 right-0 pr-4 flex items-center text-rose-400 hover:text-rose-600">
-                        <i class="fas fa-times"></i>
-                    </a>
-                @endif
+                
+                {{-- x-model mengikat input ke variabel searchQuery secara real-time --}}
+                <input type="text" name="search" x-model="searchQuery" 
+                       placeholder="Ketik nama, NIK, atau nama kader..." 
+                       class="w-full bg-white border border-slate-200 rounded-[16px] pl-12 pr-12 py-3.5 text-[12px] font-bold text-slate-700 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-50 outline-none transition-all shadow-sm">
+                
+                {{-- Tombol Hapus Pencarian muncul jika ada teks --}}
+                <button type="button" x-show="searchQuery.length > 0" @click="searchQuery = ''; document.getElementById('searchForm').submit();" x-cloak
+                        class="absolute inset-y-0 right-0 pr-5 flex items-center text-rose-400 hover:text-rose-600 transition-colors">
+                    <i class="fas fa-times-circle text-lg"></i>
+                </button>
             </form>
         </div>
 
-        {{-- Tabel Antrian --}}
-        <div class="flex-1 overflow-x-auto custom-scrollbar p-2 md:p-4 min-h-[400px]">
-            <table class="w-full text-left border-collapse min-w-[900px]">
+        {{-- =================================================================
+             3. TABEL DATA MEDIS (DENGAN FILTER REAL-TIME)
+             ================================================================= --}}
+        <div class="overflow-x-auto custom-scrollbar p-2">
+            <table class="w-full text-left border-collapse min-w-[1000px]">
                 <thead>
                     <tr>
-                        <th class="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Pasien & Kategori</th>
-                        <th class="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Fisik Awal (Kader)</th>
-                        <th class="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Waktu Masuk</th>
-                        <th class="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 text-right">Tindakan</th>
+                        <th class="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100">Identitas Warga</th>
+                        <th class="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100">Parameter Fisik (Kader)</th>
+                        <th class="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100">Waktu & Petugas</th>
+                        <th class="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100 text-right">Aksi Klinis</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($pemeriksaans as $pem)
                     @php
-                        // Deteksi Kategori & Pewarnaan per Klaster
-                        $namaPasien = $pem->balita->nama_lengkap 
-                                   ?? $pem->remaja->nama_lengkap 
-                                   ?? $pem->lansia->nama_lengkap 
-                                   ?? $pem->ibuHamil->nama_lengkap 
-                                   ?? 'Anonim';
-                        $kategoriRaw = strtolower(class_basename($pem->kategori_pasien ?? $pem->pasien_type));
+                        // Memanfaatkan Accessor Model untuk data aman
+                        $namaPasien = $pem->nama_pasien;
+                        $kategori = strtolower($pem->kategori_pasien ?? 'umum');
                         
-                        if ($kategoriRaw == 'bayi')       { $nCol = 'cyan';   $nIco = 'baby';          $kategori = 'Bayi';       $kategoriSub = '0–12 bln'; }
-                        elseif ($kategoriRaw == 'balita') { $nCol = 'sky';    $nIco = 'child';         $kategori = 'Balita';     $kategoriSub = '1–5 thn'; }
-                        elseif ($kategoriRaw == 'remaja') { $nCol = 'violet'; $nIco = 'user-graduate'; $kategori = 'Remaja';     $kategoriSub = '10–18 thn'; }
-                        elseif (in_array($kategoriRaw, ['ibu_hamil','ibuhamil','bumil'])) 
-                                                          { $nCol = 'pink';   $nIco = 'female';        $kategori = 'Ibu Hamil';  $kategoriSub = 'Bumil'; }
-                        else                              { $nCol = 'emerald';$nIco = 'user-clock';    $kategori = 'Lansia';     $kategoriSub = '≥60 thn'; }
-                        
-                        // Ambil field utama sesuai kategori untuk ditampilkan di tabel
-                        $bb  = $pem->berat_badan ? $pem->berat_badan.' kg' : '-';
-                        $tb  = $pem->tinggi_badan ? $pem->tinggi_badan.' cm' : '-';
-                        $extra = '';
-                        if (in_array($kategoriRaw, ['remaja','lansia','ibu_hamil','ibuhamil','bumil']) && $pem->tekanan_darah) {
-                            $extra = 'Tensi: '.$pem->tekanan_darah.' mmHg';
-                        } elseif (in_array($kategoriRaw, ['balita','bayi']) && $pem->lingkar_kepala) {
-                            $extra = 'LK: '.$pem->lingkar_kepala.' cm';
-                        }
+                        // Mapping Visual
+                        $config = match($kategori) {
+                            'balita', 'bayi' => ['col' => 'sky', 'ico' => 'fa-baby'],
+                            'remaja'         => ['col' => 'violet', 'ico' => 'fa-user-graduate'],
+                            'ibu_hamil'      => ['col' => 'pink', 'ico' => 'fa-female'],
+                            'lansia'         => ['col' => 'emerald', 'ico' => 'fa-user-clock'],
+                            default          => ['col' => 'slate', 'ico' => 'fa-user'],
+                        };
                     @endphp
                     
-                    <tr class="table-row-hover transition-all duration-200 group border-b border-slate-50 last:border-0">
+                    {{-- 🔥 INTI LIVE SEARCH: Menyembunyikan baris jika teks tidak cocok dengan inputan 🔥 --}}
+                    <tr class="tr-nexus group" 
+                        x-show="searchQuery === '' || $el.textContent.toLowerCase().includes(searchQuery.toLowerCase())" 
+                        x-transition.opacity.duration.300ms>
                         
-                        {{-- Identitas --}}
-                        <td class="py-4 px-6 align-middle">
+                        {{-- Kolom 1: Identitas --}}
+                        <td class="py-5 px-6">
                             <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0 border shadow-inner group-hover:scale-110 transition-transform
-                                            {{ $nCol == 'sky' ? 'bg-sky-50 text-sky-600 border-sky-100' : '' }}
-                                            {{ $nCol == 'cyan' ? 'bg-cyan-50 text-cyan-600 border-cyan-100' : '' }}
-                                            {{ $nCol == 'violet' ? 'bg-violet-50 text-violet-600 border-violet-100' : '' }}
-                                            {{ $nCol == 'pink' ? 'bg-pink-50 text-pink-600 border-pink-100' : '' }}
-                                            {{ $nCol == 'emerald' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : '' }}">
-                                    <i class="fas fa-{{$nIco}} text-lg"></i>
+                                <div class="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0 border shadow-sm group-hover:scale-110 transition-transform bg-{{$config['col']}}-50 text-{{$config['col']}}-500 border-{{$config['col']}}-100">
+                                    <i class="fas {{$config['ico']}} text-lg"></i>
                                 </div>
                                 <div>
-                                    <p class="font-black text-slate-800 text-[14px] mb-0.5 group-hover:text-cyan-600 transition-colors">{{ $namaPasien }}</p>
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border shadow-sm
-                                                     {{ $nCol == 'sky' ? 'text-sky-600 bg-white border-sky-200' : '' }}
-                                                     {{ $nCol == 'cyan' ? 'text-cyan-600 bg-white border-cyan-200' : '' }}
-                                                     {{ $nCol == 'violet' ? 'text-violet-600 bg-white border-violet-200' : '' }}
-                                                     {{ $nCol == 'pink' ? 'text-pink-600 bg-white border-pink-200' : '' }}
-                                                     {{ $nCol == 'emerald' ? 'text-emerald-600 bg-white border-emerald-200' : '' }}">
-                                            {{ $kategori }}
+                                    <p class="font-black text-slate-800 text-[14px] mb-1 group-hover:text-cyan-600 transition-colors font-poppins">{{ $namaPasien }}</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2 py-0.5 bg-{{$config['col']}}-100 text-{{$config['col']}}-700 text-[9px] font-black uppercase tracking-wider rounded border border-{{$config['col']}}-200 shadow-sm">
+                                            {{ ucfirst($kategori) }}
                                         </span>
-                                        <span class="text-[9px] font-medium text-slate-400">{{ $kategoriSub }}</span>
+                                        <span class="text-[10px] font-bold text-slate-400">NIK: {{ $pem->nik_pasien }}</span>
                                     </div>
                                 </div>
                             </div>
                         </td>
 
-                        {{-- Fisik Awal (dari Kader) --}}
-                        <td class="py-4 px-6 align-middle">
-                            <div class="flex flex-wrap items-center gap-1.5">
-                                <span class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[11px] font-bold rounded-lg shadow-sm">BB: {{ $bb }}</span>
-                                <span class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[11px] font-bold rounded-lg shadow-sm">TB: {{ $tb }}</span>
+                        {{-- Kolom 2: Parameter Fisik (Kader) --}}
+                        <td class="py-5 px-6">
+                            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                                <div class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg flex items-center gap-1.5 shadow-sm">
+                                    <i class="fas fa-weight-hanging text-slate-400 text-[10px]"></i>
+                                    <span class="text-[11px] font-black text-slate-700">{{ $pem->berat_badan ?? '0' }} <small class="text-[9px] text-slate-400">kg</small></span>
+                                </div>
+                                <div class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg flex items-center gap-1.5 shadow-sm">
+                                    <i class="fas fa-ruler-vertical text-slate-400 text-[10px]"></i>
+                                    <span class="text-[11px] font-black text-slate-700">{{ $pem->tinggi_badan ?? '0' }} <small class="text-[9px] text-slate-400">cm</small></span>
+                                </div>
                             </div>
-                            @if($extra)
-                                <p class="text-[10px] font-bold text-slate-500 mt-1.5">
-                                    <i class="fas fa-heartbeat text-rose-400"></i> {{ $extra }}
+                            @if($pem->tekanan_darah)
+                                <p class="text-[10px] font-bold text-rose-500 flex items-center gap-1.5 ml-1">
+                                    <i class="fas fa-heartbeat animate-pulse"></i> Tensi: {{ $pem->tekanan_darah }} mmHg
                                 </p>
-                            @endif
-                            @if($pem->lila ?? $pem->lingkar_lengan)
-                                <p class="text-[10px] font-medium text-slate-400 mt-0.5">
-                                    LiLA: {{ $pem->lila ?? $pem->lingkar_lengan }} cm
+                            @elseif($pem->lingkar_kepala)
+                                <p class="text-[10px] font-bold text-sky-500 flex items-center gap-1.5 ml-1">
+                                    <i class="fas fa-brain"></i> L. Kepala: {{ $pem->lingkar_kepala }} cm
                                 </p>
                             @endif
                         </td>
 
-                        {{-- Waktu Masuk & Kader --}}
-                        <td class="py-4 px-6 align-middle">
-                            <p class="font-bold text-slate-700 text-[13px]"><i class="far fa-calendar-alt text-slate-400 mr-1"></i> {{ \Carbon\Carbon::parse($pem->tanggal_periksa)->translatedFormat('d M Y') }}</p>
-                            <p class="text-[11px] font-medium text-slate-500 mt-1"><i class="far fa-clock text-slate-400 mr-1"></i> Pukul {{ $pem->created_at->format('H:i') }} WIB</p>
-                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2 border-t border-slate-100 pt-1 inline-block">Kader: {{ Str::words($pem->pemeriksa->name ?? 'Sistem', 2, '') }}</p>
+                        {{-- Kolom 3: Waktu & Petugas --}}
+                        <td class="py-5 px-6">
+                            <p class="font-bold text-slate-700 text-[11px] flex items-center gap-2">
+                                <i class="far fa-calendar-check text-cyan-500"></i> {{ \Carbon\Carbon::parse($pem->tanggal_periksa)->translatedFormat('d M Y') }}
+                            </p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <p class="text-[10px] font-medium text-slate-500 ml-4 border-r border-slate-200 pr-2">{{ $pem->created_at->format('H:i') }} WIB</p>
+                                <div class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50 border border-indigo-100 rounded text-[9px] font-black text-indigo-700 uppercase tracking-widest">
+                                    <i class="fas fa-id-badge text-indigo-400"></i> {{ Str::words($pem->pemeriksa->name ?? 'System', 1, '') }}
+                                </div>
+                            </div>
                         </td>
 
-                        {{-- Aksi --}}
-                        <td class="py-4 px-6 text-right align-middle">
+                        {{-- Kolom 4: Aksi --}}
+                        <td class="py-5 px-6 text-right">
                             @if($tab == 'pending')
-                                <a href="{{ route('bidan.pemeriksaan.show', $pem->id) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-500 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm transform hover:-translate-y-0.5">
-                                    <i class="fas fa-stethoscope"></i> Validasi Medis
+                                <a href="{{ route('bidan.pemeriksaan.show', $pem->id) }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-500 to-rose-600 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:shadow-[0_8px_15px_rgba(244,63,94,0.3)] hover:-translate-y-0.5 transition-all active:scale-95 shadow-md">
+                                    <i class="fas fa-stethoscope text-sm"></i> Validasi Medis
                                 </a>
                             @else
-                                <a href="{{ route('bidan.pemeriksaan.show', $pem->id) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white border border-emerald-200 hover:border-emerald-500 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm">
-                                    <i class="fas fa-file-medical"></i> Lihat Hasil
+                                <a href="{{ route('bidan.pemeriksaan.show', $pem->id) }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-emerald-600 border-2 border-emerald-100 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-emerald-50 transition-all shadow-sm">
+                                    <i class="fas fa-file-invoice text-sm"></i> Lihat EMR
                                 </a>
                             @endif
                         </td>
@@ -189,25 +203,38 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="py-20 text-center">
-                            <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-50 border border-slate-100 text-slate-300 mb-4 shadow-inner">
-                                <i class="fas fa-{{ $tab == 'pending' ? 'procedures' : 'check-double' }} text-5xl"></i>
+                        <td colspan="4" class="py-24 text-center">
+                            <div class="w-28 h-28 rounded-full bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center mx-auto mb-5 text-slate-300 shadow-inner">
+                                <i class="fas fa-{{ $tab == 'pending' ? 'mug-hot' : 'archive' }} text-4xl opacity-40"></i>
                             </div>
-                            <h3 class="text-[16px] font-black text-slate-800 font-poppins mb-1">{{ $tab == 'pending' ? 'Hore! Antrian Kosong' : 'Belum Ada Riwayat' }}</h3>
-                            <p class="text-[12px] font-medium text-slate-500 max-w-sm mx-auto">
-                                {{ $tab == 'pending' ? 'Tidak ada warga yang menunggu validasi saat ini. Anda bisa bersantai sejenak.' : 'Belum ada data pemeriksaan yang diselesaikan pada periode ini.' }}
+                            <h3 class="text-[16px] font-black text-slate-800 font-poppins mb-1.5">{{ $tab == 'pending' ? 'Meja 5 Kosong' : 'Arsip Masih Kosong' }}</h3>
+                            <p class="text-[12px] font-medium text-slate-500 max-w-sm mx-auto leading-relaxed">
+                                {{ $tab == 'pending' ? 'Belum ada data pemeriksaan warga dari Kader yang perlu divalidasi saat ini. Silakan bersantai sejenak!' : 'Anda belum menyelesaikan validasi pemeriksaan untuk periode ini.' }}
                             </p>
                         </td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
+            
+            {{-- Pesan Data Tidak Ditemukan oleh Alpine (Muncul saat Live Search gagal menemukan data) --}}
+            <div x-show="searchQuery.length > 0 && Array.from($el.previousElementSibling.querySelectorAll('tbody tr')).every(row => row.style.display === 'none')" 
+                 x-cloak class="py-16 text-center">
+                 <div class="w-16 h-16 rounded-full bg-rose-50 text-rose-300 flex items-center justify-center mx-auto mb-3 text-2xl"><i class="fas fa-search-minus"></i></div>
+                 <h4 class="text-[14px] font-black text-slate-700">Pencarian Tidak Ditemukan</h4>
+                 <p class="text-[11px] text-slate-500 mt-1">Tekan Enter untuk mencari data di halaman lain, atau periksa ejaan Anda.</p>
+            </div>
         </div>
         
-        {{-- Pagination --}}
+        {{-- Area Pagination --}}
         @if($pemeriksaans->hasPages())
-        <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
-            {{ $pemeriksaans->withQueryString()->links() }}
+        <div class="px-8 py-5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest hidden sm:block">
+                Menampilkan <span class="text-slate-800">{{ $pemeriksaans->firstItem() }}</span> - <span class="text-slate-800">{{ $pemeriksaans->lastItem() }}</span> dari <span class="text-slate-800">{{ $pemeriksaans->total() }}</span> Antrian
+            </p>
+            <div class="nexus-pagination">
+                {{ $pemeriksaans->withQueryString()->links() }}
+            </div>
         </div>
         @endif
     </div>

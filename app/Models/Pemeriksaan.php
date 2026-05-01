@@ -8,26 +8,19 @@ use Carbon\Carbon;
 
 /**
  * =========================================================================
- * PEMERIKSAAN MODEL (ULTIMATE EDITION)
+ * PEMERIKSAAN MODEL (NEXUS ULTIMATE EDITION)
  * =========================================================================
- * Jantung dari sistem Rekam Medis (EMR) Posyandu.
  * Menghubungkan log kunjungan, petugas, bidan, dan data antropometri fisik.
+ * Dilengkapi dengan sistem "Backward Compatibility" anti-crash.
  */
 class Pemeriksaan extends Model
 {
     use HasFactory;
 
-    // 1. DEFINISI TABEL SECARA EKSPLISIT
     protected $table = 'pemeriksaans';
-
-    // 2. PROTEKSI MASS-ASSIGNMENT
-    // Hanya memproteksi 'id' agar Eloquent bisa menerima field dinamis 
-    // tanpa harus menulis fillable satu per satu. Sangat aman.
     protected $guarded = ['id'];
 
-    // 3. AUTO-APPEND VIRTUAL COLUMNS
-    // WAJIB ADA: Mencegah error saat me-render UI AJAX / JSON / Cetak Laporan
-    // Atribut ini akan otomatis menempel setiap kali model dipanggil.
+    // Atribut virtual ini akan selalu dikirim bersama response JSON/View
     protected $appends = [
         'nama_pasien',
         'nik_pasien',
@@ -35,9 +28,6 @@ class Pemeriksaan extends Model
         'status_verifikasi_badge'
     ];
 
-    // 4. DATA CASTING (PRESISI MATEMATIS)
-    // Mengubah tipe data secara instan saat ditarik dari Database
-    // Mencegah error perhitungan grafik pertumbuhan di sisi Bidan
     protected $casts = [
         'tanggal_periksa' => 'date',
         'verified_at'     => 'datetime',
@@ -46,35 +36,32 @@ class Pemeriksaan extends Model
         'suhu_tubuh'      => 'float',
         'lingkar_kepala'  => 'float',
         'lingkar_lengan'  => 'float',
-        'lingkar_perut'   => 'float', // Opsional untuk lansia/dewasa
-        'imt'             => 'float', // Indeks Massa Tubuh
+        'lingkar_perut'   => 'float',
+        'imt'             => 'float',
         'gula_darah'      => 'float',
         'kolesterol'      => 'integer',
         'asam_urat'       => 'float',
         'usia_kehamilan'  => 'integer',
-        // Catatan: Tensi dan Hemoglobin tidak di-cast float karena sering 
-        // mengandung karakter (misal: "120/80" atau "12.5 g/dL")
     ];
 
     /**
      * =================================================================
-     * 5. RELASI DATABASE (RELATIONSHIPS)
+     * 1. RELASI ARSITEKTUR BARU (NEXUS ENGINE)
      * =================================================================
      */
-
-    // Menghubungkan pemeriksaan dengan tiket kedatangan (Kunjungan) pasien
+    
+    // Pintu gerbang utama ke data Pasien (Polymorphic)
     public function kunjungan()
     {
         return $this->belongsTo(Kunjungan::class, 'kunjungan_id');
     }
 
-    // Mengetahui siapa Kader yang mencatat data ini di lapangan
-    public function petugas()
+    // Menggunakan nama 'pemeriksa' agar 100% kompatibel dengan kode lama kader
+    public function pemeriksa()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    // Mengetahui siapa Bidan/Nakes yang memverifikasi data ini
     public function verifikator()
     {
         return $this->belongsTo(User::class, 'verified_by');
@@ -82,34 +69,60 @@ class Pemeriksaan extends Model
 
     /**
      * =================================================================
-     * 6. ACCESSORS / VIRTUAL COLUMNS (UNTUK KEAMANAN TAMPILAN UI)
+     * 2. RELASI ANTI-CRASH (BACKWARD COMPATIBILITY)
+     * =================================================================
+     * Mencegah Error 500 "Call to undefined relationship [balita]" 
+     * jika ada modul/view lama yang belum sempat di-update.
+     */
+    public function balita()   { return $this->belongsTo(Balita::class, 'balita_id'); }
+    public function remaja()   { return $this->belongsTo(Remaja::class, 'remaja_id'); }
+    public function lansia()   { return $this->belongsTo(Lansia::class, 'lansia_id'); }
+    public function ibuHamil() { return $this->belongsTo(IbuHamil::class, 'ibu_hamil_id'); }
+
+
+    /**
+     * =================================================================
+     * 3. ACCESSORS (VIRTUAL COLUMNS CERDAS)
      * =================================================================
      */
 
-    /** * SAFE PULL: Nama Pasien
-     * Jika data Pasien terhapus (Orphan Data), sistem TIDAK AKAN CRASH.
+    /**
+     * Mengambil Nama Pasien secara aman.
+     * Cek dari arsitektur baru, jika gagal, cek dari arsitektur lama.
      */
     public function getNamaPasienAttribute(): string
     {
+        // Prioritas 1: Ekosistem Baru (Melalui tabel kunjungan)
         if ($this->kunjungan && $this->kunjungan->pasien) {
-            return $this->kunjungan->pasien->nama_lengkap;
+            return $this->kunjungan->pasien->nama_lengkap ?? 'Pasien Tidak Diketahui';
         }
+
+        // Prioritas 2: Ekosistem Lama (Langsung dari tabel terkait)
+        if ($this->balita) return $this->balita->nama_lengkap;
+        if ($this->remaja) return $this->remaja->nama_lengkap;
+        if ($this->lansia) return $this->lansia->nama_lengkap;
+        if ($this->ibuHamil) return $this->ibuHamil->nama_lengkap;
+
         return 'Warga Tidak Diketahui (Data Terhapus)';
     }
 
-    /** * SAFE PULL: NIK Pasien
+    /**
+     * Mengambil NIK Pasien secara aman.
      */
     public function getNikPasienAttribute(): string
     {
         if ($this->kunjungan && $this->kunjungan->pasien) {
             return $this->kunjungan->pasien->nik ?? '-';
         }
-        return '0000000000000000';
+
+        if ($this->balita) return $this->balita->nik ?? '-';
+        if ($this->remaja) return $this->remaja->nik ?? '-';
+        if ($this->lansia) return $this->lansia->nik ?? '-';
+        if ($this->ibuHamil) return $this->ibuHamil->nik ?? '-';
+
+        return '-';
     }
 
-    /** * NORMALIZER: Label Status Verifikasi
-     * Merangkum semua bentuk kata 'approved' menjadi bahasa Indonesia rapi
-     */
     public function getStatusVerifikasiTextAttribute(): string
     {
         return match($this->status_verifikasi) {
@@ -119,46 +132,39 @@ class Pemeriksaan extends Model
         };
     }
 
-    /** * NORMALIZER: Warna Badge Tailwind
-     */
     public function getStatusVerifikasiBadgeAttribute(): string
     {
         return match($this->status_verifikasi) {
-            'tervalidasi', 'verified', 'approved' => 'emerald', // Hijau
-            'ditolak', 'rejected'                 => 'rose',    // Merah
-            default                               => 'amber',   // Kuning
+            'tervalidasi', 'verified', 'approved' => 'emerald',
+            'ditolak', 'rejected'                 => 'rose',   
+            default                               => 'amber',  
         };
     }
 
     /**
      * =================================================================
-     * 7. SCOPES (MACRO BUILDER UNTUK CONTROLLER)
-     * Mempersingkat kode di Controller saat melakukan pencarian
+     * 4. SCOPES (MACRO QUERY UNTUK CONTROLLER)
      * =================================================================
      */
 
-    // Ambil semua data yang masih menggantung / butuh validasi bidan
     public function scopePending($query)
     {
         return $query->where(function($q) {
             $q->where('status_verifikasi', 'pending')
-              ->orWhereNull('status_verifikasi'); // Failsafe jika data lama bernilai NULL
+              ->orWhereNull('status_verifikasi'); 
         });
     }
 
-    // Ambil data yang sudah sah secara medis
     public function scopeVerified($query)
     {
         return $query->whereIn('status_verifikasi', ['tervalidasi', 'verified', 'approved']);
     }
 
-    // Filter berdasarkan Kategori Warga (Balita, Lansia, dll)
     public function scopeKategori($query, $kategori)
     {
         return $query->where('kategori_pasien', $kategori);
     }
 
-    // Filter cepat untuk melihat laporan kinerja posyandu bulan ini
     public function scopeBulanIni($query)
     {
         return $query->whereMonth('tanggal_periksa', Carbon::now()->month)

@@ -5,21 +5,33 @@
 
 @push('styles')
 <style>
-    .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in-up { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     
-    .premium-input { 
-        width: 100%; background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; 
-        padding: 14px 16px 14px 46px; font-size: 13px; font-weight: 700; color: #1e293b; 
-        outline: none; transition: all 0.3s ease; 
+    .med-input { 
+        width: 100%; background: #ffffff; border: 2px solid #f1f5f9; border-radius: 16px; 
+        padding: 16px 20px 16px 52px; color: #0f172a; font-weight: 600; font-size: 14px; 
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); outline: none; appearance: none;
+        box-shadow: 0 2px 6px rgba(15,23,42,0.02);
     }
-    .premium-input:focus { background-color: #ffffff; border-color: #06b6d4; box-shadow: 0 0 0 4px rgba(6,182,212,0.1); }
-    .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 15px; transition: color 0.3s; z-index: 10; }
-    .group-focus-within .input-icon { color: #06b6d4; }
+    .med-input:focus { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15), 0 2px 6px rgba(15,23,42,0.02); }
+    .med-input::placeholder { color: #94a3b8; font-weight: 500; }
+    
+    .med-label { display: block; font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px; margin-left: 4px; font-family: 'Poppins', sans-serif;}
+    .input-wrapper { position: relative; width: 100%; }
+    .input-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 16px; transition: all 0.3s ease; z-index: 10; }
+    .med-input:focus + .input-icon { color: #0ea5e9; }
+
+    .broadcast-panel { background: linear-gradient(160deg, #0ea5e9 0%, #0284c7 100%); border-radius: 28px; position: relative; overflow: hidden; }
+    .broadcast-panel::before { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+
+    .select-custom { padding-right: 40px !important; cursor: pointer; }
+    .select-arrow { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
 </style>
 @endpush
 
 @section('content')
+{{-- Loader Sistem --}}
 <div id="smoothLoader" class="fixed inset-0 bg-slate-50/90 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-300 opacity-0 pointer-events-none">
     <div class="relative w-20 h-20 flex items-center justify-center mb-5">
         <div class="absolute inset-0 border-4 border-cyan-100 rounded-full"></div>
@@ -28,144 +40,124 @@
             <i class="fas fa-paper-plane text-cyan-600 text-xl animate-pulse"></i>
         </div>
     </div>
-    <div class="bg-white px-5 py-2 rounded-full shadow-sm border border-slate-100 flex items-center gap-2">
-        <div class="w-2 h-2 rounded-full bg-cyan-500 animate-ping"></div>
-        <p class="text-[10px] font-black text-cyan-700 uppercase tracking-[0.2em] font-poppins" id="loaderText">BROADCAST NOTIFIKASI...</p>
-    </div>
+    <p class="text-[10px] font-black text-cyan-700 uppercase tracking-[0.2em] font-poppins" id="loaderText">BROADCAST NOTIFIKASI...</p>
 </div>
 
-<div class="max-w-[1000px] mx-auto animate-slide-up pb-10">
+<div class="max-w-[1100px] mx-auto fade-in-up pb-20">
 
-    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-poppins">Form Publikasi Jadwal</h1>
-            <p class="text-slate-500 mt-1 font-medium text-[13px]">Jadwal yang dibuat akan otomatis dikirimkan ke <strong class="text-cyan-600">Aplikasi Warga</strong> sebagai Notifikasi Push.</p>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-2">
+        <div class="flex items-center gap-5">
+            <div class="w-14 h-14 rounded-[20px] bg-white border border-slate-200 text-cyan-600 flex items-center justify-center text-2xl shadow-sm"><i class="fas fa-calendar-plus"></i></div>
+            <div>
+                <h1 class="text-[26px] font-black text-slate-800 tracking-tight font-poppins leading-none">Terbitkan Jadwal</h1>
+                <p class="text-[13px] font-semibold text-slate-500 mt-1.5">Publikasikan agenda Posyandu dan kirim notifikasi otomatis.</p>
+            </div>
         </div>
-        <a href="{{ route('bidan.jadwal.index') }}" class="smooth-route inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-[12px] uppercase tracking-widest rounded-xl hover:bg-slate-50 hover:text-cyan-700 transition-colors shadow-sm shrink-0">
-            <i class="fas fa-arrow-left"></i> Kembali
+        <a href="{{ route('bidan.jadwal.index') }}" class="inline-flex items-center gap-2 px-6 py-3.5 bg-white border border-slate-200 text-slate-600 font-bold text-[11.5px] uppercase tracking-widest rounded-[16px] hover:bg-slate-50 hover:text-cyan-600 transition-all shadow-sm">
+            <i class="fas fa-arrow-left text-slate-400"></i> Kembali
         </a>
     </div>
 
-    <div class="bg-white rounded-[32px] border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex flex-col md:flex-row">
+    <div class="bg-white rounded-[36px] border border-slate-100 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col md:flex-row">
         
-        {{-- PANEL KIRI (Informasi Broadcast) --}}
-        <div class="md:w-4/12 bg-gradient-to-br from-cyan-600 to-blue-700 p-8 lg:p-10 flex flex-col relative overflow-hidden">
-            <div class="absolute -right-10 -bottom-10 w-48 h-48 border-[20px] border-white/10 rounded-full"></div>
-            
-            <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-[18px] border border-white/30 flex items-center justify-center text-3xl text-white mb-6 shadow-xl relative z-10 transform -rotate-3">
-                <i class="fas fa-broadcast-tower"></i>
-            </div>
-            
-            <h2 class="text-2xl font-black text-white font-poppins tracking-tight mb-3 relative z-10 leading-tight">Sistem Broadcast Pintar</h2>
-            <p class="text-cyan-100 text-[13px] leading-relaxed relative z-10 font-medium">Sistem secara otomatis mendeteksi siapa sasaran jadwal ini. Jika Anda memilih "Khusus Ibu Hamil", maka HANYA akun Ibu Hamil yang akan menerima pesan peringatan (Notifikasi) di HP mereka.</p>
-            
-            <div class="mt-auto pt-8 relative z-10 hidden md:block">
-                <div class="px-4 py-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
-                    <p class="text-[10px] font-black text-white uppercase tracking-widest mb-1"><i class="fas fa-check-circle text-cyan-300"></i> Status Push</p>
-                    <p class="text-[12px] font-bold text-cyan-50">Otomatis Aktif</p>
-                </div>
-            </div>
+        <div class="md:w-[350px] broadcast-panel p-10 flex flex-col text-white">
+            <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-[20px] border border-white/30 flex items-center justify-center text-3xl mb-8 shadow-xl"><i class="fas fa-broadcast-tower"></i></div>
+            <h2 class="text-2xl font-black font-poppins tracking-tight mb-4 leading-tight">Sistem Notifikasi Pintar</h2>
+            <p class="text-cyan-50 text-[14px] leading-relaxed font-medium opacity-90">Jadwal yang Anda buat akan otomatis didistribusikan sebagai Push Notification ke aplikasi warga berdasarkan Target Sasaran.</p>
         </div>
 
-        {{-- PANEL KANAN (Form Input) --}}
-        <div class="md:w-8/12 flex flex-col">
-            <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-[12px] bg-white border border-slate-200 text-cyan-600 flex items-center justify-center shadow-sm"><i class="fas fa-edit text-lg"></i></div>
-                <h3 class="font-black text-slate-800 text-[16px] font-poppins">Lengkapi Detail Agenda</h3>
-            </div>
-
-            <form id="formJadwal" action="{{ route('bidan.jadwal.store') }}" method="POST" class="flex flex-col flex-1">
+        <div class="flex-1 p-8 md:p-12">
+            <form id="formJadwal" action="{{ route('bidan.jadwal.store') }}" method="POST">
                 @csrf
-                
-                <div class="p-8 space-y-6 flex-1">
+                <div class="space-y-8">
+                    
                     <div>
-                        <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Judul Agenda <span class="text-rose-500">*</span></label>
-                        <div class="relative group-focus-within">
+                        <label class="med-label">Judul Agenda Kegiatan <span class="text-rose-500">*</span></label>
+                        <div class="input-wrapper">
                             <i class="fas fa-heading input-icon"></i>
-                            <input type="text" name="judul" value="{{ old('judul') }}" required class="premium-input" placeholder="Contoh: Imunisasi Polio Akbar Desa Mekar">
+                            <input type="text" name="judul" value="{{ old('judul') }}" required class="med-input" placeholder="Contoh: Imunisasi Polio Akbar Desa">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Tanggal Eksekusi <span class="text-rose-500">*</span></label>
-                            <div class="relative group-focus-within">
+                            <label class="med-label">Tanggal Pelaksanaan <span class="text-rose-500">*</span></label>
+                            <div class="input-wrapper">
                                 <i class="fas fa-calendar-day input-icon"></i>
-                                <input type="date" name="tanggal" value="{{ old('tanggal') }}" required class="premium-input cursor-pointer" style="padding-right: 16px;">
+                                <input type="date" name="tanggal" value="{{ old('tanggal') }}" required class="med-input">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Mulai <span class="text-rose-500">*</span></label>
-                                <div class="relative group-focus-within">
+                                <label class="med-label">Jam Mulai <span class="text-rose-500">*</span></label>
+                                <div class="input-wrapper">
                                     <i class="far fa-clock input-icon"></i>
-                                    <input type="time" name="waktu_mulai" value="{{ old('waktu_mulai') }}" required class="premium-input cursor-pointer" style="padding-left: 42px; padding-right: 10px;">
+                                    <input type="time" name="waktu_mulai" value="{{ old('waktu_mulai') }}" required class="med-input" style="padding-left: 48px;">
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Selesai <span class="text-rose-500">*</span></label>
-                                <div class="relative group-focus-within">
+                                <label class="med-label">Jam Selesai <span class="text-rose-500">*</span></label>
+                                <div class="input-wrapper">
                                     <i class="far fa-clock input-icon"></i>
-                                    <input type="time" name="waktu_selesai" value="{{ old('waktu_selesai') }}" required class="premium-input cursor-pointer" style="padding-left: 42px; padding-right: 10px;">
+                                    <input type="time" name="waktu_selesai" value="{{ old('waktu_selesai') }}" required class="med-input" style="padding-left: 48px;">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Lokasi Gedung / Posyandu <span class="text-rose-500">*</span></label>
-                        <div class="relative group-focus-within">
+                        <label class="med-label">Lokasi Kegiatan / Gedung <span class="text-rose-500">*</span></label>
+                        <div class="input-wrapper">
                             <i class="fas fa-map-marked-alt input-icon"></i>
-                            <input type="text" name="lokasi" value="{{ old('lokasi', 'Posyandu Induk Desa') }}" required class="premium-input" placeholder="Tuliskan nama tempat/alamat detail...">
+                            <input type="text" name="lokasi" value="{{ old('lokasi', 'Posyandu Induk Desa') }}" required class="med-input">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Kategori Layanan <span class="text-rose-500">*</span></label>
-                            <div class="relative group-focus-within">
+                            <label class="med-label">Kategori Layanan <span class="text-rose-500">*</span></label>
+                            <div class="input-wrapper">
                                 <i class="fas fa-tags input-icon"></i>
-                                <select name="kategori" required class="premium-input cursor-pointer appearance-none" style="padding-right: 16px;">
-                                    <option value="posyandu" {{ old('kategori') == 'posyandu' ? 'selected' : '' }}>Posyandu Rutin Bulanan</option>
-                                    <option value="imunisasi" {{ old('kategori') == 'imunisasi' ? 'selected' : '' }}>Suntik Vaksin/Imunisasi</option>
-                                    <option value="pemeriksaan" {{ old('kategori') == 'pemeriksaan' ? 'selected' : '' }}>Pemeriksaan Kandungan</option>
-                                    <option value="konseling" {{ old('kategori') == 'konseling' ? 'selected' : '' }}>Penyuluhan & Edukasi</option>
-                                    <option value="lainnya" {{ old('kategori') == 'lainnya' ? 'selected' : '' }}>Lain-Lain</option>
+                                <select name="kategori" required class="med-input select-custom">
+                                    <option value="posyandu">Posyandu Rutin Bulanan</option>
+                                    <option value="imunisasi">Suntik Vaksin / Imunisasi</option>
+                                    <option value="pemeriksaan">Pemeriksaan Kandungan</option>
+                                    <option value="konseling">Penyuluhan & Edukasi</option>
+                                    <option value="lainnya">Lain-Lain</option>
                                 </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-black text-rose-500 uppercase tracking-widest mb-2 pl-1">Target Sasaran <span class="text-rose-500">*</span></label>
-                            <div class="relative group-focus-within">
-                                <i class="fas fa-bullseye input-icon text-rose-400"></i>
-                                <select name="target_peserta" required class="premium-input cursor-pointer appearance-none border-rose-200 bg-rose-50 focus:bg-white text-rose-800 focus:border-rose-500 focus:ring-rose-50" style="padding-right: 16px;">
-                                    <option value="semua" {{ old('target_peserta') == 'semua' ? 'selected' : '' }}>Semua Elemen Warga</option>
-                                    <option value="balita" {{ old('target_peserta') == 'balita' ? 'selected' : '' }}>Khusus Anak & Balita</option>
-                                    <option value="ibu_hamil" {{ old('target_peserta') == 'ibu_hamil' ? 'selected' : '' }}>Khusus Ibu Hamil (KIA)</option>
-                                    <option value="remaja" {{ old('target_peserta') == 'remaja' ? 'selected' : '' }}>Khusus Remaja</option>
-                                    <option value="lansia" {{ old('target_peserta') == 'lansia' ? 'selected' : '' }}>Khusus Lansia (Manula)</option>
+                            <label class="med-label text-cyan-600">Target Sasaran Penerima Notif <span class="text-rose-500">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-bullseye input-icon text-cyan-500"></i>
+                                <select name="target_peserta" required class="med-input select-custom border-cyan-100 bg-cyan-50/30">
+                                    <option value="semua">Semua Elemen Warga</option>
+                                    <option value="balita">Khusus Ibu & Balita</option>
+                                    <option value="ibu_hamil">Khusus Ibu Hamil (KIA)</option>
                                 </select>
+                                <i class="fas fa-chevron-down select-arrow text-cyan-400"></i>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-1">Pesan Tambahan (Opsional)</label>
-                        <div class="relative group-focus-within">
-                            <i class="fas fa-align-left input-icon" style="top: 24px;"></i>
-                            <textarea name="deskripsi" rows="3" class="premium-input resize-none custom-scrollbar" placeholder="Ketik pesan yang akan muncul di HP warga (Misal: Wajib membawa buku KIA/KMS)">{{ old('deskripsi') }}</textarea>
+                        <label class="med-label">Pesan Tambahan (Opsional)</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-comment-medical input-icon" style="top: 24px;"></i>
+                            <textarea name="deskripsi" rows="3" class="med-input resize-none" style="padding-top: 16px;" placeholder="Misal: Wajib membawa Buku KIA/KMS..."></textarea>
                         </div>
                     </div>
-                </div>
 
-                <div class="px-8 py-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 hidden sm:flex"><i class="fas fa-check-circle text-emerald-500 text-sm"></i> Data Terenkripsi</p>
-                    <button type="submit" id="btnSubmit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black text-[13px] uppercase tracking-widest rounded-2xl hover:shadow-[0_10px_20px_rgba(6,182,212,0.3)] hover:-translate-y-1 transition-all duration-300">
-                        <i class="fas fa-paper-plane text-lg"></i> Publikasi & Broadcast
-                    </button>
+                    <div class="pt-6 border-t border-slate-100 flex justify-end">
+                        <button type="submit" id="btnSubmit" class="w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-black text-[13px] uppercase tracking-widest rounded-[18px] hover:shadow-[0_20px_40px_rgba(6,182,212,0.4)] hover:-translate-y-1 transition-all shadow-xl">
+                            <i class="fas fa-paper-plane text-lg mr-2"></i> Terbitkan & Broadcast
+                        </button>
+                    </div>
+
                 </div>
             </form>
-
         </div>
     </div>
 </div>
@@ -173,42 +165,17 @@
 
 @push('scripts')
 <script>
-    const showLoader = (text = 'MEMPROSES...') => {
+    document.getElementById('formJadwal').addEventListener('submit', function() {
+        const btn = document.getElementById('btnSubmit');
         const loader = document.getElementById('smoothLoader');
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-lg mr-2"></i> Mengirim Notifikasi...';
+        btn.classList.add('opacity-75', 'cursor-wait');
         if(loader) {
-            document.getElementById('loaderText').innerText = text;
             loader.style.display = 'flex';
             loader.offsetHeight; 
             loader.classList.remove('opacity-0', 'pointer-events-none');
             loader.classList.add('opacity-100');
         }
-    };
-
-    window.addEventListener('pageshow', () => {
-        const loader = document.getElementById('smoothLoader');
-        const btn = document.getElementById('btnSubmit');
-        if(loader) {
-            loader.classList.remove('opacity-100');
-            loader.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => loader.style.display = 'none', 300);
-        }
-        if(btn) {
-            btn.innerHTML = '<i class="fas fa-paper-plane text-lg"></i> Publikasi & Broadcast';
-            btn.classList.remove('opacity-75', 'cursor-wait');
-        }
-    });
-
-    document.querySelectorAll('.smooth-route').forEach(link => {
-        link.addEventListener('click', function(e) {
-            if(this.target !== '_blank' && !e.ctrlKey) showLoader('MEMBATALKAN...');
-        });
-    });
-
-    document.getElementById('formJadwal').addEventListener('submit', function() {
-        const btn = document.getElementById('btnSubmit');
-        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin text-lg"></i> Mengirim Notifikasi...';
-        btn.classList.add('opacity-75', 'cursor-wait');
-        showLoader('MENDISTRIBUSIKAN NOTIFIKASI KE WARGA...');
     });
 </script>
 @endpush

@@ -6,15 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 use App\Models\JadwalPosyandu;
 use App\Models\Notifikasi;
 use App\Models\User;
 use App\Models\Balita;
-use App\Models\Remaja;
-use App\Models\Lansia;
-use App\Models\IbuHamil; // WAJIB DIPANGGIL
+use App\Models\IbuHamil;
+// (Remaja & Lansia dihapus sesuai kesepakatan SOP Posyandu sebelumnya)
 
 class JadwalController extends Controller
 {
@@ -31,6 +31,7 @@ class JadwalController extends Controller
 
     public function store(Request $request)
     {
+        // Validasi disesuaikan dengan target peserta yang tersisa (KIA)
         $request->validate([
             'judul'          => 'required|string|max:191',
             'tanggal'        => 'required|date',
@@ -38,7 +39,7 @@ class JadwalController extends Controller
             'waktu_selesai'  => 'required',
             'lokasi'         => 'required|string',
             'kategori'       => 'required|in:imunisasi,pemeriksaan,konseling,posyandu,lainnya',
-            'target_peserta' => 'required|in:semua,balita,remaja,lansia,ibu_hamil',
+            'target_peserta' => 'required|in:semua,balita,ibu_hamil', 
         ]);
 
         DB::beginTransaction();
@@ -56,16 +57,17 @@ class JadwalController extends Controller
                 'created_by'     => Auth::id()
             ]);
 
-            // Kirim notifikasi cerdas ke Warga dan Kader
-            $this->kirimNotifikasi($request);
+            // Eksekusi Mesin Broadcast Cerdas
+            $this->kirimNotifikasiCerdas($request);
 
             DB::commit();
             return redirect()->route('bidan.jadwal.index')
-                ->with('success', 'Jadwal berhasil dipublikasikan! Notifikasi telah disebar ke HP Warga & Kader.');
+                ->with('success', 'Jadwal diterbitkan! Notifikasi instruksi ke Kader dan undangan ke Warga telah berhasil didistribusikan.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withInput()->with('error', 'Gagal menyimpan jadwal: ' . $e->getMessage());
+            Log::error('BIDAN_JADWAL_STORE_ERROR: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Sistem gagal menerbitkan jadwal: ' . $e->getMessage());
         }
     }
 
@@ -89,59 +91,59 @@ class JadwalController extends Controller
         
         $jadwal->update($request->except(['_token', '_method']));
         
+        // Opsional Logika Skripsi Tingkat Lanjut: 
+        // Jika status diubah jadi 'dibatalkan', otomatis kirim notif darurat ke warga & kader.
+        if ($request->status == 'dibatalkan') {
+             $this->kirimNotifBatal($jadwal);
+        }
+        
         return redirect()->route('bidan.jadwal.index')
-            ->with('success', 'Perubahan agenda jadwal berhasil disimpan.');
+            ->with('success', 'Perubahan agenda jadwal berhasil disimpan ke sistem.');
     }
 
     public function destroy($id)
     {
         JadwalPosyandu::findOrFail($id)->delete();
         return redirect()->route('bidan.jadwal.index')
-            ->with('success', 'Jadwal berhasil dihapus permanen dari sistem.');
+            ->with('success', 'Agenda jadwal telah dicabut secara permanen dari sistem.');
     }
 
-    // ========================================================================
-    // LOGIKA BROADCAST NOTIFIKASI (BUG FIXED & DIUPGRADE)
-    // ========================================================================
-    private function kirimNotifikasi($request)
+    /**
+     * ========================================================================
+     * MESIN BROADCAST CERDAS (CONTEXT-AWARE NOTIFICATION)
+     * Mengirim pesan yang berbeda antara Kader (Instruksi) dan Warga (Undangan)
+     * ========================================================================
+     */
+    private function kirimNotifikasiCerdas($request)
     {
-        $targetUsers = collect();
+        $now = now();
+        $notifData = [];
+        $tanggalFormat = Carbon::parse($request->tanggal)->translatedFormat('d F Y');
+        $kategoriTeks = ucwords(str_replace('_', ' ', $request->kategori));
+
+        // ---------------------------------------------------------
+        // 1. DISTRIBUSI KE WARGA (UNDANGAN)
+        // ---------------------------------------------------------
+        $wargaUsers = collect();
 
         if ($request->target_peserta == 'semua') {
-            $targetUsers = User::where('role', 'user')->where('status', 'active')->pluck('id');
+            $wargaUsers = User::where('role', 'user')->where('status', 'active')->pluck('id');
         } elseif ($request->target_peserta == 'balita') {
             $nikOrtu = Balita::pluck('nik_ibu')->merge(Balita::pluck('nik_ayah'))->filter()->unique();
-            $targetUsers = User::whereIn('nik', $nikOrtu)->pluck('id');
+            $wargaUsers = User::whereIn('nik', $nikOrtu)->pluck('id');
         } elseif ($request->target_peserta == 'ibu_hamil') {
-            // FIX: Sebelumnya tergabung dengan balita. Sekarang mengambil dari tabel IbuHamil langsung.
             $nikBumil = IbuHamil::pluck('nik')->filter()->unique();
-            $targetUsers = User::whereIn('nik', $nikBumil)->pluck('id');
-        } elseif ($request->target_peserta == 'remaja') {
-            $nikRemaja = Remaja::pluck('nik')->filter()->unique();
-            $targetUsers = User::whereIn('nik', $nikRemaja)->pluck('id');
-        } elseif ($request->target_peserta == 'lansia') {
-            $nikLansia = Lansia::pluck('nik')->filter()->unique();
-            $targetUsers = User::whereIn('nik', $nikLansia)->pluck('id');
+            $wargaUsers = User::whereIn('nik', $nikBumil)->pluck('id');
         }
 
-        // Kader selalu menerima notifikasi agar mereka bisa bersiap di Meja 1-4
-        $kaderUsers = User::where('role', 'kader')->pluck('id');
+        $judulWarga = "Jadwal {$kategoriTeks} Baru!";
+        $pesanWarga = "Halo! Jangan lupa hadir pada agenda {$kategoriTeks} yang akan dilaksanakan pada {$tanggalFormat} di {$request->lokasi}. {$request->deskripsi}";
 
-        // Gabungkan ID tanpa duplikat
-        $allTargetIds = $targetUsers->merge($kaderUsers)->unique();
-
-        $tanggalFormat = Carbon::parse($request->tanggal)->translatedFormat('d F Y');
-        $judulNotif = "Jadwal Baru: " . $request->judul;
-        $pesanNotif = "Pemberitahuan kegiatan {$request->kategori} di {$request->lokasi} pada tanggal {$tanggalFormat}. Harap hadir tepat waktu.";
-
-        $notifData = [];
-        $now = now();
-        
-        foreach ($allTargetIds as $userId) {
+        foreach ($wargaUsers->unique() as $userId) {
             $notifData[] = [
                 'user_id'    => $userId,
-                'judul'      => $judulNotif,
-                'pesan'      => $pesanNotif,
+                'judul'      => $judulWarga,
+                'pesan'      => $pesanWarga,
                 'tipe'       => 'jadwal',
                 'is_read'    => 0,
                 'created_at' => $now,
@@ -149,12 +151,61 @@ class JadwalController extends Controller
             ];
         }
 
-        // Batch Insert (Lebih cepat dan aman untuk ratusan user)
+        // ---------------------------------------------------------
+        // 2. DISTRIBUSI KE KADER (INSTRUKSI TUGAS)
+        // ---------------------------------------------------------
+        $kaderUsers = User::where('role', 'kader')->pluck('id');
+        $judulKader = "Instruksi: Persiapan " . $request->judul;
+        $pesanKader = "Bidan telah menetapkan agenda {$kategoriTeks} pada {$tanggalFormat}. Mohon rekan-rekan Kader segera berkoordinasi untuk mempersiapkan lokasi di {$request->lokasi} beserta peralatan Meja 1 hingga 4.";
+
+        foreach ($kaderUsers as $kaderId) {
+            $notifData[] = [
+                'user_id'    => $kaderId,
+                'judul'      => $judulKader,
+                'pesan'      => $pesanKader,
+                'tipe'       => 'jadwal', // atau bisa diganti 'sistem'
+                'is_read'    => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        // ---------------------------------------------------------
+        // 3. EKSEKUSI BATCH INSERT (High Performance)
+        // ---------------------------------------------------------
         if (!empty($notifData)) {
             $chunks = array_chunk($notifData, 500);
             foreach ($chunks as $chunk) {
                 Notifikasi::insert($chunk);
             }
+        }
+    }
+
+    /**
+     * Broadcast pembatalan jadwal (Opsional tapi mematikan untuk presentasi)
+     */
+    private function kirimNotifBatal($jadwal)
+    {
+        $allUsers = collect();
+        // Tarik semua user dan kader yang relevan (Disederhanakan untuk contoh)
+        $allUsers = User::whereIn('role', ['user', 'kader'])->where('status', 'active')->pluck('id');
+        
+        $notifData = [];
+        $now = now();
+        foreach ($allUsers as $userId) {
+            $notifData[] = [
+                'user_id'    => $userId,
+                'judul'      => "Peringatan: Jadwal Dibatalkan!",
+                'pesan'      => "Mohon maaf, agenda {$jadwal->judul} pada tanggal " . Carbon::parse($jadwal->tanggal)->translatedFormat('d F Y') . " di {$jadwal->lokasi} terpaksa dibatalkan/ditunda. Tunggu informasi selanjutnya.",
+                'tipe'       => 'jadwal',
+                'is_read'    => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+        
+        if (!empty($notifData)) {
+            Notifikasi::insert($notifData);
         }
     }
 }

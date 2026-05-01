@@ -1,122 +1,193 @@
 @extends('layouts.bidan')
 
 @section('title', 'Detail Riwayat Imunisasi')
-@section('page-name', 'Sertifikat Vaksinasi')
+@section('page-name', 'Arsip Vaksinasi')
 
 @push('styles')
 <style>
-    .animate-slide-up { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .receipt-edge { background-image: radial-gradient(#f8fafc 4px, transparent 4px); background-size: 16px 16px; background-position: -8px -8px; }
+    /* ANIMASI MASUK HALUS */
+    .fade-in-up { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* TIPOGRAFI DATA (PRESISI NEXUS) */
+    .data-label { 
+        display: block; font-size: 11px; font-weight: 800; color: #64748b; 
+        text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px; 
+        font-family: 'Poppins', sans-serif;
+    }
+    .data-box {
+        width: 100%; background: #ffffff; border: 2px solid #f1f5f9; border-radius: 16px; 
+        padding: 16px 20px; color: #0f172a; font-weight: 700; font-size: 14.5px; 
+        box-shadow: 0 2px 6px rgba(15,23,42,0.02); display: flex; items-center; gap: 12px;
+    }
+    .data-box-highlight {
+        background: #f0f9ff; border-color: #bae6fd; color: #0369a1;
+    }
+
+    /* IKON SEKSI */
+    .section-icon {
+        width: 34px; height: 34px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        font-size: 14px; background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;
+    }
 </style>
 @endpush
 
 @section('content')
 @php
+    // Failsafe Tarikan Data
     $pasien = $imunisasi->kunjungan->pasien ?? null;
     $nama = $pasien->nama_lengkap ?? 'Anonim';
     $nik = $pasien->nik ?? '-';
-    $kategori = class_basename($imunisasi->kunjungan->pasien_type ?? '');
+    
+    // Konfigurasi Kategori Warga
+    $kategoriRaw = strtolower(class_basename($imunisasi->kunjungan->pasien_type ?? ''));
+    $kategoriConfig = match($kategoriRaw) {
+        'balita', 'bayi'                 => ['label' => 'Bayi & Balita', 'icon' => 'fa-baby', 'theme' => 'bg-cyan-100 text-cyan-600 border-cyan-200'],
+        'ibuhamil', 'ibu_hamil', 'bumil' => ['label' => 'Ibu Hamil', 'icon' => 'fa-female', 'theme' => 'bg-pink-100 text-pink-600 border-pink-200'],
+        default                          => ['label' => 'Umum', 'icon' => 'fa-user', 'theme' => 'bg-slate-100 text-slate-600 border-slate-200']
+    };
 @endphp
 
-<div class="max-w-3xl mx-auto animate-slide-up pb-10">
+<div class="max-w-[1050px] mx-auto fade-in-up pb-24 relative">
     
-    <div class="mb-6 flex items-center justify-between">
-        <a href="{{ route('bidan.imunisasi.index') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 font-bold text-[12px] uppercase tracking-widest rounded-xl hover:bg-slate-50 hover:text-cyan-600 transition-colors shadow-sm">
-            <i class="fas fa-arrow-left"></i> Kembali ke Register
+    {{-- NAVIGASI ATAS (KEMBAR DENGAN CREATE) --}}
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-2">
+        <div class="flex items-center gap-5">
+            <div class="w-14 h-14 rounded-[20px] bg-gradient-to-tr from-cyan-500 to-blue-600 text-white flex items-center justify-center text-2xl shadow-[0_10px_25px_rgba(6,182,212,0.35)]">
+                <i class="fas fa-file-medical"></i>
+            </div>
+            <div>
+                <h1 class="text-[26px] font-black text-slate-800 tracking-tight font-poppins leading-none">Arsip Injeksi Medis</h1>
+                <p class="text-[13px] font-semibold text-slate-500 mt-1.5">Detail rekam medis imunisasi warga terdaftar.</p>
+            </div>
+        </div>
+        <a href="{{ route('bidan.imunisasi.index') }}" class="inline-flex items-center gap-2 px-6 py-3.5 bg-white border border-slate-200 text-slate-600 font-bold text-[11.5px] uppercase tracking-widest rounded-[16px] hover:bg-slate-50 hover:text-cyan-600 transition-all shadow-sm">
+            <i class="fas fa-arrow-left text-slate-400"></i> Kembali
         </a>
-        <button onclick="window.print()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-800 border border-slate-800 text-white font-bold text-[12px] uppercase tracking-widest rounded-xl hover:bg-black transition-colors shadow-sm">
-            <i class="fas fa-print"></i> Cetak Dokumen
-        </button>
     </div>
 
-    {{-- Kertas Sertifikat / Bukti Vaksin --}}
-    <div class="bg-white rounded-[32px] shadow-[0_15px_50px_rgba(0,0,0,0.06)] border border-slate-100 overflow-hidden relative print:shadow-none print:border-none print:w-full">
+    {{-- =====================================================================
+         KONTANER UTAMA (NEXUS STANDARD)
+         ===================================================================== --}}
+    <div class="bg-white rounded-[36px] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.06)] border border-slate-100 overflow-hidden relative z-10">
         
-        <div class="p-8 md:p-10 bg-gradient-to-r from-cyan-600 to-blue-700 flex items-center justify-between gap-4 relative overflow-hidden">
-            <i class="fas fa-certificate absolute -right-10 -bottom-10 text-9xl text-white/10 rotate-12"></i>
+        {{-- HEADER KARTU ARSIP --}}
+        <div class="px-8 md:px-12 py-8 bg-slate-50/50 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden">
             <div class="flex items-center gap-5 relative z-10">
-                <div class="w-16 h-16 rounded-[20px] bg-white border border-slate-200 text-cyan-600 flex items-center justify-center text-3xl shadow-sm">
+                <div class="w-12 h-12 rounded-[14px] bg-white border border-slate-200 text-cyan-600 flex items-center justify-center text-xl shadow-sm">
                     <i class="fas fa-shield-virus"></i>
                 </div>
                 <div>
-                    <h2 class="text-2xl font-black text-white tracking-tight font-poppins">Bukti Imunisasi Medis</h2>
-                    <p class="text-[12px] font-bold text-cyan-100 mt-1 uppercase tracking-widest">ID Rekam: IMU-{{ str_pad($imunisasi->id, 5, '0', STR_PAD_LEFT) }}</p>
+                    <h2 class="text-[18px] font-black text-slate-800 tracking-tight font-poppins">Data Vaksinasi Valid</h2>
+                    <p class="text-[12px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest">ID REKAM: IMU-{{ str_pad($imunisasi->id, 5, '0', STR_PAD_LEFT) }}</p>
                 </div>
             </div>
-            <div class="hidden sm:flex relative z-10 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30 text-white items-center gap-2">
-                <i class="fas fa-check-circle"></i> <span class="text-[11px] font-black uppercase tracking-widest">Tervalidasi</span>
+            <div class="inline-flex items-center gap-3 px-5 py-3 bg-white rounded-2xl border border-slate-100 shadow-sm relative z-10">
+                <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div>
+                <span class="text-[11px] font-black text-slate-600 uppercase tracking-widest">Tervalidasi EMR</span>
             </div>
         </div>
 
-        <div class="p-8 md:p-10">
+        {{-- 1. IDENTITAS PENERIMA VAKSIN --}}
+        <div class="p-8 md:p-12 border-b border-slate-100 bg-white">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="section-icon"><i class="fas fa-id-card"></i></div>
+                <h3 class="text-[13px] font-black text-slate-800 uppercase tracking-widest font-poppins">Identitas Penerima Vaksin</h3>
+            </div>
             
-            <div class="mb-8">
-                <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <i class="fas fa-user-check text-cyan-400"></i> Identitas Penerima Vaksin
-                </h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Nama Lengkap</p>
-                        <p class="text-[16px] font-black text-slate-800 font-poppins">{{ $nama }}</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pl-0 md:pl-[50px]">
+                <div>
+                    <span class="data-label">Nama Lengkap</span>
+                    <div class="data-box">
+                        <i class="far fa-user text-slate-400"></i> {{ $nama }}
                     </div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Kategori / NIK</p>
-                        <p class="text-[14px] font-bold text-slate-700"><span class="bg-white px-2 py-0.5 rounded border border-slate-200 shadow-sm mr-2">{{ $kategori }}</span> {{ $nik }}</p>
+                </div>
+                <div>
+                    <span class="data-label">Kategori & NIK</span>
+                    <div class="data-box">
+                        <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg border {{ $kategoriConfig['theme'] }}">
+                            <i class="fas {{ $kategoriConfig['icon'] }} mr-1"></i> {{ $kategoriConfig['label'] }}
+                        </span>
+                        <span class="tracking-wide">{{ $nik }}</span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="mb-8">
-                <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <i class="fas fa-syringe text-cyan-400"></i> Rincian Tindakan Medis
-                </h3>
-                <div class="bg-white border-2 border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-                    <table class="w-full text-left text-[13px]">
-                        <tbody class="divide-y divide-slate-100">
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="py-4 px-6 font-black text-slate-500 w-2/5 bg-slate-50/50 uppercase tracking-wide text-[10px]">Program Layanan</td>
-                                <td class="py-4 px-6 font-bold text-slate-800">{{ $imunisasi->jenis_imunisasi }}</td>
-                            </tr>
-                            <tr class="hover:bg-cyan-50 transition-colors">
-                                <td class="py-4 px-6 font-black text-slate-500 bg-slate-50/50 uppercase tracking-wide text-[10px]">Vaksin Diberikan</td>
-                                <td class="py-4 px-6 font-black text-cyan-600 text-[16px] font-poppins">{{ $imunisasi->vaksin }}</td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="py-4 px-6 font-black text-slate-500 bg-slate-50/50 uppercase tracking-wide text-[10px]">Tanggal Pelaksanaan</td>
-                                <td class="py-4 px-6 font-bold text-slate-800"><i class="far fa-calendar-alt text-slate-400 mr-2"></i>{{ \Carbon\Carbon::parse($imunisasi->tanggal_imunisasi)->translatedFormat('l, d F Y') }}</td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="py-4 px-6 font-black text-slate-500 bg-slate-50/50 uppercase tracking-wide text-[10px]">Bidan Penanggung Jawab</td>
-                                <td class="py-4 px-6 font-bold text-slate-800"><i class="fas fa-user-md text-slate-400 mr-2"></i>{{ $imunisasi->kunjungan->petugas->name ?? 'Bidan Desa' }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+        {{-- 2. RINCIAN TINDAKAN MEDIS --}}
+        <div class="p-8 md:p-12 border-b border-slate-100 bg-slate-50/50">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="section-icon"><i class="fas fa-syringe"></i></div>
+                <h3 class="text-[13px] font-black text-slate-800 uppercase tracking-widest font-poppins">Rincian Tindakan Medis</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pl-0 md:pl-[50px]">
+                <div>
+                    <span class="data-label">Program Vaksinasi</span>
+                    <div class="data-box">
+                        <i class="fas fa-layer-group text-slate-400"></i> {{ $imunisasi->jenis_imunisasi }}
+                    </div>
+                </div>
+                <div>
+                    <span class="data-label">Tanggal Pelaksanaan</span>
+                    <div class="data-box">
+                        <i class="far fa-calendar-check text-slate-400"></i> {{ \Carbon\Carbon::parse($imunisasi->tanggal_imunisasi)->translatedFormat('d F Y') }}
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <span class="data-label">Jenis / Nama Vaksin Diberikan</span>
+                    <div class="data-box data-box-highlight">
+                        <i class="fas fa-vial text-cyan-500"></i> {{ $imunisasi->vaksin }}
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <span class="data-label">Bidan Penanggung Jawab</span>
+                    <div class="data-box bg-slate-50">
+                        <i class="fas fa-user-nurse text-indigo-400"></i> {{ $imunisasi->kunjungan->petugas->name ?? 'Sistem Bidan' }}
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div>
-                <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <i class="fas fa-file-medical-alt text-amber-400"></i> Observasi Klinis (KIPI)
-                </h3>
+        {{-- 3. OBSERVASI KLINIS (KIPI) --}}
+        <div class="p-8 md:p-12 bg-white">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="section-icon"><i class="fas fa-file-medical-alt"></i></div>
+                <h3 class="text-[13px] font-black text-slate-800 uppercase tracking-widest font-poppins">Observasi Klinis (KIPI)</h3>
+            </div>
+            
+            <div class="pl-0 md:pl-[50px]">
                 @php $hasKipi = !empty($imunisasi->keterangan) && $imunisasi->keterangan != '-'; @endphp
-                <div class="p-6 rounded-2xl border-2 {{ $hasKipi ? 'border-amber-200 bg-amber-50/50 text-slate-800' : 'border-emerald-100 bg-emerald-50/50 text-emerald-700' }}">
-                    <div class="flex items-start gap-4">
-                        <i class="fas {{ $hasKipi ? 'fa-exclamation-triangle text-amber-500' : 'fa-check-circle text-emerald-500' }} text-2xl mt-0.5"></i>
+                
+                <div class="p-6 md:p-8 rounded-[24px] border-2 {{ $hasKipi ? 'border-amber-200 bg-amber-50/80 text-amber-900' : 'border-emerald-100 bg-emerald-50/50 text-emerald-800' }} relative overflow-hidden shadow-sm">
+                    <i class="fas {{ $hasKipi ? 'fa-exclamation-triangle text-amber-500/10' : 'fa-check-circle text-emerald-500/10' }} absolute -right-6 -top-6 text-9xl pointer-events-none"></i>
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-start gap-6 relative z-10">
+                        <div class="w-14 h-14 rounded-full flex items-center justify-center shrink-0 {{ $hasKipi ? 'bg-amber-100 text-amber-500' : 'bg-emerald-100 text-emerald-500' }} shadow-sm">
+                            <i class="fas {{ $hasKipi ? 'fa-exclamation-triangle' : 'fa-check' }} text-2xl"></i>
+                        </div>
                         <div>
-                            <p class="text-[12px] font-black uppercase tracking-widest {{ $hasKipi ? 'text-amber-600' : 'text-emerald-600' }} mb-1">
-                                {{ $hasKipi ? 'Catatan Keluhan Pasca Imunisasi' : 'Aman Terkendali' }}
+                            <p class="text-[13px] font-black uppercase tracking-widest {{ $hasKipi ? 'text-amber-600' : 'text-emerald-600' }} mb-2 font-poppins">
+                                {{ $hasKipi ? 'Terdapat Catatan Pasca Imunisasi' : 'Aman & Terkendali' }}
                             </p>
-                            <p class="text-[14px] font-medium leading-relaxed">
-                                {{ $hasKipi ? $imunisasi->keterangan : 'Tidak ditemukan keluhan klinis (KIPI) pasca pemberian vaksin pada pasien ini.' }}
+                            <p class="text-[14.5px] font-medium leading-relaxed opacity-90">
+                                {{ $hasKipi ? $imunisasi->keterangan : 'Hasil observasi menunjukkan tidak ditemukan gejala atau keluhan klinis (KIPI) pasca penyuntikan vaksin pada pasien ini.' }}
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
-        <div class="h-4 w-full receipt-edge opacity-50"></div>
+
+        {{-- FOOTER ARSIP --}}
+        <div class="px-8 md:px-12 py-6 bg-slate-900 flex justify-center sm:justify-end shrink-0 relative z-0">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                Tercatat pada: {{ $imunisasi->created_at->translatedFormat('d M Y - H:i') }} WIB
+            </p>
+        </div>
+        
     </div>
 </div>
 @endsection
